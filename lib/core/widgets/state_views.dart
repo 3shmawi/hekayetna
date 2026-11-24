@@ -137,7 +137,7 @@ extension AppFailureMessage on AppFailure {
     ServerFailure() || UnknownFailure() => l10n.errorUnknown,
     FamilyFailure(:final reason) => switch (reason) {
       FamilyFailureReason.invalidInviteCode => l10n.familyErrorInvalidCode,
-      FamilyFailureReason.memberRemoved => l10n.familyErrorMemberRemoved,
+      FamilyFailureReason.memberRemoved => l10n.errorJoinRemoved,
       FamilyFailureReason.notOwner => l10n.familyErrorNotOwner,
       FamilyFailureReason.cannotRemoveSelf => l10n.familyErrorCannotRemoveSelf,
       FamilyFailureReason.membershipNotFound => l10n.errorNotFound,

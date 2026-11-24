@@ -1,5 +1,5 @@
 import 'package:family_stories/features/settings/presentation/settings_view.dart';
-import 'package:family_stories/features/stories/presentation/story_screens.dart';
+import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
 import 'package:family_stories/main.dart' as app;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,7 +18,7 @@ void main() {
     await skipFirstLaunch(tester);
     await beat(tester, 1500);
 
-    expect(find.byType(StoryFeedScreen), findsOneWidget);
+    expect(find.byType(StoryFeedPage), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('home_settings_button')));
     await tester.pumpAndSettle();

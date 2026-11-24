@@ -114,7 +114,6 @@
   "errorValidation": "هناك خطأ في البيانات. راجعها وحاول مرة أخرى.",
   "errorUnknown": "حصلت مشكلة. حاول تاني.",
   "familyErrorInvalidCode": "كود الدعوة ده مش صح. اتأكد منه وحاول تاني.",
-  "familyErrorMemberRemoved": "اتشلت من العيلة دي. اطلب من صاحب العيلة دعوة جديدة.",
   "familyErrorNotOwner": "صاحب العيلة بس هو اللي يقدر يعمل كده.",
   "familyErrorCannotRemoveSelf": "صاحب العيلة مينفعش يشيل نفسه.",
   "addPerson": "ضيف حد",
@@ -158,6 +157,19 @@
   "narrators": "اللي بيحكي",
   "noStoriesBody": "سجّل أول واحدة. صوت واحد يكفي عشان نبدأ.",
   "noStoriesTitle": "لسه مفيش حكايات",
+  "feedFilterAll": "الكل",
+  "feedRecentlyAdded": "أُضيفت حديثًا",
+  "feedRecordFirst": "سجّل أول حكاية",
+  "feedFiltersLabel": "تصفية الحكايات",
+  "feedDecade": "{decade}s",
+  "@feedDecade": {
+    "placeholders": {
+      "decade": {
+        "type": "String"
+      }
+    }
+  },
+  "feedNarratorFallback": "العيلة",
   "noTopic": "من غير موضوع",
   "ownerRole": "المسؤول",
   "pause": "وقفة",

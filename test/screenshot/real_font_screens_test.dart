@@ -13,7 +13,7 @@ import 'package:family_stories/features/onboarding/presentation/onboarding_page.
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
 import 'package:family_stories/features/recording/presentation/record_screen.dart';
-import 'package:family_stories/features/stories/presentation/story_screens.dart';
+import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,7 +27,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// They are not compared in CI: they are regenerated on demand and
 /// inspected by a human/agent. Output: test/screenshot/shots/*.png.
 final Map<String, Widget Function()> scenes = {
-  'stories_feed': () => const _DemoScope(child: StoryFeedScreen()),
+  'stories_feed': () => const _DemoScope(child: StoryFeedPage()),
   'sign_in': () => SignInView(
     onSubmit: (_, _, _) {},
     onForgotPassword: (_) {},

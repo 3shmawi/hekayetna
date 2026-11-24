@@ -44,6 +44,13 @@ class CurrentSpaceNotifier extends AsyncNotifier<FamilySpace?> {
   }
 }
 
+/// People of a space, for narrator names and filter chips.
+// ignore: specify_nonobvious_property_types
+final personsProvider = FutureProvider.family<List<Person>, String>(
+  (ref, spaceId) async =>
+      (await ref.watch(familyRepositoryProvider).listPersons(spaceId)).unwrap(),
+);
+
 /// Stories of the current space for one filter. Built once per filter and
 /// kept: rebuilding a widget never refetches, only [StoryFeedNotifier.refresh].
 // ignore: specify_nonobvious_property_types

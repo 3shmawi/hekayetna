@@ -5,7 +5,7 @@ import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_view.dart';
-import 'package:family_stories/features/stories/presentation/story_screens.dart';
+import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,7 +22,7 @@ void main() {
   });
 
   final scenes = <String, Widget Function()>{
-    'feed': () => const ProviderScope(child: StoryFeedScreen()),
+    'feed': () => const ProviderScope(child: StoryFeedPage()),
     'sign_in': () => SignInView(
       onSubmit: (_, _, _) {},
       onForgotPassword: (_) {},

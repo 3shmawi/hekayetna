@@ -15,7 +15,7 @@ import 'package:family_stories/features/onboarding/presentation/onboarding_page.
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
 import 'package:family_stories/features/settings/data/app_settings.dart';
 import 'package:family_stories/features/settings/presentation/settings_view.dart';
-import 'package:family_stories/features/stories/presentation/story_screens.dart';
+import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,7 +35,7 @@ import '../helpers/pump_app.dart';
 /// and commit the new PNGs in `test/golden/goldens/`. Add a screen to
 /// [screens] when you add one to the app.
 final Map<String, Widget Function()> screens = {
-  'home': () => const _DemoScope(child: StoryFeedScreen()),
+  'home': () => const _DemoScope(child: StoryFeedPage()),
   'settings': () => SettingsView(
     settings: const AppSettings(),
     onLocaleChanged: (_) {},
@@ -100,7 +100,7 @@ class _SheetHostState extends State<_SheetHost> {
 
   @override
   Widget build(BuildContext context) =>
-      const _DemoScope(child: StoryFeedScreen());
+      const _DemoScope(child: StoryFeedPage());
 }
 
 void main() {

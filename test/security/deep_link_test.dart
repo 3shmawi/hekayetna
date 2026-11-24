@@ -9,7 +9,7 @@ import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/auth/presentation/account_page.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart';
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
-import 'package:family_stories/features/stories/presentation/story_screens.dart';
+import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -103,7 +103,7 @@ void main() {
           Uri(path: '/sign-in', queryParameters: {'from': from}).toString(),
         );
         await tester.pumpAndSettle();
-        expect(find.byType(StoryFeedScreen), findsOneWidget, reason: from);
+        expect(find.byType(StoryFeedPage), findsOneWidget, reason: from);
       }
     });
   });

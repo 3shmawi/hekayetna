@@ -154,7 +154,6 @@
   "errorValidation": "Something in the data isn't right. Please check and try again.",
   "errorUnknown": "Something went wrong. Please try again.",
   "familyErrorInvalidCode": "That invite code isn't right. Check it and try again.",
-  "familyErrorMemberRemoved": "You were removed from this family. Ask the owner for a new invitation.",
   "familyErrorNotOwner": "Only the owner of the family can do this.",
   "familyErrorCannotRemoveSelf": "The owner can't remove themselves.",
   "addPerson": "Add a person",
@@ -198,6 +197,19 @@
   "narrators": "Narrated by",
   "noStoriesBody": "Record the first one. One voice is enough to begin.",
   "noStoriesTitle": "No stories yet",
+  "feedFilterAll": "All",
+  "feedRecentlyAdded": "Recently added",
+  "feedRecordFirst": "Record the first story",
+  "feedFiltersLabel": "Filter stories",
+  "feedDecade": "{decade}s",
+  "@feedDecade": {
+    "placeholders": {
+      "decade": {
+        "type": "String"
+      }
+    }
+  },
+  "feedNarratorFallback": "Family",
   "noTopic": "No topic",
   "ownerRole": "Owner",
   "pause": "Pause",

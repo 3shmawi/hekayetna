@@ -1,4 +1,4 @@
-import 'package:family_stories/features/stories/presentation/story_screens.dart';
+import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
 import 'package:flutter/widgets.dart';
 
 /// The screens shown in the store screenshots, by name. Each one is built
@@ -9,5 +9,5 @@ import 'package:flutter/widgets.dart';
 /// Only list screens of features that are live for every user in prod
 /// (check the feature flags): store images must show the real app.
 final Map<String, Widget Function()> storeScreens = {
-  'home': () => const StoryFeedScreen(),
+  'home': () => const StoryFeedPage(),
 };
