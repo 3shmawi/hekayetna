@@ -21,7 +21,7 @@ class EmptyView extends StatelessWidget {
     this.title,
     this.actionLabel,
     this.onAction,
-    this.icon = Icons.inbox_outlined,
+    this.icon,
     super.key,
   });
 
@@ -32,12 +32,12 @@ class EmptyView extends StatelessWidget {
   final String message;
   final String? actionLabel;
   final VoidCallback? onAction;
-  final IconData icon;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     return _CenteredMessage(
-      icon: icon,
+      icon: icon ?? AdaptiveIcons.empty(context),
       title: title,
       message: message,
       tint: Theme.of(context).colorScheme.primaryContainer,
@@ -58,8 +58,8 @@ class ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return _CenteredMessage(
       icon: failure is NetworkFailure
-          ? Icons.wifi_off_outlined
-          : Icons.error_outline,
+          ? AdaptiveIcons.offline(context)
+          : AdaptiveIcons.problem(context),
       message: failure.message(context.l10n),
       tint: Theme.of(context).colorScheme.errorContainer,
       action: onRetry == null
