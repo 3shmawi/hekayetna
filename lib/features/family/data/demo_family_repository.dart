@@ -1,3 +1,4 @@
+import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/family/data/family_repository.dart';
 import 'package:family_stories/features/family/data/models.dart';
@@ -133,7 +134,7 @@ class DemoFamilyRepository implements FamilyRepository {
 
   Future<FamilySpace> _joinSpace(String inviteCode) async {
     if (inviteCode.trim().isEmpty) {
-      throw const FamilyException('invalid_invite_code');
+      throw const FamilyFailure(FamilyFailureReason.invalidInviteCode);
     }
     return _space;
   }
@@ -178,7 +179,7 @@ class DemoFamilyRepository implements FamilyRepository {
 
   Future<Person> _updatePerson(Person person) async {
     final i = _persons.indexWhere((p) => p.id == person.id);
-    if (i < 0) throw const FamilyException('not_found');
+    if (i < 0) throw const NotFoundFailure();
     _persons[i] = person;
     return person;
   }
@@ -204,7 +205,7 @@ class DemoFamilyRepository implements FamilyRepository {
 
   Future<void> _confirmRelationship(String relationshipId) async {
     final i = _relationships.indexWhere((r) => r.id == relationshipId);
-    if (i < 0) throw const FamilyException('not_found');
+    if (i < 0) throw const NotFoundFailure();
     final r = _relationships[i];
     _relationships[i] = Relationship(
       id: r.id,
