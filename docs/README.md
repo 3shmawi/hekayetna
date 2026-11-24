@@ -19,3 +19,4 @@ Start with [`../CLAUDE.md`](../CLAUDE.md) (rules + stack), then:
 - [Usage-data consent](features/consent.md)
 - [Sign-in and account](features/auth.md)
 - [Onboarding](features/onboarding.md)
+- [Recording that survives anything](features/recording.md)
