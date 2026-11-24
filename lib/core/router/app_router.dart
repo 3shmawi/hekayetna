@@ -1,11 +1,9 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/monitoring/monitoring.dart';
 import 'package:family_stories/core/router/app_redirect.dart';
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/router/not_found_page.dart';
-import 'package:family_stories/core/theme/app_dimens.dart';
+import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/auth/presentation/account_page.dart';
 import 'package:family_stories/features/auth/presentation/new_password_page.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart';
@@ -15,7 +13,6 @@ import 'package:family_stories/features/recording/presentation/preview_screen.da
 import 'package:family_stories/features/recording/presentation/record_screen.dart';
 import 'package:family_stories/features/settings/presentation/settings_page.dart';
 import 'package:family_stories/features/stories/presentation/story_screens.dart';
-import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -145,41 +142,14 @@ class HomeShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final s = context.l10n;
     return Scaffold(
       body: shell,
-      // Subtle glass: the bar blurs whatever scrolls under it. Reading
-      // surfaces themselves stay solid, per the approved design.
-      bottomNavigationBar: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: AppDimens.glassBlur,
-            sigmaY: AppDimens.glassBlur,
-          ),
-          child: NavigationBar(
-            backgroundColor: Theme.of(
-              context,
-            ).colorScheme.surface.withValues(alpha: AppDimens.glassOpacity),
-            elevation: 0,
-            selectedIndex: shell.currentIndex,
-            onDestinationSelected: (i) =>
-                shell.goBranch(i, initialLocation: i == shell.currentIndex),
-            destinations: [
-              NavigationDestination(
-                icon: const Icon(Icons.graphic_eq),
-                label: s.stories,
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.mic),
-                label: s.record,
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.people_alt_outlined),
-                label: s.family,
-              ),
-            ],
-          ),
-        ),
+      // AppTabBar (design foundation): frosted bar, raised terracotta
+      // record circle. Tapping the current tab pops to its root.
+      bottomNavigationBar: AppTabBar(
+        currentIndex: shell.currentIndex,
+        onTap: (i) =>
+            shell.goBranch(i, initialLocation: i == shell.currentIndex),
       ),
     );
   }
