@@ -213,5 +213,15 @@
   "welcomeTitle": "أهلاً بيك في حكايات العيلة",
   "whoCanHear": "مين يقدر يسمع دي؟",
   "whoCanSee": "مين يقدر يشوف الصورة دي؟",
-  "continueLabel": "كمّل"
+  "continueLabel": "كمّل",
+  "recordStart": "ابدأ التسجيل",
+  "recordPause": "أوقف التسجيل مؤقتًا",
+  "recordResume": "كمّل التسجيل",
+  "recordingStatus": "جاري التسجيل",
+  "recordingPausedStatus": "متوقف مؤقتًا",
+  "visibilityOnlyMe": "أنا بس",
+  "visibilitySelectedPeople": "ناس مختارة",
+  "visibilityWholeFamily": "العيلة كلها",
+  "storyPlay": "شغّل الحكاية",
+  "storyOpen": "افتح الحكاية"
 }

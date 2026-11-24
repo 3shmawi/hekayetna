@@ -18,16 +18,33 @@ class LoadingView extends StatelessWidget {
 class EmptyView extends StatelessWidget {
   const EmptyView({
     required this.message,
+    this.title,
+    this.actionLabel,
+    this.onAction,
     this.icon = Icons.inbox_outlined,
     super.key,
   });
 
+  /// One short line above the suggestion.
+  final String? title;
+
+  /// One sentence that suggests what to do (with a real example).
   final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
   final IconData icon;
 
   @override
   Widget build(BuildContext context) {
-    return _CenteredMessage(icon: icon, message: message);
+    return _CenteredMessage(
+      icon: icon,
+      title: title,
+      message: message,
+      tint: Theme.of(context).colorScheme.primaryContainer,
+      action: actionLabel == null
+          ? null
+          : AdaptiveButton(onPressed: onAction, child: Text(actionLabel!)),
+    );
   }
 }
 
@@ -44,6 +61,7 @@ class ErrorView extends StatelessWidget {
           ? Icons.wifi_off_outlined
           : Icons.error_outline,
       message: failure.message(context.l10n),
+      tint: Theme.of(context).colorScheme.errorContainer,
       action: onRetry == null
           ? null
           : AdaptiveButton(onPressed: onRetry, child: Text(context.l10n.retry)),
@@ -55,11 +73,17 @@ class _CenteredMessage extends StatelessWidget {
   const _CenteredMessage({
     required this.icon,
     required this.message,
+    required this.tint,
+    this.title,
     this.action,
   });
 
   final IconData icon;
+  final String? title;
   final String message;
+
+  /// The icon sits on a tint circle (olive for empty, error for failure).
+  final Color tint;
   final Widget? action;
 
   @override
@@ -71,11 +95,26 @@ class _CenteredMessage extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: AppDimens.iconMd * 2, color: scheme.outline),
+            Container(
+              width: AppDimens.playButton,
+              height: AppDimens.playButton,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: tint),
+              child: Icon(icon, size: AppDimens.iconMd * 1.5),
+            ),
             SizedBox(height: AppDimens.lg),
+            if (title != null) ...[
+              Text(
+                title!,
+                style: AppTextStyles.title,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: AppDimens.sm),
+            ],
             Text(
               message,
-              style: AppTextStyles.body,
+              style: AppTextStyles.body.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             if (action != null) ...[SizedBox(height: AppDimens.xl), action!],

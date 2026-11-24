@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -50,3 +53,20 @@ extension AccessibilityChecks on WidgetTester {
 
 /// English strings, for finders: `find.text(l10nEn.settingsTitle)`.
 final AppLocalizations l10nEn = lookupAppLocalizations(const Locale('en'));
+
+/// Real glyphs instead of the test font: every font in the app's font
+/// manifest (the app's fonts, Material and Cupertino icons). Golden tests
+/// call this in setUp so typography, Arabic shaping and icons are visible.
+Future<void> loadAppFonts() async {
+  final manifest =
+      jsonDecode(await rootBundle.loadString('FontManifest.json'))
+          as List<dynamic>;
+  for (final entry in manifest.cast<Map<String, dynamic>>()) {
+    final loader = FontLoader(entry['family'] as String);
+    for (final font
+        in (entry['fonts'] as List<dynamic>).cast<Map<String, dynamic>>()) {
+      loader.addFont(rootBundle.load(font['asset'] as String));
+    }
+    await loader.load();
+  }
+}
