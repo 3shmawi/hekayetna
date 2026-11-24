@@ -99,9 +99,9 @@ void main() {
   });
 
   test('env/example.json holds no values except public hosts', () {
-    final example =
-        jsonDecode(File('env/example.json').readAsStringSync())
-            as Map<String, dynamic>;
+    final example = jsonDecode(
+      File('env/example.json').readAsStringSync(),
+    ) as Map<String, dynamic>;
     final filled = example.entries.where(
       (e) => e.value is String && (e.value as String).isNotEmpty,
     );
