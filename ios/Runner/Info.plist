@@ -53,6 +53,12 @@
 		<false/>
 		<key>ITSAppUsesNonExemptEncryption</key>
 		<false/>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Hekayetna records your family's stories with the microphone, including while the screen is locked, so that no story is lost.</string>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>audio</string>
+		</array>
 		<key>CFBundleLocalizations</key>
 		<array>
 			<string>en</string>

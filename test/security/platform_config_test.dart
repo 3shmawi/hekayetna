@@ -66,6 +66,27 @@ void main() {
       expect(project, contains('PrivacyInfo.xcprivacy in Resources'));
     });
 
+    test('records in the background with a clear microphone reason', () {
+      expect(
+        RegExp(
+          r'<key>UIBackgroundModes</key>\s*<array>\s*<string>audio</string>'
+          r'\s*</array>',
+        ).hasMatch(plist),
+        isTrue,
+      );
+      expect(plist, contains('<key>NSMicrophoneUsageDescription</key>'));
+      for (final lang in ['en', 'ar']) {
+        final strings = File(
+          'ios/Runner/$lang.lproj/InfoPlist.strings',
+        ).readAsStringSync();
+        expect(strings, contains('NSMicrophoneUsageDescription'));
+      }
+      final project = File(
+        'ios/Runner.xcodeproj/project.pbxproj',
+      ).readAsStringSync();
+      expect(project, contains('InfoPlist.strings in Resources'));
+    });
+
     test('declares English and Arabic', () {
       expect(
         RegExp(
