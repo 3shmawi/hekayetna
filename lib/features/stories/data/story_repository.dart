@@ -1,6 +1,8 @@
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/stories/data/models.dart';
+import 'package:flutter/foundation.dart';
 
+@immutable
 class StoryFilter {
   const StoryFilter({
     this.narratorId,
@@ -14,6 +16,19 @@ class StoryFilter {
   final String? personId;
   final int? yearFrom;
   final int? yearTo;
+
+  @override
+  bool operator ==(Object other) =>
+      other is StoryFilter &&
+      other.narratorId == narratorId &&
+      other.topic == topic &&
+      other.personId == personId &&
+      other.yearFrom == yearFrom &&
+      other.yearTo == yearTo;
+
+  @override
+  int get hashCode =>
+      Object.hash(narratorId, topic, personId, yearFrom, yearTo);
 }
 
 abstract class StoryRepository {
