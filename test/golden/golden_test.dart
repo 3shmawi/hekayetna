@@ -23,6 +23,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../helpers/pump_app.dart';
+
 /// Every main screen in light and dark, left-to-right (English) and
 /// right-to-left (Arabic), on the 375×812 design frame. A change that
 /// moves, recolours or mirrors something shows up as a failing golden:
@@ -102,7 +104,8 @@ class _SheetHostState extends State<_SheetHost> {
 }
 
 void main() {
-  setUp(() {
+  setUp(() async {
+    await loadAppFonts();
     PackageInfo.setMockInitialValues(
       appName: 'app',
       packageName: 'com.example.app',

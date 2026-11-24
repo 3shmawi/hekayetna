@@ -137,20 +137,18 @@ class _SignInViewState extends State<SignInView> {
             Text(notice, key: const Key('sign_in_notice')),
           ],
           SizedBox(height: AppDimens.xl),
-          AdaptiveButton(
+          AppButton.primary(
             key: const Key('sign_in_submit'),
+            label: signUp ? l10n.authSignUpButton : l10n.authSignInButton,
             onPressed: enabled ? _submit : null,
-            child: widget.busy
-                ? SizedBox.square(
-                    dimension: AppDimens.iconMd,
-                    child: const CircularProgressIndicator.adaptive(),
-                  )
-                : Text(signUp ? l10n.authSignUpButton : l10n.authSignInButton),
+            busy: widget.busy,
           ),
           if (!signUp) ...[
             SizedBox(height: AppDimens.sm),
-            OutlinedButton.icon(
+            AppButton.secondary(
               key: const Key('sign_in_send_link'),
+              label: l10n.authSendLink,
+              icon: AdaptiveIcons.mail(context),
               onPressed: enabled
                   ? () {
                       if (_validEmail()) {
@@ -158,32 +156,35 @@ class _SignInViewState extends State<SignInView> {
                       }
                     }
                   : null,
-              icon: const Icon(Icons.mail_outline),
-              label: Text(l10n.authSendLink),
             ),
           ],
           if (!signUp)
-            TextButton(
-              key: const Key('sign_in_forgot'),
-              onPressed: enabled
-                  ? () {
-                      if (_validEmail()) {
-                        widget.onForgotPassword(_email.text.trim());
+            Center(
+              child: AppButton.secondary(
+                key: const Key('sign_in_forgot'),
+                label: l10n.authForgotPassword,
+                expand: false,
+                onPressed: enabled
+                    ? () {
+                        if (_validEmail()) {
+                          widget.onForgotPassword(_email.text.trim());
+                        }
                       }
-                    }
-                  : null,
-              child: Text(l10n.authForgotPassword),
+                    : null,
+              ),
             ),
-          TextButton(
-            key: const Key('sign_in_switch_mode'),
-            onPressed: enabled
-                ? () => setState(
-                    () =>
-                        _mode = signUp ? SignInMode.signIn : SignInMode.signUp,
-                  )
-                : null,
-            child: Text(
-              signUp ? l10n.authSwitchToSignIn : l10n.authSwitchToSignUp,
+          Center(
+            child: AppButton.secondary(
+              key: const Key('sign_in_switch_mode'),
+              label: signUp ? l10n.authSwitchToSignIn : l10n.authSwitchToSignUp,
+              expand: false,
+              onPressed: enabled
+                  ? () => setState(
+                      () => _mode = signUp
+                          ? SignInMode.signIn
+                          : SignInMode.signUp,
+                    )
+                  : null,
             ),
           ),
           if (widget.onApple != null || widget.onGoogle != null) ...[
@@ -201,18 +202,18 @@ class _SignInViewState extends State<SignInView> {
               ),
             ),
             if (widget.onApple case final onApple?)
-              OutlinedButton.icon(
+              AppButton.secondary(
                 key: const Key('sign_in_apple'),
+                label: l10n.authContinueWithApple,
+                icon: AdaptiveIcons.apple,
                 onPressed: enabled ? onApple : null,
-                icon: const Icon(AdaptiveIcons.apple),
-                label: Text(l10n.authContinueWithApple),
               ),
             if (widget.onGoogle case final onGoogle?) ...[
               SizedBox(height: AppDimens.sm),
-              OutlinedButton(
+              AppButton.secondary(
                 key: const Key('sign_in_google'),
+                label: l10n.authContinueWithGoogle,
                 onPressed: enabled ? onGoogle : null,
-                child: Text(l10n.authContinueWithGoogle),
               ),
             ],
           ],
