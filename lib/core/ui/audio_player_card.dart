@@ -1,6 +1,7 @@
 import 'package:family_stories/core/adaptive/adaptive.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
+import 'package:family_stories/l10n/l10n.dart';
 
 import 'package:flutter/material.dart';
 
@@ -58,6 +59,7 @@ class AudioPlayerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final s = context.l10n;
     final progress = _progress;
     return Semantics(
       container: true,
@@ -89,6 +91,7 @@ class AudioPlayerCard extends StatelessWidget {
               children: [
                 IconButton.filled(
                   onPressed: onToggle,
+                  tooltip: isPlaying ? s.storyPause : s.storyPlay,
                   iconSize: AppDimens.playButton / 2,
                   constraints: BoxConstraints.tightFor(
                     width: AppDimens.playButton,

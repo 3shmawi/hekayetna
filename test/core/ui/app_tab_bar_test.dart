@@ -64,4 +64,10 @@ void main() {
     );
     expect(semantics.flagsCollection.isSelected, Tristate.isTrue);
   });
+  testWidgets('accessibility (tester.expectAccessible)', (tester) async {
+    await tester.pumpApp(
+      Scaffold(bottomNavigationBar: AppTabBar(currentIndex: 0, onTap: (_) {})),
+    );
+    await tester.expectAccessible();
+  });
 }
