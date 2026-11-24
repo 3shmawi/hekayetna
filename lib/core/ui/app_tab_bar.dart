@@ -8,9 +8,12 @@ import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 
 /// The three main tabs (artboard Main): Stories · [Record] · Family. The
-/// centre item is a 64px terracotta circle raised 28px above the bar with
-/// a 4px sand ring. The bar is frosted (blur 18, surface at 82%) with a
-/// hairline top border, safe-area aware. Labels are 12/16 w600.
+/// centre item is a 64px terracotta circle with a mic icon inside a 4px
+/// sand ring (72px total). It carries the design system's `shadow-record`
+/// and floats with its bottom flush with the bar's content bottom, so its
+/// top crosses the bar's hairline, exactly as drawn on artboard Main. The
+/// bar is frosted (blur 18, surface at 82%) with a hairline top border,
+/// safe-area aware. Labels are 12/16 w600.
 class AppTabBar extends StatelessWidget {
   const AppTabBar({required this.currentIndex, required this.onTap, super.key});
 
@@ -24,54 +27,67 @@ class AppTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.l10n;
     final scheme = Theme.of(context).colorScheme;
+    final bottomPad = MediaQuery.paddingOf(context).bottom;
     final items = [
       (AdaptiveIcons.stories(context), s.stories, s.stories),
       (AdaptiveIcons.record(context), s.record, s.recordAStory),
       (AdaptiveIcons.family(context), s.family, s.family),
     ];
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: AppDimens.glassBlur,
-          sigmaY: AppDimens.glassBlur,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: scheme.surface.withValues(alpha: AppDimens.glassOpacity),
-            border: Border(
-              top: BorderSide(color: scheme.outlineVariant, width: 0.5),
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.bottomCenter,
+      children: [
+        ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: AppDimens.glassBlur,
+              sigmaY: AppDimens.glassBlur,
             ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: SizedBox(
-              // Bar height + the room the raised record circle needs.
-              height: 64 + 28,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  for (var i = 0; i < items.length; i++)
-                    Expanded(
-                      child: i == 1
-                          ? _RecordTab(
-                              icon: items[i].$1,
-                              semanticsLabel: items[i].$3,
-                              onTap: () => onTap(i),
-                            )
-                          : _Tab(
-                              icon: items[i].$1,
-                              label: items[i].$2,
-                              semanticsLabel: items[i].$3,
-                              selected: currentIndex == i,
-                              onTap: () => onTap(i),
-                            ),
-                    ),
-                ],
+            child: Container(
+              decoration: BoxDecoration(
+                color: scheme.surface.withValues(alpha: AppDimens.glassOpacity),
+                border: Border(
+                  top: BorderSide(color: scheme.outlineVariant, width: 0.5),
+                ),
+              ),
+              padding: EdgeInsets.only(bottom: bottomPad),
+              child: SizedBox(
+                height: 64,
+                child: Row(
+                  children: [
+                    for (var i = 0; i < items.length; i++)
+                      Expanded(
+                        child: i == 1
+                            // The centre cell stays empty: the record circle
+                            // floats above it (and above the hairline).
+                            ? const SizedBox()
+                            : _Tab(
+                                icon: items[i].$1,
+                                label: items[i].$2,
+                                semanticsLabel: items[i].$3,
+                                selected: currentIndex == i,
+                                onTap: () => onTap(i),
+                              ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: bottomPad,
+          child: Center(
+            child: _RecordTab(
+              icon: items[1].$1,
+              semanticsLabel: items[1].$3,
+              onTap: () => onTap(1),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -143,26 +159,20 @@ class _RecordTab extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
-        child: SizedBox(
-          height: 64 + 28,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                margin: const EdgeInsets.only(bottom: 6),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: hk.record,
-                  border: Border.all(color: hk.sand, width: 4),
-                ),
-                child: Icon(icon, size: 28, color: hk.onRecord),
-              ),
-              // No visible label under the circle (artboard Main); the
-              // spacer keeps the circle's raised position identical.
-              const SizedBox(height: 22),
-            ],
+        child: Container(
+          width: 72,
+          height: 72,
+          // The 4px sand ring sits outside the 64px terracotta circle, as
+          // drawn on artboard Main; `shadow-record` goes under the button.
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: hk.sand,
+            boxShadow: AppTheme.recordShadow,
+          ),
+          child: Container(
+            decoration: BoxDecoration(shape: BoxShape.circle, color: hk.record),
+            child: Icon(icon, size: 28, color: hk.onRecord),
           ),
         ),
       ),

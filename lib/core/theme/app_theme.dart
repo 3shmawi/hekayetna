@@ -46,6 +46,13 @@ abstract final class AppTheme {
     errorContainer: Color(0xFF3C1B19),
   );
 
+  /// Design-system `shadow-record` (0 10px 30px, terracotta at 35%): under
+  /// the record button only. The token is single-valued, so both themes use
+  /// it as specified.
+  static const List<BoxShadow> recordShadow = [
+    BoxShadow(color: Color(0x599C4A21), blurRadius: 30, offset: Offset(0, 10)),
+  ];
+
   /// Cards carry a shadow in the light theme only; the dark theme steps
   /// surfaces instead.
   static List<BoxShadow> cardShadow(Brightness brightness) =>

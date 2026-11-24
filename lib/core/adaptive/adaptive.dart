@@ -140,7 +140,7 @@ abstract final class AdaptiveIcons {
 
   /// The centre tab and recording: the mic.
   static IconData record(BuildContext context) =>
-      context.isCupertino ? CupertinoIcons.mic_fill : Icons.mic_none;
+      context.isCupertino ? CupertinoIcons.mic : Icons.mic_none;
 
   /// Playback. Play mirrors in RTL (it points in the reading direction);
   /// pause is symmetric and doesn't.
@@ -167,9 +167,8 @@ abstract final class AdaptiveIcons {
       context.isCupertino ? CupertinoIcons.waveform : Icons.graphic_eq;
 
   /// The family tab.
-  static IconData family(BuildContext context) => context.isCupertino
-      ? CupertinoIcons.person_2_fill
-      : Icons.people_alt_outlined;
+  static IconData family(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.person_2 : Icons.people_alt_outlined;
 
   static IconData search(BuildContext context) =>
       context.isCupertino ? CupertinoIcons.search : Icons.search;

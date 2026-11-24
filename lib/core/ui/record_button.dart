@@ -93,15 +93,8 @@ class _RecordButtonState extends State<RecordButton>
                   border: widget.state == RecordButtonState.paused
                       ? Border.all(color: hk.record, width: 2)
                       : null,
-                  boxShadow: recording
-                      ? [
-                          BoxShadow(
-                            color: hk.record.withValues(alpha: 0.35),
-                            blurRadius: 24,
-                            offset: const Offset(0, 8),
-                          ),
-                        ]
-                      : null,
+                  // The design system's `shadow-record` token, verbatim.
+                  boxShadow: recording ? AppTheme.recordShadow : null,
                 ),
                 child: Icon(
                   switch (widget.state) {
