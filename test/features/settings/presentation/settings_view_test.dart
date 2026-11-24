@@ -1,3 +1,5 @@
+import 'dart:ui' show Tristate;
+
 import 'package:family_stories/features/settings/data/app_settings.dart';
 import 'package:family_stories/features/settings/presentation/settings_view.dart';
 import 'package:flutter/material.dart';
@@ -119,10 +121,12 @@ void main() {
       await tester.tap(find.byKey(const Key('settings_theme')));
       await tester.pumpAndSettle();
 
-      bool selected(int i) => tester
-          .getSemantics(find.byKey(Key('settings_choice_$i')))
-          .flagsCollection
-          .isSelected;
+      bool selected(int i) =>
+          tester
+              .getSemantics(find.byKey(Key('settings_choice_$i')))
+              .flagsCollection
+              .isSelected ==
+          Tristate.isTrue;
       expect(selected(1), isTrue);
       expect(selected(2), isFalse);
     });
