@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:family_stories/features/recording/data/draft_recovery.dart';
 import 'package:family_stories/features/recording/data/file_draft_store.dart';
+import 'package:family_stories/features/recording/data/segment_joiner.dart';
 import 'package:family_stories/features/recording/data/wav_repair.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -142,5 +143,34 @@ void main() {
     );
     expect(await DraftRecovery(store).run(), isEmpty);
     expect((await store.get('d1'))!.status, DraftStatus.finished);
+  });
+
+  test('AC-8: joiner writes one valid WAV, size = sum of segment audio + '
+      'one header', () async {
+    final a = await segment('a', wav(3000));
+    final b = await segment('b', wav(2000));
+    final gone = '${dir.path}/gone.wav';
+    final out = await SegmentJoiner.join([
+      DraftSegment(path: a, durationMs: 3000, closed: true),
+      DraftSegment(path: gone, durationMs: 0),
+      DraftSegment(path: b, durationMs: 2000, closed: true),
+    ], '${dir.path}/d1/story.wav');
+    final bytes = File(out).lengthSync();
+    expect(bytes, File(a).lengthSync() + File(b).lengthSync() - 44);
+    final info = await WavRepair.repair(File(out));
+    expect(info!.repaired, isFalse); // header already correct
+    expect(info.durationMs, 5000);
+    expect(File('$out.tmp').existsSync(), isFalse);
+  });
+
+  test('joiner refuses to produce an empty file', () async {
+    final empty = await segment('e', wav(0, cut: true));
+    await expectLater(
+      SegmentJoiner.join([
+        DraftSegment(path: empty, durationMs: 0),
+      ], '${dir.path}/story.wav'),
+      throwsA(isA<FileSystemException>()),
+    );
+    expect(File('${dir.path}/story.wav').existsSync(), isFalse);
   });
 }

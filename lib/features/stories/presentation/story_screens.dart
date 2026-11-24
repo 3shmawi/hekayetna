@@ -6,6 +6,7 @@ import 'package:family_stories/core/ids.dart';
 import 'package:family_stories/core/theme/app_colors.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/photos/data/models.dart';
+import 'package:family_stories/features/recording/data/segment_joiner.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/features/stories/data/story_repository.dart';
 import 'package:family_stories/features/stories/domain/story_topics.dart';
@@ -998,6 +999,18 @@ class _StoryEditScreenState extends ConsumerState<StoryEditScreen> {
     );
   }
 
+  /// One file for the whole take: segments are joined next to them. A
+  /// legacy single-file draft (pre spec 02, .m4a) is uploaded as is.
+  Future<String> _joinTake(StoryDraft draft) async {
+    final first = draft.segments.isEmpty ? '' : draft.segments.first.path;
+    if (draft.segments.length == 1 && !first.endsWith('.wav')) return first;
+    final joined = await SegmentJoiner.join(
+      draft.segments,
+      '${File(first).parent.path}/story.wav',
+    );
+    return joined;
+  }
+
   Future<void> _save(StoryDraft? draft) async {
     if (_title.text.trim().isEmpty || draft == null) return;
     setState(() => _busy = true);
@@ -1010,10 +1023,10 @@ class _StoryEditScreenState extends ConsumerState<StoryEditScreen> {
       if (uid == null) throw StateError('no session');
       // Path is namespaced by uploader: the storage insert policy rejects any
       // write outside your own prefix, so no member can occupy another's path.
-      final storagePath = '${space.id}/$uid/$storyId/a.m4a';
-      await ref
-          .read(storyRepositoryProvider)
-          .uploadAudio(draft.filePath, storagePath);
+      final joined = await _joinTake(draft);
+      final ext = joined.endsWith('.wav') ? 'wav' : 'm4a';
+      final storagePath = '${space.id}/$uid/$storyId/a.$ext';
+      await ref.read(storyRepositoryProvider).uploadAudio(joined, storagePath);
       final story = Story(
         id: storyId,
         spaceId: space.id,

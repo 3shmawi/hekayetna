@@ -7,7 +7,9 @@ import 'package:family_stories/features/recording/data/memory_draft_store.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
 import 'package:family_stories/features/recording/data/segment_recorder.dart';
 import 'package:family_stories/features/recording/data/segmented_recorder_service.dart';
+import 'package:family_stories/features/recording/data/storage_space.dart';
 import 'package:family_stories/features/stories/data/models.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakeSegmentRecorder implements SegmentRecorder {
@@ -50,6 +52,7 @@ class FakeSegmentRecorder implements SegmentRecorder {
 
 void main() {
   interruptionTests();
+  storageSpaceTests();
   group('AC-1: the draft is indexed before the first second of audio', () {
     late Directory dir;
     late FileDraftStore store;
@@ -355,6 +358,34 @@ void interruptionTests() {
         expect(service.state.status, RecorderStatus.paused);
         expect(service.state.pauseReason, PauseReason.storage);
       });
+    });
+  });
+}
+
+void storageSpaceTests() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  group('StorageSpace', () {
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    tearDown(
+      () => messenger.setMockMethodCallHandler(StorageSpace.channel, null),
+    );
+
+    test('returns the native free-byte count', () async {
+      messenger.setMockMethodCallHandler(
+        StorageSpace.channel,
+        (call) async => call.method == 'freeBytes' ? 123456 : null,
+      );
+      expect(await StorageSpace.freeBytes(), 123456);
+    });
+
+    test('unknown (null) when the platform has no handler or fails', () async {
+      expect(await StorageSpace.freeBytes(), isNull);
+      messenger.setMockMethodCallHandler(
+        StorageSpace.channel,
+        (_) async => throw PlatformException(code: 'unavailable'),
+      );
+      expect(await StorageSpace.freeBytes(), isNull);
     });
   });
 }

@@ -10,6 +10,7 @@ import 'package:family_stories/features/recording/data/draft_store.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
 import 'package:family_stories/features/recording/data/segment_recorder.dart';
 import 'package:family_stories/features/recording/data/segmented_recorder_service.dart';
+import 'package:family_stories/features/recording/data/storage_space.dart';
 import 'package:family_stories/features/stories/data/demo_story_repository.dart';
 import 'package:family_stories/features/stories/data/story_repository.dart';
 import 'package:family_stories/features/stories/data/supabase_story_repository.dart';
@@ -50,6 +51,7 @@ final recorderServiceProvider = Provider<RecorderService>((ref) {
   final service = SegmentedRecorderService(
     draftStore: ref.watch(draftStoreProvider),
     recorder: RecordSegmentRecorder(),
+    freeBytes: StorageSpace.freeBytes,
   );
   ref.onDispose(service.dispose);
   return service;
