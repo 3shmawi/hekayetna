@@ -91,7 +91,7 @@ class _SignInViewState extends State<SignInView> {
     return AppScaffold(
       title: signUp ? l10n.authSignUpTitle : l10n.authSignInTitle,
       body: ListView(
-        padding: EdgeInsets.all(AppDimens.lg),
+        padding: EdgeInsets.all(AppDimens.xl),
         children: [
           TextField(
             key: const Key('sign_in_email'),
@@ -107,7 +107,7 @@ class _SignInViewState extends State<SignInView> {
               counterText: '',
             ),
           ),
-          SizedBox(height: AppDimens.md),
+          SizedBox(height: AppDimens.lg),
           TextField(
             key: const Key('sign_in_password'),
             controller: _password,
@@ -125,7 +125,7 @@ class _SignInViewState extends State<SignInView> {
             ),
           ),
           if (widget.error case final error? when error.isNotEmpty) ...[
-            SizedBox(height: AppDimens.md),
+            SizedBox(height: AppDimens.lg),
             Text(
               error,
               key: const Key('sign_in_error'),
@@ -133,10 +133,10 @@ class _SignInViewState extends State<SignInView> {
             ),
           ],
           if (widget.notice case final notice?) ...[
-            SizedBox(height: AppDimens.md),
+            SizedBox(height: AppDimens.lg),
             Text(notice, key: const Key('sign_in_notice')),
           ],
-          SizedBox(height: AppDimens.lg),
+          SizedBox(height: AppDimens.xl),
           AdaptiveButton(
             key: const Key('sign_in_submit'),
             onPressed: enabled ? _submit : null,
@@ -188,7 +188,7 @@ class _SignInViewState extends State<SignInView> {
           ),
           if (widget.onApple != null || widget.onGoogle != null) ...[
             Padding(
-              padding: EdgeInsets.symmetric(vertical: AppDimens.md),
+              padding: EdgeInsets.symmetric(vertical: AppDimens.lg),
               child: Row(
                 children: [
                   const Expanded(child: Divider()),

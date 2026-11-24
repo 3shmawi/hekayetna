@@ -19,9 +19,9 @@ class SettingsSectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(
-        AppDimens.md,
         AppDimens.lg,
-        AppDimens.md,
+        AppDimens.xl,
+        AppDimens.lg,
         AppDimens.sm,
       ),
       child: Semantics(
@@ -56,7 +56,7 @@ class SettingsGroup extends StatelessWidget {
                 Divider(
                   height: 1,
                   thickness: 1,
-                  indent: AppDimens.iconMd + AppDimens.md,
+                  indent: AppDimens.iconMd + AppDimens.lg,
                   color: scheme.outlineVariant,
                 ),
               child,
@@ -103,7 +103,7 @@ class SettingsRow extends StatelessWidget {
       child: Padding(
         padding: EdgeInsetsDirectional.symmetric(vertical: AppDimens.sm),
         child: Row(
-          spacing: AppDimens.md,
+          spacing: AppDimens.lg,
           children: [
             if (icon case final icon?)
               Icon(icon, size: AppDimens.iconMd, color: scheme.primary),
@@ -190,7 +190,7 @@ class SettingsSwitchRow extends StatelessWidget {
           child: Padding(
             padding: EdgeInsetsDirectional.symmetric(vertical: AppDimens.sm),
             child: Row(
-              spacing: AppDimens.md,
+              spacing: AppDimens.lg,
               children: [
                 if (icon case final icon?)
                   Icon(icon, size: AppDimens.iconMd, color: scheme.primary),
@@ -262,7 +262,7 @@ class SettingsChoiceRow extends StatelessWidget {
                 horizontal: AppDimens.sm,
               ),
               child: Row(
-                spacing: AppDimens.md,
+                spacing: AppDimens.lg,
                 children: [
                   Expanded(
                     child: Text(
@@ -298,10 +298,10 @@ Future<int?> showSettingsChoice(
   context,
   builder: (sheet) => SingleChildScrollView(
     padding: EdgeInsetsDirectional.fromSTEB(
-      AppDimens.md,
-      0,
-      AppDimens.md,
       AppDimens.lg,
+      0,
+      AppDimens.lg,
+      AppDimens.xl,
     ),
     child: Column(
       mainAxisSize: MainAxisSize.min,

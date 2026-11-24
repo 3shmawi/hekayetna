@@ -58,10 +58,10 @@ class SettingsView extends StatelessWidget {
       title: l10n.settingsTitle,
       body: ListView(
         padding: EdgeInsetsDirectional.fromSTEB(
-          AppDimens.md,
+          AppDimens.lg,
           0,
-          AppDimens.md,
-          AppDimens.xl,
+          AppDimens.lg,
+          AppDimens.xxl,
         ),
         children: [
           SettingsSectionHeader(l10n.settingsAppearance),

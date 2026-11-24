@@ -33,7 +33,7 @@ class OfflineBanner extends StatelessWidget {
                         top: false,
                         child: Padding(
                           padding: EdgeInsets.symmetric(
-                            horizontal: AppDimens.md,
+                            horizontal: AppDimens.lg,
                             vertical: AppDimens.sm,
                           ),
                           child: Row(

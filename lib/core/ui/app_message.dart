@@ -62,9 +62,9 @@ class _AppMessageState extends State<_AppMessage>
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return PositionedDirectional(
-      start: AppDimens.md,
-      end: AppDimens.md,
-      bottom: MediaQuery.paddingOf(context).bottom + AppDimens.lg,
+      start: AppDimens.lg,
+      end: AppDimens.lg,
+      bottom: MediaQuery.paddingOf(context).bottom + AppDimens.xl,
       child: FadeTransition(
         opacity: _opacity,
         child: Semantics(
@@ -74,7 +74,7 @@ class _AppMessageState extends State<_AppMessage>
             elevation: 6,
             borderRadius: BorderRadius.circular(AppDimens.radiusMd),
             child: Padding(
-              padding: EdgeInsets.all(AppDimens.md),
+              padding: EdgeInsets.all(AppDimens.lg),
               child: Text(
                 widget.message,
                 style: AppTextStyles.body.copyWith(

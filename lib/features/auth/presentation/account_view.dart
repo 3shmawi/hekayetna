@@ -59,10 +59,10 @@ class AccountView extends StatelessWidget {
       title: l10n.accountTitle,
       body: ListView(
         padding: EdgeInsetsDirectional.fromSTEB(
-          AppDimens.md,
+          AppDimens.lg,
           0,
-          AppDimens.md,
-          AppDimens.xl,
+          AppDimens.lg,
+          AppDimens.xxl,
         ),
         children: [
           SettingsSectionHeader(l10n.accountSignedInAs),
@@ -75,7 +75,7 @@ class AccountView extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: AppDimens.lg),
+          SizedBox(height: AppDimens.xl),
           SettingsGroup(
             children: [
               SettingsRow(
@@ -93,11 +93,11 @@ class AccountView extends StatelessWidget {
             ],
           ),
           if (busy) ...[
-            SizedBox(height: AppDimens.lg),
+            SizedBox(height: AppDimens.xl),
             const Center(child: CircularProgressIndicator.adaptive()),
           ],
           if (error case final error? when error.isNotEmpty) ...[
-            SizedBox(height: AppDimens.md),
+            SizedBox(height: AppDimens.lg),
             Text(
               error,
               key: const Key('account_error'),

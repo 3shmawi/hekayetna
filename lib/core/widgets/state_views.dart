@@ -67,18 +67,18 @@ class _CenteredMessage extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(AppDimens.lg),
+        padding: EdgeInsets.all(AppDimens.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: AppDimens.iconMd * 2, color: scheme.outline),
-            SizedBox(height: AppDimens.md),
+            SizedBox(height: AppDimens.lg),
             Text(
               message,
               style: AppTextStyles.body,
               textAlign: TextAlign.center,
             ),
-            if (action != null) ...[SizedBox(height: AppDimens.lg), action!],
+            if (action != null) ...[SizedBox(height: AppDimens.xl), action!],
           ],
         ),
       ),
