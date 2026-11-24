@@ -231,25 +231,26 @@
     }
   },
   "storyInThisStory": "In this story",
-  "storyVisFamily": "The whole family can hear this ({count} people)",
+  "storyVisFamily": "Everyone in the family now ({count, plural, =1{1 person} other{{count} people}})",
   "@storyVisFamily": {
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
-  "storyVisSelected": "{count} people can hear this: {names}",
+  "storyVisSelected": "{count, plural, =1{1 person can} other{{count} people can}} hear this: {names}",
   "@storyVisSelected": {
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int"
       },
       "names": {
         "type": "String"
       }
     }
   },
+  "listSeparator": ", ",
   "storyVisPrivate": "Only you can hear this",
   "storyDeleteTitle": "Delete this story?",
   "storyDeleteBody": "Everyone loses access and the recording is removed. You can't undo this.",

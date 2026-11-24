@@ -191,25 +191,26 @@
     }
   },
   "storyInThisStory": "في الحكاية دي",
-  "storyVisFamily": "العيلة كلها تقدر تسمعها ({count})",
+  "storyVisFamily": "كل أفراد العيلة دلوقتي ({count, plural, =1{شخص واحد} =2{شخصين} few{{count} أشخاص} other{{count} شخص}})",
   "@storyVisFamily": {
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
-  "storyVisSelected": "{count} يقدروا يسمعوها: {names}",
+  "storyVisSelected": "{count, plural, =1{شخص واحد يقدر} =2{شخصين يقدروا} few{{count} أشخاص يقدروا} other{{count} شخص يقدروا}} يسمعوها: {names}",
   "@storyVisSelected": {
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int"
       },
       "names": {
         "type": "String"
       }
     }
   },
+  "listSeparator": "، ",
   "storyVisPrivate": "إنت بس اللي تقدر تسمعها",
   "storyDeleteTitle": "تمسح الحكاية دي؟",
   "storyDeleteBody": "الكل هيفقد الوصول والتسجيل هيتمسح. مفيش رجوع.",

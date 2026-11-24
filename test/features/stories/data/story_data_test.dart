@@ -25,6 +25,29 @@ Story _story({
 );
 
 void main() {
+  group('Story waveform', () {
+    Map<String, dynamic> row(Object? waveform) => {
+      'id': 's1',
+      'space_id': 'sp',
+      'title': 'T',
+      'visibility': 'private',
+      'audio_path': 'a',
+      'duration_seconds': 3,
+      'created_by': 'u',
+      'created_at': '2026-11-24T10:00:00Z',
+      'waveform': waveform,
+    };
+    test('reads the stored bars', () {
+      expect(Story.fromJson(row([0, 50, 100])).waveform, [0, 50, 100]);
+    });
+    test('is null on older stories and survives copyWith', () {
+      final old = Story.fromJson(row(null));
+      expect(old.waveform, isNull);
+      final s = Story.fromJson(row([7]));
+      expect(s.copyWith(title: 'New').waveform, [7]);
+    });
+  });
+
   group('Story.fromJson', () {
     test('reads a row with its join tables', () {
       final story = Story.fromJson({
