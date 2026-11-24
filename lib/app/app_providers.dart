@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:family_stories/core/backend/backend.dart';
 import 'package:family_stories/core/di/dependencies.dart';
 import 'package:family_stories/features/family/data/demo_family_repository.dart';
@@ -8,12 +10,15 @@ import 'package:family_stories/features/photos/data/photo_repository.dart';
 import 'package:family_stories/features/photos/data/supabase_photo_repository.dart';
 import 'package:family_stories/features/recording/data/draft_store.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
+import 'package:family_stories/features/recording/data/recording_background.dart';
+import 'package:family_stories/features/recording/data/recording_background_binder.dart';
 import 'package:family_stories/features/recording/data/segment_recorder.dart';
 import 'package:family_stories/features/recording/data/segmented_recorder_service.dart';
 import 'package:family_stories/features/recording/data/storage_space.dart';
 import 'package:family_stories/features/stories/data/demo_story_repository.dart';
 import 'package:family_stories/features/stories/data/story_repository.dart';
 import 'package:family_stories/features/stories/data/supabase_story_repository.dart';
+import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -54,8 +59,27 @@ final recorderServiceProvider = Provider<RecorderService>((ref) {
     freeBytes: StorageSpace.freeBytes,
   );
   ref.onDispose(service.dispose);
+  final binder = RecordingBackgroundBinder(
+    recorder: service,
+    background: createRecordingBackground(),
+    labels: _recordingLabels,
+  );
+  ref.onDispose(binder.dispose);
   return service;
 });
+
+/// Notification text in the phone's language (the service has no
+/// BuildContext).
+BackgroundLabels _recordingLabels() {
+  final l10n = lookupAppLocalizations(PlatformDispatcher.instance.locale);
+  return BackgroundLabels(
+    title: l10n.recordNotificationTitle,
+    pausedTitle: l10n.recordNotificationPausedTitle,
+    pause: l10n.recordNotificationPause,
+    resume: l10n.recordNotificationResume,
+    stop: l10n.recordNotificationStop,
+  );
+}
 
 /// Private on-device draft recordings. Created in [Dependencies.init].
 final draftStoreProvider = Provider<DraftStore>(

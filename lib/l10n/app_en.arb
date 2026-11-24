@@ -267,5 +267,11 @@
   "storyOpen": "Open story",
   "errorStorageFull": "Your phone is almost full. Free up space to keep recording.",
   "recordPausedInterrupted": "Paused because a call came in. Tap to continue.",
-  "recordPausedStorage": "Paused because your phone is almost full. Free up space, then tap to continue."
+  "recordPausedStorage": "Paused because your phone is almost full. Free up space, then tap to continue.",
+  "recordNotificationTitle": "Recording a story · tap to return",
+  "recordNotificationPausedTitle": "Recording paused · tap to return",
+  "recordNotificationPause": "Pause",
+  "recordNotificationResume": "Resume",
+  "recordNotificationStop": "Stop",
+  "recordNotificationHint": "Allow notifications to keep recording while the app is in the background."
 }

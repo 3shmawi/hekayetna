@@ -227,5 +227,11 @@
   "storyOpen": "افتح الحكاية",
   "errorStorageFull": "الموبايل شبه مليان. فضّي مساحة عشان تكمّل التسجيل.",
   "recordPausedInterrupted": "اتوقف مؤقتًا لأن مكالمة جت. اضغط عشان تكمّل.",
-  "recordPausedStorage": "اتوقف مؤقتًا لأن الموبايل شبه مليان. فضّي مساحة وبعدها اضغط عشان تكمّل."
+  "recordPausedStorage": "اتوقف مؤقتًا لأن الموبايل شبه مليان. فضّي مساحة وبعدها اضغط عشان تكمّل.",
+  "recordNotificationTitle": "بنسجّل حكاية · اضغط للرجوع",
+  "recordNotificationPausedTitle": "التسجيل واقف مؤقتًا · اضغط للرجوع",
+  "recordNotificationPause": "إيقاف مؤقت",
+  "recordNotificationResume": "كمّل",
+  "recordNotificationStop": "إنهاء",
+  "recordNotificationHint": "اسمح بالإشعارات عشان التسجيل يكمّل والتطبيق في الخلفية."
 }

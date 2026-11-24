@@ -17,6 +17,24 @@ void main() {
       expect(manifest, isNot(contains('android:debuggable="true"')));
     });
 
+    test('declares the microphone foreground service and its permissions', () {
+      for (final permission in [
+        'RECORD_AUDIO',
+        'FOREGROUND_SERVICE',
+        'FOREGROUND_SERVICE_MICROPHONE',
+        'POST_NOTIFICATIONS',
+      ]) {
+        expect(manifest, contains('android.permission.$permission'));
+      }
+      final service = RegExp(
+        '<service[^>]*ForegroundService"[^>]*>',
+        dotAll: true,
+      ).firstMatch(manifest)?.group(0);
+      expect(service, isNotNull);
+      expect(service, contains('android:foregroundServiceType="microphone"'));
+      expect(service, contains('android:exported="false"'));
+    });
+
     test('only the launcher activity is exported', () {
       final exported = RegExp('android:exported="true"').allMatches(manifest);
       expect(exported.length, 1);
