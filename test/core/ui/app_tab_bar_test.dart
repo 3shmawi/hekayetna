@@ -49,7 +49,7 @@ void main() {
     );
     await tester.tap(find.text(l10nEn.family));
     await tester.tap(find.text(l10nEn.stories)); // current tab pops to root
-    await tester.tap(find.text(l10nEn.record));
+    await tester.tap(find.bySemanticsLabel(l10nEn.recordAStory));
     expect(taps, [2, 0, 1]);
   });
 

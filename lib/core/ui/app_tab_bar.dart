@@ -55,7 +55,6 @@ class AppTabBar extends StatelessWidget {
                       child: i == 1
                           ? _RecordTab(
                               icon: items[i].$1,
-                              label: items[i].$2,
                               semanticsLabel: items[i].$3,
                               onTap: () => onTap(i),
                             )
@@ -127,20 +126,17 @@ class _Tab extends StatelessWidget {
 class _RecordTab extends StatelessWidget {
   const _RecordTab({
     required this.icon,
-    required this.label,
     required this.semanticsLabel,
     required this.onTap,
   });
 
   final IconData icon;
-  final String label;
   final String semanticsLabel;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final hk = context.hk;
-    final scheme = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
       label: semanticsLabel,
@@ -163,16 +159,9 @@ class _RecordTab extends StatelessWidget {
                 ),
                 child: Icon(icon, size: 28, color: hk.onRecord),
               ),
-              ExcludeSemantics(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  style: AppTextStyles.tabLabel.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 6),
+              // No visible label under the circle (artboard Main); the
+              // spacer keeps the circle's raised position identical.
+              const SizedBox(height: 22),
             ],
           ),
         ),
