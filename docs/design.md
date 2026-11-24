@@ -12,10 +12,11 @@ built to match. Code never invents its own look.
 ## Tokens → code
 | Design System token | Code |
 |---|---|
-| Colors (light + dark) | `lib/core/theme/app_colors.dart` → `AppTheme` |
-| Type scale, font family | `lib/core/theme/app_text_styles.dart` |
-| Spacing, radius, sizes | `lib/core/theme/app_dimens.dart` |
-| Components (buttons, cards, inputs…) | `lib/core/widgets/` (create as needed) |
+| Colors (light + dark) | `lib/core/theme/app_colors.dart` → `AppColors` (light values) + `HekayetnaColors.dark` → `AppTheme.light/dark` (`ColorScheme` roles + the `HekayetnaColors` theme extension: `record`, `onRecord`, `recordTint`, `gold`, `goldTint`, `line`, `inkSoft`, `sand`) |
+| Type scale, font family | `lib/core/theme/app_text_styles.dart` (`AppTextStyles`), fonts in `lib/core/theme/app_fonts.dart` (`AppFonts.latin` / `AppFonts.arabic`) |
+| Spacing, radius, sizes | `lib/core/theme/app_dimens.dart` (`AppDimens`, 375×812 design size) |
+| Components (buttons, cards, chips, player, record, visibility, tab bar…) | `lib/core/ui/` exported from `app_ui.dart`: `AppButton`, `AppChip`, `PersonAvatar`, `StoryCard`, `AudioPlayerCard`, `RecordButton`, `VisibilityPicker`, `AppSectionLabel`, `SkeletonCard`, `EmptyView`, `AppTabBar` |
+| Icons (Material/Cupertino) | `lib/core/adaptive/adaptive.dart` → `AdaptiveIcons`; feature code never touches `Icons.` directly |
 
 When the Design System changes, update these files first, then screens.
 
