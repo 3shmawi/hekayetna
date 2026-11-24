@@ -43,13 +43,26 @@ uploads the draft), `ios/Runner/Info.plist`,
 
 ## Before coding: check the official docs (CLAUDE.md rule)
 
-Read and note in the PR (version + date checked):
-the `record` package docs and changelog for the pinned version (encoders per
-platform, `isEncoderSupported`, iOS audio session config, Android service
-options); Apple: background audio (`UIBackgroundModes` → `audio`), audio
-session interruptions; Android: foreground services of type `microphone`
-(Android 14+ permission `FOREGROUND_SERVICE_MICROPHONE`), notification
-permission (Android 13+), Google Play's foreground-service declaration.
+The architect checked these on 2026-11-24 for `record` **7.2.0** (pinned in
+`pubspec.yaml`); re-read them and note the date in the PR:
+
+- `record` 7.x **removed its Android background service** (7.0.0 breaking
+  change). Its doc `doc/bg_recording.md` says to use an external package for
+  background recording: use **`flutter_foreground_task` 11.0.3** (exact pin)
+  and follow its `record_service` example.
+- `record` 7.2.0 adds `RecordConfig.audioRouteChange` (what a take does when
+  its input disappears: use **pause**) and `onStopped()` with a
+  `RecordStopReason` for every take: use them for interruptions.
+- `record` 7.1.0: read the effective config from `onConfigChanged` (the
+  platform may clamp sample rate or bitrate); store what was really used.
+- iOS: `UIBackgroundModes` → `audio` in `Info.plist` (the `record` docs also
+  list `fetch`; add only `audio` unless background audio fails without it,
+  and say so in the PR). With `AudioInterruptionMode.pauseResume` the audio
+  session must include `IosAudioCategoryOptions.mixWithOthers`.
+- Android: foreground service type `microphone` (Android 14+:
+  `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_MICROPHONE` permissions), the
+  notification permission on Android 13+, and Google Play's
+  foreground-service declaration (record it in `store/play_app_content.json`).
 
 ## Design of the solution
 
@@ -100,13 +113,14 @@ class StoryDraft {
 - iOS: add `audio` to `UIBackgroundModes`; configure the audio session for
   play-and-record with Bluetooth and speaker defaults. Recording continues
   with the screen locked.
-- Android: run recording in a foreground service of type `microphone` with
-  an ongoing notification "Recording a story · tap to return"
+- Android: run recording in a foreground service of type `microphone`
+  (via `flutter_foreground_task`, see above) with an ongoing notification "Recording a story · tap to return"
   (both languages) and Pause / Stop actions. Request notification permission
   on Android 13+ the first time the user records; if denied, recording still
   works in the foreground and the screen shows a one-line hint.
 - Interruptions (phone call, Siri, another app takes the mic, headphones
-  unplugged): **auto-pause**, keep the draft, and show on return
+  unplugged), detected through `onStopped()`'s `RecordStopReason`,
+  `audioRouteChange: pause` and the iOS interruption mode: **auto-pause**, keep the draft, and show on return
   "Paused because a call came in. Tap to continue." Never auto-resume.
 - Low storage: before starting and every 30 s, check free space; under
   50 MB, pause and show "Your phone is almost full. Free up space to keep
