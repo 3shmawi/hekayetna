@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/monitoring/monitoring.dart';
 import 'package:family_stories/core/router/app_redirect.dart';
@@ -12,10 +14,13 @@ import 'package:family_stories/features/onboarding/presentation/onboarding_page.
 import 'package:family_stories/features/recording/presentation/preview_screen.dart';
 import 'package:family_stories/features/recording/presentation/record_screen.dart';
 import 'package:family_stories/features/settings/presentation/settings_page.dart';
+import 'package:family_stories/features/stories/player/audio_player_controller.dart';
+import 'package:family_stories/features/stories/presentation/mini_player.dart';
 import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
 import 'package:family_stories/features/stories/presentation/story_page.dart';
 import 'package:family_stories/features/stories/presentation/story_screens.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// Root navigator, used to show app-wide dialogs (e.g. the update sheet).
@@ -45,7 +50,8 @@ final appRouter = GoRouter(
       redirect: (context, state) => AppRoutes.stories,
     ),
     StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) => HomeShell(shell: shell),
+      builder: (context, state, shell) =>
+          HomeShell(shell: shell, location: state.uri.path),
       branches: [
         StatefulShellBranch(
           routes: [
@@ -136,22 +142,44 @@ final appRouter = GoRouter(
   errorBuilder: (context, state) => const NotFoundPage(),
 );
 
-/// The three main tabs: stories, record, family.
-class HomeShell extends StatelessWidget {
-  const HomeShell({required this.shell, super.key});
+/// The three main tabs: stories, record, family. A mini player sits above
+/// the tab bar while a story plays and its page is not the one on screen.
+class HomeShell extends ConsumerWidget {
+  const HomeShell({required this.shell, this.location = '', super.key});
 
   final StatefulNavigationShell shell;
 
+  /// The current route path, to know whether the playing story is open.
+  final String location;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final player = ref.watch(audioPlayerControllerProvider);
+    final storyId = player.storyId;
+    final showMini = shouldShowMiniPlayer(storyId: storyId, location: location);
     return Scaffold(
       body: shell,
       // AppTabBar (design foundation): frosted bar, raised terracotta
       // record circle. Tapping the current tab pops to its root.
-      bottomNavigationBar: AppTabBar(
-        currentIndex: shell.currentIndex,
-        onTap: (i) =>
-            shell.goBranch(i, initialLocation: i == shell.currentIndex),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showMini && storyId != null)
+            MiniPlayer(
+              title: player.title ?? '',
+              isPlaying: player.isPlaying,
+              progress: player.progress,
+              onToggle: () => unawaited(
+                ref.read(audioPlayerControllerProvider.notifier).toggle(),
+              ),
+              onOpen: () => context.go(AppRoutes.storyDetail(storyId)),
+            ),
+          AppTabBar(
+            currentIndex: shell.currentIndex,
+            onTap: (i) =>
+                shell.goBranch(i, initialLocation: i == shell.currentIndex),
+          ),
+        ],
       ),
     );
   }
