@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:family_stories/core/network/result.dart';
@@ -9,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../helpers/fake_postgrest.dart';
+
 class _MockClient extends Mock implements SupabaseClient {}
 
 class _MockAuth extends Mock implements GoTrueClient {}
@@ -16,118 +17,6 @@ class _MockAuth extends Mock implements GoTrueClient {}
 class _MockStorage extends Mock implements SupabaseStorageClient {}
 
 class _MockFiles extends Mock implements StorageFileApi {}
-
-/// One request the repository made: `table`, the operation, and the calls
-/// chained after it (`eq`, `order`, ...) with their arguments.
-class Call {
-  Call(this.table, this.op, this.args);
-  final String table;
-  final String op;
-  final List<Object?> args;
-  final chain = <String>[];
-
-  @override
-  String toString() => '$table.$op($args) ${chain.join(' ')}';
-}
-
-/// A scripted PostgREST request: records every chained call and, when
-/// awaited, answers with the scripted value or throws the scripted error.
-class _Query<T> extends Fake implements PostgrestFilterBuilder<T> {
-  _Query(this.call, this.world);
-  final Call call;
-  final _World world;
-
-  _Query<X> _next<X>(String step, List<Object?> args) {
-    call.chain.add('$step(${args.join(',')})');
-    return _Query<X>(call, world);
-  }
-
-  @override
-  PostgrestFilterBuilder<T> eq(String column, Object value) =>
-      _next('eq', [column, value]);
-
-  @override
-  PostgrestFilterBuilder<T> gte(String column, Object value) =>
-      _next('gte', [column, value]);
-
-  @override
-  PostgrestFilterBuilder<T> lte(String column, Object value) =>
-      _next('lte', [column, value]);
-
-  @override
-  PostgrestTransformBuilder<T> order(
-    String column, {
-    bool ascending = false,
-    bool nullsFirst = false,
-    String? referencedTable,
-  }) => _next('order', [column, ascending]);
-
-  @override
-  PostgrestTransformBuilder<T> limit(int count, {String? referencedTable}) =>
-      _next('limit', [count]);
-
-  @override
-  PostgrestTransformBuilder<PostgrestList> select([String columns = '*']) =>
-      _next('select', [columns]);
-
-  @override
-  PostgrestTransformBuilder<PostgrestMap> single() => _next('single', []);
-
-  @override
-  Future<U> then<U>(
-    FutureOr<U> Function(T value) onValue, {
-    Function? onError,
-  }) {
-    final key = '${call.table}.${call.op}';
-    final scripted = world.responses[key];
-    final Future<dynamic> result;
-    if (scripted is Exception) {
-      result = Future<dynamic>.error(scripted);
-    } else {
-      result = Future<dynamic>.value(scripted);
-    }
-    return result.then((v) => onValue(v as T), onError: onError);
-  }
-}
-
-class _Table extends Fake implements SupabaseQueryBuilder {
-  _Table(this.name, this.world);
-  final String name;
-  final _World world;
-
-  Call _record(String op, [List<Object?>? args]) {
-    final call = Call(name, op, args ?? const []);
-    world.calls.add(call);
-    return call;
-  }
-
-  @override
-  PostgrestFilterBuilder<PostgrestList> select([String columns = '*']) =>
-      _Query<PostgrestList>(_record('select', [columns]), world);
-
-  @override
-  PostgrestFilterBuilder<dynamic> insert(
-    Object values, {
-    bool defaultToNull = true,
-  }) => _Query<dynamic>(_record('insert', [values]), world);
-
-  @override
-  PostgrestFilterBuilder<dynamic> update(Map<dynamic, dynamic> values) =>
-      _Query<dynamic>(_record('update', [values]), world);
-
-  @override
-  PostgrestFilterBuilder<dynamic> delete() =>
-      _Query<dynamic>(_record('delete'), world);
-}
-
-class _World {
-  final responses = <String, Object?>{};
-  final calls = <Call>[];
-  List<Call> on(String table, String op) => [
-    for (final c in calls)
-      if (c.table == table && c.op == op) c,
-  ];
-}
 
 Map<String, dynamic> _row({
   String id = 's1',
@@ -175,19 +64,19 @@ void main() {
     registerFallbackValue(File('x'));
   });
 
-  late _World world;
+  late FakeWorld world;
   late StoryRepository repo;
   late _MockFiles files;
 
   setUp(() {
-    world = _World();
+    world = FakeWorld();
     final client = _MockClient();
     final auth = _MockAuth();
     final storage = _MockStorage();
     files = _MockFiles();
-    when(
-      () => client.from(any()),
-    ).thenAnswer((i) => _Table(i.positionalArguments.first as String, world));
+    when(() => client.from(any())).thenAnswer(
+      (i) => FakeTable(i.positionalArguments.first as String, world),
+    );
     when(() => client.auth).thenReturn(auth);
     when(() => auth.currentUser).thenReturn(
       const User(
