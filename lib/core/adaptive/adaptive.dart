@@ -131,6 +131,93 @@ abstract final class AdaptiveIcons {
   /// Apple's logo for "Continue with Apple" (same on both platforms).
   static const IconData apple = Icons.apple;
 
+  // Hekayetna (design foundation, spec 01): SF Symbol look on iOS,
+  // Material outlined on Android. Icons are 24px, ink or ink-soft; only
+  // the record icon is terracotta.
+
+  /// The centre tab and recording: the mic.
+  static IconData record(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.mic_fill : Icons.mic_none;
+
+  /// Playback. Play mirrors in RTL (it points in the reading direction);
+  /// pause is symmetric and doesn't.
+  static IconData play(BuildContext context) => context.isCupertino
+      ? _cupertinoPlay
+      : const IconData(
+          0xe037, // Icons.play_arrow
+          fontFamily: 'MaterialIcons',
+          matchTextDirection: true,
+        );
+
+  static const IconData _cupertinoPlay = IconData(
+    0xf488, // CupertinoIcons.play_fill
+    fontFamily: CupertinoIcons.iconFont,
+    fontPackage: CupertinoIcons.iconFontPackage,
+    matchTextDirection: true,
+  );
+
+  static IconData pause(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.pause_fill : Icons.pause;
+
+  /// The stories tab: a waveform.
+  static IconData stories(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.waveform : Icons.graphic_eq;
+
+  /// The family tab.
+  static IconData family(BuildContext context) => context.isCupertino
+      ? CupertinoIcons.person_2_fill
+      : Icons.people_alt_outlined;
+
+  static IconData search(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.search : Icons.search;
+
+  /// Invite a family member (person.badge.plus).
+  static IconData invite(BuildContext context) => context.isCupertino
+      ? CupertinoIcons.person_badge_plus
+      : Icons.person_add_alt_outlined;
+
+  static IconData close(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.xmark : Icons.close;
+
+  static IconData more(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.ellipsis : Icons.more_horiz;
+
+  /// Private content (visibility: only me).
+  static IconData lock(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.lock_fill : Icons.lock_outline;
+
+  static IconData share(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.share : Icons.share_outlined;
+
+  // Family-tree zoom controls (spec 05 uses them; defined with the set).
+  static IconData zoomIn(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.zoom_in : Icons.zoom_in;
+
+  static IconData zoomOut(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.zoom_out : Icons.zoom_out;
+
+  static IconData fitAll(BuildContext context) => context.isCupertino
+      ? CupertinoIcons.arrow_up_left_arrow_down_right
+      : Icons.fit_screen_outlined;
+
+  static IconData centerMe(BuildContext context) => context.isCupertino
+      ? CupertinoIcons.location_fill
+      : Icons.my_location_outlined;
+
+  static IconData bookmark(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.bookmark : Icons.bookmark_border;
+
+  static IconData checkCircle(BuildContext context) => context.isCupertino
+      ? CupertinoIcons.checkmark_circle_fill
+      : Icons.check_circle_outline;
+
+  static IconData calendar(BuildContext context) => context.isCupertino
+      ? CupertinoIcons.calendar
+      : Icons.calendar_month_outlined;
+
+  static IconData photo(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.photo : Icons.photo_outlined;
+
   // Welcome slides: change them with the slides' content.
   static IconData onboardingWelcome(BuildContext context) => context.isCupertino
       ? CupertinoIcons.hand_raised
