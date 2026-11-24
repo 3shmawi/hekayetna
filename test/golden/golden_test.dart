@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
-import 'package:family_stories/core/ui/app_ui.dart';
+import 'package:family_stories/core/ui/app_ui.dart' hide StoryVisibility;
 import 'package:family_stories/core/update/app_version.dart';
 import 'package:family_stories/core/update/update_dialog.dart';
 import 'package:family_stories/core/update/update_info.dart';
@@ -15,7 +15,10 @@ import 'package:family_stories/features/onboarding/presentation/onboarding_page.
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
 import 'package:family_stories/features/settings/data/app_settings.dart';
 import 'package:family_stories/features/settings/presentation/settings_view.dart';
+import 'package:family_stories/features/stories/data/models.dart';
+import 'package:family_stories/features/stories/player/audio_player_controller.dart';
 import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
+import 'package:family_stories/features/stories/presentation/story_view.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,6 +39,30 @@ import '../helpers/pump_app.dart';
 /// [screens] when you add one to the app.
 final Map<String, Widget Function()> screens = {
   'home': () => const _DemoScope(child: StoryFeedPage()),
+  'story': () => StoryView(
+    story: Story(
+      id: 's1',
+      spaceId: 'sp',
+      title: 'The first Om Ali',
+      description: 'Sitto remembers the first pan.',
+      topic: 'ramadan_eid_traditions',
+      approxDateLabel: 'Ramadan, late 1950s',
+      visibility: StoryVisibility.family,
+      audioPath: 'a/b.wav',
+      durationSeconds: 154,
+      createdBy: 'me',
+      createdAt: DateTime(2026),
+    ),
+    player: const PlayerState(),
+    narratorName: 'Sitto',
+    recordedBy: 'Recorded by Mona',
+    isCreator: true,
+    visibilityNote: 'The whole family can hear this (8 people)',
+    onToggle: () {},
+    onSeek: (_) {},
+    onSpeed: () {},
+    onMenu: (_) {},
+  ),
   'settings': () => SettingsView(
     settings: const AppSettings(),
     onLocaleChanged: (_) {},

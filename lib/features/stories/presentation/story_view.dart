@@ -1,3 +1,4 @@
+import 'package:family_stories/core/adaptive/adaptive.dart';
 import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
@@ -66,7 +67,7 @@ class StoryView extends StatelessWidget {
       actions: [
         if (isCreator) ...[
           AppIconButton(
-            icon: Icons.lock_outline,
+            icon: AdaptiveIcons.lock(context),
             tooltip: s.storyWhoCanListen,
             onPressed: () => onMenu(StoryMenuAction.whoCanListen),
           ),
@@ -164,7 +165,7 @@ class StoryView extends StatelessWidget {
           Row(
             children: [
               Icon(
-                Icons.people_alt_outlined,
+                AdaptiveIcons.family(context),
                 size: AppDimens.iconMd,
                 color: scheme.onSurfaceVariant,
               ),
@@ -220,7 +221,10 @@ class StoryStateView extends StatelessWidget {
     final s = context.l10n;
     return AppScaffold(
       body: notShared
-          ? EmptyView(message: s.storyNotShared, icon: Icons.lock_outline)
+          ? EmptyView(
+              message: s.storyNotShared,
+              icon: AdaptiveIcons.lock(context),
+            )
           : failure != null
           ? ErrorView(failure: failure!, onRetry: onRetry)
           : ListView(

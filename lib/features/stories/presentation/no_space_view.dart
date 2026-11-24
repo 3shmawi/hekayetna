@@ -2,6 +2,7 @@ import 'package:family_stories/core/adaptive/adaptive.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
+import 'package:family_stories/core/ui/app_message.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:family_stories/features/family/data/models.dart';
@@ -43,9 +44,7 @@ class _NoSpaceViewState extends State<NoSpaceView> {
     if (!mounted) return;
     setState(() => _busy = false);
     if (result case Failed(:final failure)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failure.message(context.l10n))));
+      showAppMessage(context, failure.message(context.l10n));
     }
   }
 

@@ -147,7 +147,7 @@ abstract final class AdaptiveIcons {
   static IconData play(BuildContext context) => context.isCupertino
       ? _cupertinoPlay
       : const IconData(
-          0xe037, // Icons.play_arrow
+          0xe4cb, // Icons.play_arrow
           fontFamily: 'MaterialIcons',
           matchTextDirection: true,
         );

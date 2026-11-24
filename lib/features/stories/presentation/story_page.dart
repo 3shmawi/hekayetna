@@ -5,6 +5,7 @@ import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/router/app_routes.dart';
+import 'package:family_stories/core/ui/app_message.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/stories/data/models.dart';
@@ -146,9 +147,7 @@ class _Loaded extends ConsumerWidget {
     final result = await ref.read(storyActionsProvider).updateStory(next);
     if (!context.mounted) return;
     if (result case Failed(:final failure)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(failure.message(context.l10n))));
+      showAppMessage(context, failure.message(context.l10n));
     } else {
       unawaited(Analytics.capture('story_edited'));
     }
@@ -156,19 +155,19 @@ class _Loaded extends ConsumerWidget {
 
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
     if (!await confirmDeleteStory(context) || !context.mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
+    final show = appMessenger(context);
     final l10n = context.l10n;
     final router = GoRouter.of(context);
     final result = await ref.read(storyActionsProvider).deleteStory(story);
     switch (result) {
       case Failed(:final failure):
-        messenger.showSnackBar(SnackBar(content: Text(failure.message(l10n))));
+        show(failure.message(l10n));
       case Success():
         unawaited(Analytics.capture('story_deleted'));
         if (ref.read(audioPlayerControllerProvider).storyId == story.id) {
           await ref.read(audioPlayerControllerProvider.notifier).stop();
         }
-        messenger.showSnackBar(SnackBar(content: Text(l10n.storyDeleted)));
+        show(l10n.storyDeleted);
         router.go(AppRoutes.stories);
     }
   }
