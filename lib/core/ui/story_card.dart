@@ -78,7 +78,7 @@ class StoryCard extends StatelessWidget {
                       SizedBox(height: AppDimens.xs),
                       Text(
                         meta,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.caption.copyWith(
                           color: scheme.onSurfaceVariant,
@@ -144,7 +144,8 @@ class _Tag extends StatelessWidget {
       ),
       child: Text(
         label,
-        maxLines: 1,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
         style: AppTextStyles.caption.copyWith(
           color: foreground ?? scheme.onSurfaceVariant,
         ),
