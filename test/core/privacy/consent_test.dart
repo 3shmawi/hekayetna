@@ -38,9 +38,7 @@ void main() {
   group(ConsentSheet, () {
     testWidgets('both answers are offered the same way', (tester) async {
       final answers = <ConsentChoice>[];
-      await tester.pumpApp(
-        Scaffold(body: ConsentSheet(onChoice: answers.add)),
-      );
+      await tester.pumpApp(Scaffold(body: ConsentSheet(onChoice: answers.add)));
       final allow = tester.getSize(find.byKey(const Key('consent_allow')));
       final deny = tester.getSize(find.byKey(const Key('consent_deny')));
       expect(allow, deny);

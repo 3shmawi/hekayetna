@@ -28,9 +28,8 @@ String? authRedirect(
 }
 
 /// Whether [path] (or a parent of it) is in [AppRoutes.signedInOnly].
-bool isSignedInOnly(String path) => AppRoutes.signedInOnly.any(
-  (p) => path == p || path.startsWith('$p/'),
-);
+bool isSignedInOnly(String path) =>
+    AppRoutes.signedInOnly.any((p) => path == p || path.startsWith('$p/'));
 
 /// [from] when it is a path inside the app; the home screen otherwise.
 /// `?from=` comes from a URL anyone can craft: never follow it to another

@@ -48,9 +48,7 @@ Future<void> loadRealFonts() async {
     for (final weight in entry.value) {
       final file = File('assets/fonts/${entry.key}/${entry.key}-$weight.ttf');
       final bytes = await file.readAsBytes();
-      loader.addFont(
-        Future.value(ByteData.view(bytes.buffer)),
-      );
+      loader.addFont(Future.value(ByteData.view(bytes.buffer)));
     }
     await loader.load();
   }

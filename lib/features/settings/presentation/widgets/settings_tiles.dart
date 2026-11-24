@@ -276,10 +276,7 @@ class SettingsChoiceRow extends StatelessWidget {
                     ),
                   ),
                   if (selected)
-                    Icon(
-                      AdaptiveIcons.check(context),
-                      color: scheme.primary,
-                    ),
+                    Icon(AdaptiveIcons.check(context), color: scheme.primary),
                 ],
               ),
             ),

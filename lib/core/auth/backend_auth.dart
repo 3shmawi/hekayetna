@@ -83,10 +83,8 @@ class BackendAuthService implements AuthService {
 
   @override
   Future<Result<void>> sendSignInLink(String email) => _call(
-    () => _auth.signInWithOtp(
-      email: email.trim(),
-      emailRedirectTo: redirectUrl,
-    ),
+    () =>
+        _auth.signInWithOtp(email: email.trim(), emailRedirectTo: redirectUrl),
   );
 
   @override

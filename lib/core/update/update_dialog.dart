@@ -24,10 +24,8 @@ Future<void> showUpdateDialog(BuildContext context, UpdateInfo info) {
   }
   return showAppSheet<void>(
     context,
-    builder: (sheetContext) => UpdateView(
-      info: info,
-      onLater: () => Navigator.of(sheetContext).pop(),
-    ),
+    builder: (sheetContext) =>
+        UpdateView(info: info, onLater: () => Navigator.of(sheetContext).pop()),
   );
 }
 

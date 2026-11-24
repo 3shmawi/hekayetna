@@ -28,7 +28,7 @@ AppFailure? backendFailure(Object error) => switch (error) {
   AuthException() => UnauthorizedFailure(error),
   PostgrestException(code: 'PGRST116') => NotFoundFailure(error),
   PostgrestException(code: '42501') => UnauthorizedFailure(error),
-  PostgrestException(code: final String code) when code.startsWith('22') =>
+  PostgrestException(:final String code) when code.startsWith('22') =>
     ValidationFailure(error),
   PostgrestException() => ServerFailure(error),
   _ => null,

@@ -74,9 +74,7 @@ void main() {
       );
     });
 
-    testWidgets('picks a language and a theme from the sheet', (
-      tester,
-    ) async {
+    testWidgets('picks a language and a theme from the sheet', (tester) async {
       Locale? locale = const Locale('x');
       ThemeMode? themeMode;
       await tester.pumpApp(
@@ -131,9 +129,7 @@ void main() {
       expect(selected(2), isFalse);
     });
 
-    testWidgets('opens the privacy policy, terms and licenses', (
-      tester,
-    ) async {
+    testWidgets('opens the privacy policy, terms and licenses', (tester) async {
       final opened = <String>[];
       await tester.pumpApp(
         view(

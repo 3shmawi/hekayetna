@@ -82,9 +82,8 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: 'new-story/:draftId',
                   name: 'record_new_story',
-                  builder: (context, state) => StoryEditScreen(
-                    draftId: state.pathParameters['draftId'],
-                  ),
+                  builder: (context, state) =>
+                      StoryEditScreen(draftId: state.pathParameters['draftId']),
                 ),
               ],
             ),

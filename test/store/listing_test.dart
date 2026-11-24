@@ -41,17 +41,13 @@ void main() {
     expect(tooLong, isEmpty);
   });
 
-  test(
-    'no placeholder text is uploaded',
-    () {
-      final unfinished = [
-        for (final file in files)
-          if (placeholders.any(file.readAsStringSync().contains)) file.path,
-      ];
-      expect(unfinished, releasing ? isEmpty : anything);
-    },
-    skip: releasing ? false : 'only checked by the Store listing workflow',
-  );
+  test('no placeholder text is uploaded', () {
+    final unfinished = [
+      for (final file in files)
+        if (placeholders.any(file.readAsStringSync().contains)) file.path,
+    ];
+    expect(unfinished, releasing ? isEmpty : anything);
+  }, skip: releasing ? false : 'only checked by the Store listing workflow');
 
   test('the Play App content answers are complete', () {
     final file = File('store/play_app_content.json');

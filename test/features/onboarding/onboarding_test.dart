@@ -233,9 +233,7 @@ void main() {
     ) async {
       Onboarding.draft.value = const OnboardingDraft(name: 'Mohamed');
       addTearDown(() => Onboarding.draft.value = null);
-      await tester.pumpApp(
-        const ProviderScope(child: FamilyHomeScreen()),
-      );
+      await tester.pumpApp(const ProviderScope(child: FamilyHomeScreen()));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('seed_tree_dismiss')));
       await tester.pumpAndSettle();

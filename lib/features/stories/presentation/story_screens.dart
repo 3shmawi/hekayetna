@@ -72,10 +72,7 @@ class _StoryFeedScreenState extends ConsumerState<StoryFeedScreen> {
                     horizontal: 16,
                     vertical: 6,
                   ),
-                  child: Text(
-                    s.demoMode,
-                    style: const TextStyle(fontSize: 13),
-                  ),
+                  child: Text(s.demoMode, style: const TextStyle(fontSize: 13)),
                 ),
               Expanded(child: _StoryList(spaceId: space.id)),
             ],
@@ -119,9 +116,9 @@ class _NoSpaceState extends ConsumerState<_NoSpace> {
       widget.onSpaceChanged();
     } on Exception catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.errorUnknown)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.errorUnknown)));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -178,10 +175,7 @@ class _NoSpaceState extends ConsumerState<_NoSpace> {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 32),
-        Text(
-          s.startSpaceTitle,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text(s.startSpaceTitle, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 12),
         TextField(
           controller: _name,
@@ -193,15 +187,9 @@ class _NoSpaceState extends ConsumerState<_NoSpace> {
           child: Text(s.createSpace),
         ),
         const SizedBox(height: 32),
-        Text(
-          s.joinSpaceTitle,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text(s.joinSpaceTitle, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        Text(
-          s.joinSpaceHint,
-          style: const TextStyle(color: AppColors.inkSoft),
-        ),
+        Text(s.joinSpaceHint, style: const TextStyle(color: AppColors.inkSoft)),
         const SizedBox(height: 12),
         TextField(
           controller: _code,
@@ -282,9 +270,7 @@ class _StoryListState extends ConsumerState<_StoryList> {
                                 hint: Text(s.allNarrators),
                                 underline: const SizedBox.shrink(),
                                 items: [
-                                  DropdownMenuItem(
-                                    child: Text(s.allNarrators),
-                                  ),
+                                  DropdownMenuItem(child: Text(s.allNarrators)),
                                   for (final p in persons)
                                     DropdownMenuItem(
                                       value: p.id,
@@ -309,9 +295,7 @@ class _StoryListState extends ConsumerState<_StoryList> {
                                 hint: Text(s.allPeople),
                                 underline: const SizedBox.shrink(),
                                 items: [
-                                  DropdownMenuItem(
-                                    child: Text(s.allPeople),
-                                  ),
+                                  DropdownMenuItem(child: Text(s.allPeople)),
                                   for (final p in persons)
                                     DropdownMenuItem(
                                       value: p.id,
@@ -458,14 +442,11 @@ class _StoryListState extends ConsumerState<_StoryList> {
                     if (story.topic != null) topicLabel(s, story.topic!),
                   ].join(' · '),
                 ),
-                trailing: Icon(
-                  switch (story.visibility) {
-                    StoryVisibility.private => Icons.lock_outline,
-                    StoryVisibility.selected => Icons.person_outline,
-                    StoryVisibility.family => Icons.people_alt_outlined,
-                  },
-                  color: AppColors.inkSoft,
-                ),
+                trailing: Icon(switch (story.visibility) {
+                  StoryVisibility.private => Icons.lock_outline,
+                  StoryVisibility.selected => Icons.person_outline,
+                  StoryVisibility.family => Icons.people_alt_outlined,
+                }, color: AppColors.inkSoft),
                 onTap: () => context.push('/stories/${story.id}'),
               ),
             );
@@ -522,10 +503,7 @@ class StoryDetailScreen extends ConsumerWidget {
               // itself. Others see the frame, never the image.
               if (story.photoIds.isNotEmpty) ...[
                 const SizedBox(height: 24),
-                Text(
-                  s.photos,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text(s.photos, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 _StoryPhotosGrid(photoIds: story.photoIds),
               ],
@@ -582,10 +560,7 @@ class _StoryPhotosGrid extends ConsumerWidget {
                     border: Border.all(color: AppColors.inkSoft),
                   ),
                   child: const Center(
-                    child: Icon(
-                      Icons.lock_outline,
-                      color: AppColors.inkSoft,
-                    ),
+                    child: Icon(Icons.lock_outline, color: AppColors.inkSoft),
                   ),
                 ),
           ],
@@ -668,14 +643,8 @@ class _VisibilityNote extends StatelessWidget {
     final s = context.l10n;
     final (icon, text) = switch (visibility) {
       StoryVisibility.private => (Icons.lock_outline, s.visPrivateDesc),
-      StoryVisibility.selected => (
-        Icons.person_outline,
-        s.visSelectedDesc,
-      ),
-      StoryVisibility.family => (
-        Icons.people_alt_outlined,
-        s.visFamilyDesc,
-      ),
+      StoryVisibility.selected => (Icons.person_outline, s.visSelectedDesc),
+      StoryVisibility.family => (Icons.people_alt_outlined, s.visFamilyDesc),
     };
     return Card(
       child: Padding(
@@ -970,20 +939,16 @@ class _StoryEditScreenState extends ConsumerState<StoryEditScreen> {
                     for (final v in StoryVisibility.values)
                       RadioListTile<StoryVisibility>(
                         value: v,
-                        title: Text(
-                          switch (v) {
-                            StoryVisibility.private => s.visPrivate,
-                            StoryVisibility.selected => s.visSelected,
-                            StoryVisibility.family => s.visFamily,
-                          },
-                        ),
-                        subtitle: Text(
-                          switch (v) {
-                            StoryVisibility.private => s.visPrivateDesc,
-                            StoryVisibility.selected => s.visSelectedDesc,
-                            StoryVisibility.family => s.visFamilyDesc,
-                          },
-                        ),
+                        title: Text(switch (v) {
+                          StoryVisibility.private => s.visPrivate,
+                          StoryVisibility.selected => s.visSelected,
+                          StoryVisibility.family => s.visFamily,
+                        }),
+                        subtitle: Text(switch (v) {
+                          StoryVisibility.private => s.visPrivateDesc,
+                          StoryVisibility.selected => s.visSelectedDesc,
+                          StoryVisibility.family => s.visFamilyDesc,
+                        }),
                       ),
                   ],
                 ),
@@ -1082,9 +1047,9 @@ class _StoryEditScreenState extends ConsumerState<StoryEditScreen> {
       if (mounted) context.go('/stories');
     } on Exception catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.errorUnknown)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.errorUnknown)));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
