@@ -84,6 +84,9 @@ abstract final class AdaptiveIcons {
   static IconData forward(BuildContext context) =>
       context.isCupertino ? _cupertinoForward : Icons.chevron_right;
 
+  @visibleForTesting
+  static const IconData forwardForTest = _cupertinoForward;
+
   static const IconData _cupertinoForward = IconData(
     0xf3d1,
     fontFamily: CupertinoIcons.iconFont,
@@ -147,10 +150,16 @@ abstract final class AdaptiveIcons {
   static IconData play(BuildContext context) => context.isCupertino
       ? _cupertinoPlay
       : const IconData(
-          0xe4cb, // Icons.play_arrow
+          0xe4cb, // Icons.play_arrow (checked against the SDK in a test)
           fontFamily: 'MaterialIcons',
           matchTextDirection: true,
         );
+
+  @visibleForTesting
+  static IconData playForTest(BuildContext context) => play(context);
+
+  @visibleForTesting
+  static const IconData cupertinoPlayForTest = _cupertinoPlay;
 
   static const IconData _cupertinoPlay = IconData(
     0xf488, // CupertinoIcons.play_fill
@@ -187,6 +196,19 @@ abstract final class AdaptiveIcons {
   /// Private content (visibility: only me).
   static IconData lock(BuildContext context) =>
       context.isCupertino ? CupertinoIcons.lock_fill : Icons.lock_outline;
+
+  /// Empty state placeholder.
+  static IconData empty(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.tray : Icons.inbox_outlined;
+
+  /// No connection.
+  static IconData offline(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.wifi_slash : Icons.wifi_off_outlined;
+
+  /// Something went wrong.
+  static IconData problem(BuildContext context) => context.isCupertino
+      ? CupertinoIcons.exclamationmark_circle
+      : Icons.error_outline;
 
   static IconData share(BuildContext context) =>
       context.isCupertino ? CupertinoIcons.share : Icons.share_outlined;
