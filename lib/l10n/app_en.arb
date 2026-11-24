@@ -253,5 +253,15 @@
   "welcomeTitle": "Welcome to Family Stories",
   "whoCanHear": "Who can hear this?",
   "whoCanSee": "Who can see this photo?",
-  "continueLabel": "Continue"
+  "continueLabel": "Continue",
+  "recordStart": "Start recording",
+  "recordPause": "Pause recording",
+  "recordResume": "Resume recording",
+  "recordingStatus": "Recording",
+  "recordingPausedStatus": "Paused",
+  "visibilityOnlyMe": "Only me",
+  "visibilitySelectedPeople": "Selected people",
+  "visibilityWholeFamily": "The whole family",
+  "storyPlay": "Play story",
+  "storyOpen": "Open story"
 }

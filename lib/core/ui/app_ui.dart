@@ -2,7 +2,19 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:family_stories/core/adaptive/adaptive.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
+import 'package:family_stories/core/theme/app_theme.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+export 'package:family_stories/core/ui/app_button.dart';
+export 'package:family_stories/core/ui/app_chip.dart';
+export 'package:family_stories/core/ui/app_section_label.dart';
+export 'package:family_stories/core/ui/audio_player_card.dart';
+export 'package:family_stories/core/ui/person_avatar.dart';
+export 'package:family_stories/core/ui/record_button.dart';
+export 'package:family_stories/core/ui/skeleton_card.dart';
+export 'package:family_stories/core/ui/story_card.dart';
+export 'package:family_stories/core/ui/visibility_picker.dart';
 
 /// The app's UI style: adaptive (Material on Android, Cupertino touches on
 /// iOS). Screens use these wrappers, never a style-specific widget, so the
@@ -23,21 +35,66 @@ class AppScaffold extends StatelessWidget {
     required this.body,
     this.title,
     this.actions = const [],
+    this.leading,
+    this.bottom,
+    this.background,
     super.key,
   });
 
   final String? title;
   final List<Widget> actions;
+  final Widget? leading;
   final Widget body;
+
+  /// A sticky area pinned above the safe area (e.g. the screen's one
+  /// primary button, per the Design System).
+  final Widget? bottom;
+
+  /// Defaults to the sand scaffold background.
+  final Color? background;
 
   @override
   Widget build(BuildContext context) {
+    final background = this.background ?? context.hk.sand;
+    if (context.isCupertino) {
+      return CupertinoPageScaffold(
+        backgroundColor: background,
+        navigationBar: title == null && leading == null && actions.isEmpty
+            ? null
+            : CupertinoNavigationBar(
+                middle: title == null ? null : Text(title!),
+                leading: leading,
+                trailing: actions.isEmpty
+                    ? null
+                    : Row(mainAxisSize: MainAxisSize.min, children: actions),
+              ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(child: body),
+              if (bottom != null)
+                Padding(padding: EdgeInsets.all(AppDimens.lg), child: bottom),
+            ],
+          ),
+        ),
+      );
+    }
     return Scaffold(
+      backgroundColor: background,
       appBar: AppBar(
         title: title == null ? null : Text(title!),
+        leading: leading,
         actions: actions,
       ),
       body: body,
+      bottomNavigationBar: bottom == null
+          ? null
+          : SafeArea(
+              child: Padding(
+                padding: EdgeInsets.all(AppDimens.lg),
+                child: bottom,
+              ),
+            ),
     );
   }
 }
