@@ -4,7 +4,6 @@ import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/theme/app_colors.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
-import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/features/stories/domain/story_topics.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -76,10 +75,13 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
       final ok = await recorder.ensurePermission();
       if (!ok) return; // permission denial shown by OS; no fake success
       final id = 'draft-${DateTime.now().millisecondsSinceEpoch}';
-      final docs =
-          (ref.read(draftStoreProvider) as dynamic).directoryPath as String;
-      final path = '$docs/$id.m4a';
-      await recorder.start(path);
+      // The service reserves the segment path, writes the draft to the index
+      // and only then starts capture (spec 02, AC-1).
+      await recorder.start(
+        draftId: id,
+        narratorPersonId: _narratorId,
+        topic: _topic,
+      );
       _currentDraftId = id;
     } else if (state.canPause) {
       await recorder.pause();
@@ -90,18 +92,11 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
 
   Future<void> _finish() async {
     final recorder = ref.read(recorderServiceProvider);
-    final path = await recorder.stop();
-    if (path == null || _currentDraftId == null) return;
-    final draft = StoryDraft(
-      id: _currentDraftId!,
-      filePath: path,
-      narratorPersonId: _narratorId,
-      topic: _topic,
-      durationSeconds: recorder.state.elapsed.inSeconds,
-      updatedAt: DateTime.now(),
-    );
-    await ref.read(draftStoreProvider).save(draft);
-    if (mounted) unawaited(context.push('/record/preview/${draft.id}'));
+    // Closes the open segment and marks the draft finished in the index.
+    await recorder.stop();
+    final id = _currentDraftId;
+    if (id == null) return;
+    if (mounted) unawaited(context.push('/record/preview/$id'));
   }
 
   Future<void> _discard() async {

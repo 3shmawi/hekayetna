@@ -1,3 +1,5 @@
+import 'package:family_stories/features/stories/data/models.dart';
+
 /// Recording state machine. The states are deliberately few and every
 /// transition is explicit, so interruption behavior is testable without a
 /// microphone: idle -> recording <-> paused -> stopped -> idle.
@@ -8,13 +10,21 @@ enum RecorderStatus { idle, recording, paused, stopped, failed }
 class RecorderState {
   const RecorderState({
     required this.status,
-    this.filePath,
+    this.draftId,
+    this.segments = const [],
     this.elapsed = Duration.zero,
     this.error,
   });
 
   final RecorderStatus status;
-  final String? filePath;
+
+  /// The draft this take is written into; set from the first start.
+  final String? draftId;
+
+  /// Segment files of the take so far; the last one may still be open.
+  final List<DraftSegment> segments;
+
+  /// Total take duration across closed segments plus the open one.
   final Duration elapsed;
   final String? error;
 
@@ -23,17 +33,19 @@ class RecorderState {
   bool get canStop =>
       status == RecorderStatus.recording || status == RecorderStatus.paused;
   bool get hasTake =>
-      filePath != null &&
+      draftId != null &&
       (status == RecorderStatus.stopped || status == RecorderStatus.paused);
 
   RecorderState copyWith({
     RecorderStatus? status,
-    String? filePath,
+    String? draftId,
+    List<DraftSegment>? segments,
     Duration? elapsed,
     String? error,
   }) => RecorderState(
     status: status ?? this.status,
-    filePath: filePath ?? this.filePath,
+    draftId: draftId ?? this.draftId,
+    segments: segments ?? this.segments,
     elapsed: elapsed ?? this.elapsed,
     error: error,
   );
@@ -44,11 +56,11 @@ class RecorderState {
 class RecorderTransitions {
   const RecorderTransitions._();
 
-  static RecorderState start(RecorderState s, String filePath) {
+  static RecorderState start(RecorderState s, String draftId) {
     if (s.status != RecorderStatus.idle && s.status != RecorderStatus.failed) {
       return s;
     }
-    return RecorderState(status: RecorderStatus.recording, filePath: filePath);
+    return RecorderState(status: RecorderStatus.recording, draftId: draftId);
   }
 
   static RecorderState pause(RecorderState s) =>
@@ -78,12 +90,22 @@ abstract class RecorderService {
   RecorderState get state;
   Stream<RecorderState> watch();
   Future<bool> ensurePermission();
-  Future<void> start(String filePath);
+
+  /// Starts a new take into draft [draftId]: reserves the first segment
+  /// path, writes the draft to the index BEFORE the recorder starts (AC-1),
+  /// then begins capture.
+  Future<void> start({
+    required String draftId,
+    String? narratorPersonId,
+    String? topic,
+    String? promptId,
+  });
   Future<void> pause();
   Future<void> resume();
 
-  /// Stops and returns the take's file path, or null if nothing was captured.
-  Future<String?> stop();
+  /// Finishes the take: the open segment is closed and the draft is marked
+  /// finished in the index.
+  Future<void> stop();
   Future<void> discard();
   Future<void> dispose();
 }

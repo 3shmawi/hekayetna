@@ -7,8 +7,9 @@ import 'package:family_stories/features/photos/data/demo_photo_repository.dart';
 import 'package:family_stories/features/photos/data/photo_repository.dart';
 import 'package:family_stories/features/photos/data/supabase_photo_repository.dart';
 import 'package:family_stories/features/recording/data/draft_store.dart';
-import 'package:family_stories/features/recording/data/record_recorder_service.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
+import 'package:family_stories/features/recording/data/segment_recorder.dart';
+import 'package:family_stories/features/recording/data/segmented_recorder_service.dart';
 import 'package:family_stories/features/stories/data/demo_story_repository.dart';
 import 'package:family_stories/features/stories/data/story_repository.dart';
 import 'package:family_stories/features/stories/data/supabase_story_repository.dart';
@@ -46,7 +47,10 @@ final storyRepositoryProvider = Provider<StoryRepository>((ref) {
 });
 
 final recorderServiceProvider = Provider<RecorderService>((ref) {
-  final service = RecordRecorderService();
+  final service = SegmentedRecorderService(
+    draftStore: ref.watch(draftStoreProvider),
+    recorder: RecordSegmentRecorder(),
+  );
   ref.onDispose(service.dispose);
   return service;
 });

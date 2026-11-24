@@ -94,7 +94,12 @@ class _FakeRecorderService implements RecorderService {
   Future<bool> ensurePermission() async => false;
 
   @override
-  Future<void> start(String filePath) async {}
+  Future<void> start({
+    required String draftId,
+    String? narratorPersonId,
+    String? topic,
+    String? promptId,
+  }) async {}
 
   @override
   Future<void> pause() async {}
@@ -103,7 +108,7 @@ class _FakeRecorderService implements RecorderService {
   Future<void> resume() async {}
 
   @override
-  Future<String?> stop() async => null;
+  Future<void> stop() async {}
 
   @override
   Future<void> discard() async {}
