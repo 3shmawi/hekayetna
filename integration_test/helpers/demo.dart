@@ -17,10 +17,7 @@ Future<void> beat(WidgetTester tester, [int milliseconds = 900]) async {
 /// shown when the env file has an analytics key). Call it right after
 /// `app.main()` + `pumpAndSettle()`.
 Future<void> skipFirstLaunch(WidgetTester tester) async {
-  for (final key in [
-    'onboarding_skip',
-    'consent_deny',
-  ]) {
+  for (final key in ['onboarding_skip', 'consent_deny']) {
     final button = find.byKey(Key(key));
     if (button.evaluate().isEmpty) continue;
     await tester.tap(button);

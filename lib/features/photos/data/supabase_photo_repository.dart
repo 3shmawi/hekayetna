@@ -34,10 +34,7 @@ class SupabasePhotoRepository implements PhotoRepository {
   Future<String> uploadImage(String localPath, String storagePath) async {
     await _client.storage
         .from('family-photos')
-        .upload(
-          storagePath,
-          File(localPath),
-        );
+        .upload(storagePath, File(localPath));
     return storagePath;
   }
 

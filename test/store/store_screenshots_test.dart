@@ -73,9 +73,7 @@ void main() {
 /// manifest (the app's fonts, Material and Cupertino icons).
 Future<void> _loadFonts() async {
   final manifest =
-      jsonDecode(
-            await rootBundle.loadString('FontManifest.json'),
-          )
+      jsonDecode(await rootBundle.loadString('FontManifest.json'))
           as List<dynamic>;
   for (final entry in manifest.cast<Map<String, dynamic>>()) {
     final loader = FontLoader(entry['family'] as String);

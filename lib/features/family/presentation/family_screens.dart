@@ -54,9 +54,7 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen> {
                         space.name,
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      subtitle: Text(
-                        '${s.inviteCode}: ${space.inviteCode}',
-                      ),
+                      subtitle: Text('${s.inviteCode}: ${space.inviteCode}'),
                       trailing: IconButton(
                         tooltip: s.inviteCode,
                         icon: const Icon(Icons.copy_outlined),
@@ -215,10 +213,7 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen> {
                   if (persons.isEmpty)
                     Padding(
                       padding: const EdgeInsets.all(32),
-                      child: Text(
-                        s.addPerson,
-                        textAlign: TextAlign.center,
-                      ),
+                      child: Text(s.addPerson, textAlign: TextAlign.center),
                     ),
                 ],
               );
@@ -372,9 +367,7 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen> {
                                 } on Exception catch (_) {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(s.errorUnknown),
-                                      ),
+                                      SnackBar(content: Text(s.errorUnknown)),
                                     );
                                   }
                                 }

@@ -24,7 +24,5 @@ String? appRedirect(Uri uri) {
 bool? demoModeSignedInOverride;
 
 /// What [appRedirect] depends on.
-Listenable get redirectChanges => Listenable.merge([
-  Auth.changes,
-  Onboarding.seen,
-]);
+Listenable get redirectChanges =>
+    Listenable.merge([Auth.changes, Onboarding.seen]);

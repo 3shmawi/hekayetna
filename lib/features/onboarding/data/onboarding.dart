@@ -79,11 +79,8 @@ class OnboardingDraft {
     mother,
   ].map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
 
-  String toJson() => jsonEncode({
-    'name': name,
-    'father': father,
-    'mother': mother,
-  });
+  String toJson() =>
+      jsonEncode({'name': name, 'father': father, 'mother': mother});
 }
 
 /// A new install opening the app normally (the home screen) sees the

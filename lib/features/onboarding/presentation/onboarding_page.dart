@@ -44,9 +44,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   );
 
   void _finish({required bool skipped}) {
-    unawaited(
-      Analytics.capture('onboarding_completed', {'skipped': skipped}),
-    );
+    unawaited(Analytics.capture('onboarding_completed', {'skipped': skipped}));
     unawaited(Onboarding.complete());
     unawaited(Onboarding.saveDraft(_draft));
     context.go(AppRoutes.home);

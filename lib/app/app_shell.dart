@@ -34,9 +34,7 @@ class AppShell extends StatelessWidget {
         supportedLocales: AppLocalizations.supportedLocales,
         builder: (context, child) => AppUpdateListener(
           child: ConsentListener(
-            child: OfflineBanner(
-              child: child ?? const SizedBox.shrink(),
-            ),
+            child: OfflineBanner(child: child ?? const SizedBox.shrink()),
           ),
         ),
       ),

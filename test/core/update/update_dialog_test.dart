@@ -82,11 +82,7 @@ void main() {
   testWidgets('optional update shows the Arabic changelog in Arabic', (
     tester,
   ) async {
-    await open(
-      tester,
-      info(UpdateType.optional),
-      locale: const Locale('ar'),
-    );
+    await open(tester, info(UpdateType.optional), locale: const Locale('ar'));
 
     expect(find.text('بحث أسرع'), findsOneWidget);
     expect(find.text('Faster search'), findsNothing);

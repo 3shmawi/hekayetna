@@ -66,10 +66,8 @@ printf '%s' "$code"
     );
   }
 
-  String track(List<Map<String, String>> releases) => jsonEncode({
-    'track': 'production',
-    'releases': releases,
-  });
+  String track(List<Map<String, String>> releases) =>
+      jsonEncode({'track': 'production', 'releases': releases});
   String itunes(String? version) => version == null
       ? '{"resultCount":0,"results":[]}'
       : '{"resultCount":1,"results":[{"version":"$version"}]}';

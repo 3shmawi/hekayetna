@@ -191,15 +191,9 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
                 ),
                 const SizedBox(height: 24),
                 if (state.canStop)
-                  FilledButton.tonal(
-                    onPressed: _finish,
-                    child: Text(s.done),
-                  ),
+                  FilledButton.tonal(onPressed: _finish, child: Text(s.done)),
                 if (state.hasTake || state.canStop)
-                  TextButton(
-                    onPressed: _discard,
-                    child: Text(s.discardDraft),
-                  ),
+                  TextButton(onPressed: _discard, child: Text(s.discardDraft)),
                 const Spacer(),
               ],
             ),

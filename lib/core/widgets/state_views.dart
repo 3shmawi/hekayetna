@@ -46,10 +46,7 @@ class ErrorView extends StatelessWidget {
       message: failure.message(context.l10n),
       action: onRetry == null
           ? null
-          : AdaptiveButton(
-              onPressed: onRetry,
-              child: Text(context.l10n.retry),
-            ),
+          : AdaptiveButton(onPressed: onRetry, child: Text(context.l10n.retry)),
     );
   }
 }
@@ -81,10 +78,7 @@ class _CenteredMessage extends StatelessWidget {
               style: AppTextStyles.body,
               textAlign: TextAlign.center,
             ),
-            if (action != null) ...[
-              SizedBox(height: AppDimens.lg),
-              action!,
-            ],
+            if (action != null) ...[SizedBox(height: AppDimens.lg), action!],
           ],
         ),
       ),
