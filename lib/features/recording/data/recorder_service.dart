@@ -7,6 +7,10 @@ import 'package:family_stories/features/stories/data/models.dart';
 /// the user returns to idle with the draft preserved.
 enum RecorderStatus { idle, recording, paused, stopped, failed }
 
+/// Why a take is paused. Anything but [user] was not the user's choice, so
+/// the screen explains it on return and nothing ever resumes by itself.
+enum PauseReason { user, interruption, storage }
+
 class RecorderState {
   const RecorderState({
     required this.status,
@@ -14,6 +18,7 @@ class RecorderState {
     this.segments = const [],
     this.elapsed = Duration.zero,
     this.error,
+    this.pauseReason,
   });
 
   final RecorderStatus status;
@@ -27,6 +32,9 @@ class RecorderState {
   /// Total take duration across closed segments plus the open one.
   final Duration elapsed;
   final String? error;
+
+  /// Set while [status] is paused; null otherwise.
+  final PauseReason? pauseReason;
 
   bool get canPause => status == RecorderStatus.recording;
   bool get canResume => status == RecorderStatus.paused;
@@ -42,12 +50,15 @@ class RecorderState {
     List<DraftSegment>? segments,
     Duration? elapsed,
     String? error,
+    PauseReason? pauseReason,
+    bool clearPauseReason = false,
   }) => RecorderState(
     status: status ?? this.status,
     draftId: draftId ?? this.draftId,
     segments: segments ?? this.segments,
     elapsed: elapsed ?? this.elapsed,
     error: error,
+    pauseReason: clearPauseReason ? null : pauseReason ?? this.pauseReason,
   );
 }
 
@@ -63,21 +74,27 @@ class RecorderTransitions {
     return RecorderState(status: RecorderStatus.recording, draftId: draftId);
   }
 
-  static RecorderState pause(RecorderState s) =>
-      s.canPause ? s.copyWith(status: RecorderStatus.paused) : s;
+  static RecorderState pause(
+    RecorderState s, {
+    PauseReason reason = PauseReason.user,
+  }) => s.canPause
+      ? s.copyWith(status: RecorderStatus.paused, pauseReason: reason)
+      : s;
 
-  static RecorderState resume(RecorderState s) =>
-      s.canResume ? s.copyWith(status: RecorderStatus.recording) : s;
+  static RecorderState resume(RecorderState s) => s.canResume
+      ? s.copyWith(status: RecorderStatus.recording, clearPauseReason: true)
+      : s;
 
-  static RecorderState stop(RecorderState s) =>
-      s.canStop ? s.copyWith(status: RecorderStatus.stopped) : s;
+  static RecorderState stop(RecorderState s) => s.canStop
+      ? s.copyWith(status: RecorderStatus.stopped, clearPauseReason: true)
+      : s;
 
   /// Interruption (phone call, app backgrounded by OS): recording pauses,
   /// the partial take stays on disk, and the draft index keeps pointing at it.
-  static RecorderState interrupt(RecorderState s) =>
-      s.status == RecorderStatus.recording
-      ? s.copyWith(status: RecorderStatus.paused)
-      : s;
+  static RecorderState interrupt(
+    RecorderState s, {
+    PauseReason reason = PauseReason.interruption,
+  }) => pause(s, reason: reason);
 
   static RecorderState fail(RecorderState s, String error) =>
       s.copyWith(status: RecorderStatus.failed, error: error);
@@ -100,7 +117,7 @@ abstract class RecorderService {
     String? topic,
     String? promptId,
   });
-  Future<void> pause();
+  Future<void> pause({PauseReason reason = PauseReason.user});
   Future<void> resume();
 
   /// Finishes the take: the open segment is closed and the draft is marked

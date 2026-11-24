@@ -133,6 +133,7 @@ extension AppFailureMessage on AppFailure {
     UnauthorizedFailure() => l10n.errorUnauthorized,
     NotFoundFailure() => l10n.errorNotFound,
     ValidationFailure() => l10n.errorValidation,
+    StorageFullFailure() => l10n.errorStorageFull,
     ServerFailure() || UnknownFailure() => l10n.errorUnknown,
     AuthFailure(:final reason) => switch (reason) {
       AuthFailureReason.invalidCredentials => l10n.authErrorInvalidCredentials,

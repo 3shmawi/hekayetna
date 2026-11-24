@@ -22,13 +22,26 @@ class SegmentedRecorderService implements RecorderService {
     DateTime Function()? now,
     this.rotationInterval = const Duration(seconds: 30),
     this.flushInterval = const Duration(seconds: 5),
-  }) : _now = now ?? DateTime.now;
+    this.freeBytes,
+    this.minFreeBytes = 50 * 1024 * 1024,
+    this.storageCheckInterval = const Duration(seconds: 30),
+  }) : _now = now ?? DateTime.now {
+    _stops = _recorder.unexpectedStops.listen(_onUnexpectedStop);
+  }
 
   final DraftStore _draftStore;
   final SegmentRecorder _recorder;
   final DateTime Function() _now;
   final Duration rotationInterval;
   final Duration flushInterval;
+
+  /// Free space on the drafts volume, in bytes; null when unknown. Injected
+  /// because reading free space needs a platform call (see the PR).
+  final Future<int?> Function()? freeBytes;
+  final int minFreeBytes;
+  final Duration storageCheckInterval;
+  StreamSubscription<SegmentStopReason>? _stops;
+  DateTime? _lastStorageCheck;
 
   final _controller = StreamController<RecorderState>.broadcast();
   RecorderState _state = const RecorderState(status: RecorderStatus.idle);
@@ -63,6 +76,10 @@ class SegmentedRecorderService implements RecorderService {
   }) async {
     final next = RecorderTransitions.start(_state, draftId);
     if (identical(next, _state)) return;
+    if (await _storageLow()) {
+      _emit(RecorderTransitions.fail(_state, storageFullError));
+      return;
+    }
     _narratorPersonId = narratorPersonId;
     _topic = topic;
     _promptId = promptId;
@@ -77,9 +94,25 @@ class SegmentedRecorderService implements RecorderService {
     _startTicker();
   }
 
+  /// `RecorderState.error` value when recording could not start for lack of
+  /// space; the screen maps it to `AppFailure.storageFull`.
+  static const storageFullError = 'storage_full';
+
+  Future<bool> _storageLow() async {
+    final free = await freeBytes?.call();
+    return free != null && free < minFreeBytes;
+  }
+
+  /// Capture ended without the app asking: auto-pause, keep the draft and
+  /// never auto-resume (spec 02).
+  void _onUnexpectedStop(SegmentStopReason reason) {
+    if (_state.status != RecorderStatus.recording) return;
+    unawaited(pause(reason: PauseReason.interruption));
+  }
+
   @override
-  Future<void> pause() async {
-    final next = RecorderTransitions.pause(_state);
+  Future<void> pause({PauseReason reason = PauseReason.user}) async {
+    final next = RecorderTransitions.pause(_state, reason: reason);
     if (identical(next, _state)) return;
     final closed = await _closeOpenSegment();
     _ticker?.cancel();
@@ -153,11 +186,23 @@ class SegmentedRecorderService implements RecorderService {
     _emit(_state.copyWith(segments: segments));
   }
 
+  Future<void> _pauseIfStorageLow() async {
+    if (_state.status == RecorderStatus.recording && await _storageLow()) {
+      await pause(reason: PauseReason.storage);
+    }
+  }
+
   void _startTicker() {
     _ticker?.cancel();
     _ticker = Timer.periodic(const Duration(milliseconds: 250), (_) {
       if (_state.status != RecorderStatus.recording) return;
       final now = _now();
+      if (freeBytes != null &&
+          now.difference(_lastStorageCheck ?? _segmentStartedAt!) >=
+              storageCheckInterval) {
+        _lastStorageCheck = now;
+        unawaited(_pauseIfStorageLow());
+      }
       final openAge = now.difference(_segmentStartedAt!);
       if (openAge >= rotationInterval) {
         unawaited(_rotate());
@@ -207,6 +252,7 @@ class SegmentedRecorderService implements RecorderService {
   @override
   Future<void> dispose() async {
     _ticker?.cancel();
+    await _stops?.cancel();
     await _recorder.dispose();
     await _controller.close();
   }

@@ -102,7 +102,7 @@ class _FakeRecorderService implements RecorderService {
   }) async {}
 
   @override
-  Future<void> pause() async {}
+  Future<void> pause({PauseReason reason = PauseReason.user}) async {}
 
   @override
   Future<void> resume() async {}

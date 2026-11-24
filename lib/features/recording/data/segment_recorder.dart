@@ -3,7 +3,21 @@ import 'package:record/record.dart';
 /// One segment file of microphone capture. The `record` plugin implements
 /// this; tests fake it, so rotation, pause and recovery are unit-testable
 /// without a microphone.
+/// Why capture ended without the app asking for it.
+enum SegmentStopReason {
+  /// A call, Siri or another app took the microphone.
+  interruption,
+
+  /// The input went away (headphones unplugged).
+  routeChange,
+
+  /// Capture or encoding failed.
+  error,
+}
+
 abstract class SegmentRecorder {
+  /// Capture ended on its own. Stops the app asked for never appear here.
+  Stream<SegmentStopReason> get unexpectedStops;
   Future<bool> hasPermission();
   Future<void> start(String path);
 
@@ -26,6 +40,19 @@ class RecordSegmentRecorder implements SegmentRecorder {
   /// interruption and audio-route defaults are both `pause` (verified in the
   /// same source), which is what the spec wants.
   static const config = RecordConfig(encoder: AudioEncoder.wav);
+
+  @override
+  Stream<SegmentStopReason> get unexpectedStops => _recorder
+      .onStopped()
+      .where((s) => s.reason != RecordStopReason.stop)
+      .map(
+        (s) => switch (s.reason) {
+          RecordStopReason.interruption => SegmentStopReason.interruption,
+          RecordStopReason.routeChange => SegmentStopReason.routeChange,
+          RecordStopReason.stop ||
+          RecordStopReason.error => SegmentStopReason.error,
+        },
+      );
 
   @override
   Future<bool> hasPermission() => _recorder.hasPermission();

@@ -65,6 +65,11 @@ final class ServerFailure extends AppFailure {
   bool get isRetryable => true;
 }
 
+/// The phone is almost full, so recording cannot start or continue.
+final class StorageFullFailure extends AppFailure {
+  const StorageFullFailure([super.cause]);
+}
+
 final class UnknownFailure extends AppFailure {
   const UnknownFailure([super.cause]);
 }

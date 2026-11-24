@@ -13,6 +13,14 @@ import 'package:flutter_test/flutter_test.dart';
 class FakeSegmentRecorder implements SegmentRecorder {
   FakeSegmentRecorder({this.onStart});
 
+  final _stops = StreamController<SegmentStopReason>.broadcast();
+
+  /// Simulates the OS ending capture (call, route change, error).
+  void emitStop(SegmentStopReason reason) => _stops.add(reason);
+
+  @override
+  Stream<SegmentStopReason> get unexpectedStops => _stops.stream;
+
   final Future<void> Function(String path)? onStart;
   final startedPaths = <String>[];
   int stopCalls = 0;
@@ -41,6 +49,7 @@ class FakeSegmentRecorder implements SegmentRecorder {
 }
 
 void main() {
+  interruptionTests();
   group('AC-1: the draft is indexed before the first second of audio', () {
     late Directory dir;
     late FileDraftStore store;
@@ -240,6 +249,111 @@ void main() {
         expect(draft, isNotNull); // the screen deletes it explicitly
         unawaited(service.dispose());
         async.flushMicrotasks();
+      });
+    });
+  });
+}
+
+void interruptionTests() {
+  group('AC-5: interruptions pause and nothing auto-resumes', () {
+    test('a call pauses the take, keeps the draft and the reason', () async {
+      final recorder = FakeSegmentRecorder();
+      final store = MemoryDraftStore();
+      final service = SegmentedRecorderService(
+        draftStore: store,
+        recorder: recorder,
+      );
+      await service.start(draftId: 'd1');
+      recorder.emitStop(SegmentStopReason.interruption);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(service.state.status, RecorderStatus.paused);
+      expect(service.state.pauseReason, PauseReason.interruption);
+      final draft = (await store.get('d1'))!;
+      expect(draft.status, DraftStatus.paused);
+      expect(draft.segments.single.closed, isTrue);
+
+      // Nothing resumes by itself, even if the OS reports more events.
+      recorder.emitStop(SegmentStopReason.routeChange);
+      await Future<void>.delayed(Duration.zero);
+      expect(service.state.status, RecorderStatus.paused);
+      expect(recorder.startedPaths, hasLength(1));
+
+      await service.resume();
+      expect(service.state.status, RecorderStatus.recording);
+      expect(service.state.pauseReason, isNull);
+      await service.dispose();
+    });
+
+    test('unplugged headphones and capture errors also pause', () async {
+      for (final reason in [
+        SegmentStopReason.routeChange,
+        SegmentStopReason.error,
+      ]) {
+        final recorder = FakeSegmentRecorder();
+        final service = SegmentedRecorderService(
+          draftStore: MemoryDraftStore(),
+          recorder: recorder,
+        );
+        await service.start(draftId: 'd1');
+        recorder.emitStop(reason);
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
+        expect(service.state.status, RecorderStatus.paused);
+        await service.dispose();
+      }
+    });
+
+    test('a user pause records the user as the reason', () async {
+      final service = SegmentedRecorderService(
+        draftStore: MemoryDraftStore(),
+        recorder: FakeSegmentRecorder(),
+      );
+      await service.start(draftId: 'd1');
+      await service.pause();
+      expect(service.state.pauseReason, PauseReason.user);
+      await service.dispose();
+    });
+  });
+
+  group('AC-10: low storage', () {
+    test(
+      'start fails with storage_full under 50 MB and writes nothing',
+      () async {
+        final store = MemoryDraftStore();
+        final recorder = FakeSegmentRecorder();
+        final service = SegmentedRecorderService(
+          draftStore: store,
+          recorder: recorder,
+          freeBytes: () async => 10 * 1024 * 1024,
+        );
+        await service.start(draftId: 'd1');
+        expect(service.state.status, RecorderStatus.failed);
+        expect(service.state.error, SegmentedRecorderService.storageFullError);
+        expect(await store.list(), isEmpty);
+        expect(recorder.startedPaths, isEmpty);
+        await service.dispose();
+      },
+    );
+
+    test('recording pauses with reason storage when space runs out', () {
+      fakeAsync((async) {
+        var free = 500 * 1024 * 1024;
+        final recorder = FakeSegmentRecorder();
+        final service = SegmentedRecorderService(
+          draftStore: MemoryDraftStore(),
+          recorder: recorder,
+          now: () => DateTime(2026).add(async.elapsed),
+          freeBytes: () async => free,
+        );
+        unawaited(service.start(draftId: 'd1'));
+        async.elapse(const Duration(seconds: 10));
+        expect(service.state.status, RecorderStatus.recording);
+        free = 20 * 1024 * 1024;
+        async.elapse(const Duration(seconds: 25));
+        expect(service.state.status, RecorderStatus.paused);
+        expect(service.state.pauseReason, PauseReason.storage);
       });
     });
   });

@@ -264,5 +264,8 @@
   "visibilityWholeFamily": "The whole family",
   "storyPlay": "Play story",
   "storyPause": "Pause story",
-  "storyOpen": "Open story"
+  "storyOpen": "Open story",
+  "errorStorageFull": "Your phone is almost full. Free up space to keep recording.",
+  "recordPausedInterrupted": "Paused because a call came in. Tap to continue.",
+  "recordPausedStorage": "Paused because your phone is almost full. Free up space, then tap to continue."
 }
