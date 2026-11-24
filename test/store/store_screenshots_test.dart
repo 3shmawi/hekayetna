@@ -72,9 +72,11 @@ void main() {
 /// Real glyphs instead of the test font: every font in the app's font
 /// manifest (the app's fonts, Material and Cupertino icons).
 Future<void> _loadFonts() async {
-  final manifest = jsonDecode(
-    await rootBundle.loadString('FontManifest.json'),
-  ) as List<dynamic>;
+  final manifest =
+      jsonDecode(
+            await rootBundle.loadString('FontManifest.json'),
+          )
+          as List<dynamic>;
   for (final entry in manifest.cast<Map<String, dynamic>>()) {
     final loader = FontLoader(entry['family'] as String);
     for (final font
