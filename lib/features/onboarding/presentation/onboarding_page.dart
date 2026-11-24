@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/theme/app_colors.dart';
+import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/onboarding/data/onboarding.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -63,10 +64,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
             children: [
               Align(
                 alignment: AlignmentDirectional.centerEnd,
-                child: TextButton(
+                child: AppButton.secondary(
                   key: const Key('onboarding_skip'),
+                  label: l10n.onboardingSkip,
+                  expand: false,
                   onPressed: () => _finish(skipped: true),
-                  child: Text(l10n.onboardingSkip),
                 ),
               ),
               const SizedBox(height: 8),
@@ -90,10 +92,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     Expanded(
                       child: Align(
                         alignment: AlignmentDirectional.centerStart,
-                        child: TextButton(
+                        child: AppButton.secondary(
                           key: const Key('onboarding_back'),
+                          label: l10n.onboardingBack,
+                          expand: false,
                           onPressed: () => setState(() => _step--),
-                          child: Text(l10n.onboardingBack),
                         ),
                       ),
                     )
@@ -102,14 +105,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   const SizedBox(width: 8),
                   Expanded(
                     flex: 2,
-                    child: FilledButton(
+                    child: AppButton.primary(
                       key: const Key('onboarding_next'),
+                      label: last ? l10n.onboardingStart : l10n.onboardingNext,
                       onPressed: last
                           ? () => _finish(skipped: false)
                           : () => setState(() => _step++),
-                      child: Text(
-                        last ? l10n.onboardingStart : l10n.onboardingNext,
-                      ),
                     ),
                   ),
                 ],

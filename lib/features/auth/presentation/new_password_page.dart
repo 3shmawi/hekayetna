@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:family_stories/core/adaptive/adaptive.dart';
 import 'package:family_stories/core/auth/auth.dart';
 import 'package:family_stories/core/auth/auth_redirect.dart';
 import 'package:family_stories/core/network/result.dart';
@@ -92,10 +91,11 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
             ),
           ],
           SizedBox(height: AppDimens.xl),
-          AdaptiveButton(
+          AppButton.primary(
             key: const Key('new_password_save'),
-            onPressed: _busy ? null : () => unawaited(_save()),
-            child: Text(l10n.newPasswordSave),
+            label: l10n.newPasswordSave,
+            busy: _busy,
+            onPressed: () => unawaited(_save()),
           ),
         ],
       ),

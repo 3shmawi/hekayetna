@@ -131,6 +131,9 @@ abstract final class AdaptiveIcons {
   /// Apple's logo for "Continue with Apple" (same on both platforms).
   static const IconData apple = Icons.apple;
 
+  static IconData mail(BuildContext context) =>
+      context.isCupertino ? CupertinoIcons.mail : Icons.mail_outline;
+
   // Hekayetna (design foundation, spec 01): SF Symbol look on iOS,
   // Material outlined on Android. Icons are 24px, ink or ink-soft; only
   // the record icon is terracotta.
