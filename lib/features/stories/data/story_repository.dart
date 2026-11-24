@@ -26,7 +26,7 @@ abstract class StoryRepository {
   Future<String> createAudioUrl(String audioPath); // short-lived signed URL
 
   /// Uploads a recorded file to the story-audio bucket at [storagePath]
-  /// (`<space>/<story>/<file>.m4a`). Upload happens before the story row
+  /// (`<space>/<uploader>/<story>/<file>.m4a`). Upload happens before the story row
   /// exists; the storage insert policy requires only space membership while
   /// reads require story access. Returns the storage path to persist.
   Future<String> uploadAudio(String localPath, String storagePath);

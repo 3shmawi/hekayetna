@@ -569,24 +569,25 @@ class _StoryPhotosGrid extends ConsumerWidget {
             // One frame per LINKED photo, even when the photo itself is not
             // accessible: the link is story metadata, the image is not.
             for (final id in photoIds)
-              visible.any((p) => p.id == id)
-                  ? _StoryPhotoThumb(
-                      photo: visible.firstWhere((p) => p.id == id),
-                      demo: demo,
-                    )
-                  : Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.sand,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.inkSoft),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.lock_outline,
-                          color: AppColors.inkSoft,
-                        ),
-                      ),
+              if (visible.any((p) => p.id == id))
+                _StoryPhotoThumb(
+                  photo: visible.firstWhere((p) => p.id == id),
+                  demo: demo,
+                )
+              else
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.sand,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.inkSoft),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.lock_outline,
+                      color: AppColors.inkSoft,
                     ),
+                  ),
+                ),
           ],
         );
       },

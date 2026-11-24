@@ -38,8 +38,9 @@
   another user's row; anon sees nothing; deleting the account deletes the
   profile.
 - `supabase/functions/delete-account/` — deletes the calling user (only the
-  server may). Deployed on merge with the other Edge Functions. Delete the
-  user's Storage files there too if the app keeps any.
+  server may). Deployed on merge with the other Edge Functions. It removes
+  the user's own Storage files (story audio, photos) first, then the user;
+  their stories, photos and grants go by cascade (migration 0007).
 
 **Set up (once, Supabase dashboard → Authentication):**
 1. *Sign In / Providers → Email*: on. Keep **Confirm email** on for

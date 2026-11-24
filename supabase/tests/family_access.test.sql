@@ -291,6 +291,9 @@ select public._assert((select count(*) from storage.objects
   'orphan object must be invisible to other members');
 
 -- 12d. Nobody can delete another member's object (delete silently filters).
+-- Supabase blocks raw SQL deletes on storage.objects unless this is set; the
+-- Storage API sets it for every delete, and RLS still decides which rows go.
+set local storage.allow_delete_query = 'true';
 set local role authenticated;
 set local "request.jwt.claims" = '{"sub":"22222222-2222-2222-2222-222222222222"}';
 delete from storage.objects where name like '%a0000000-0000-0000-0000-000000000001%';

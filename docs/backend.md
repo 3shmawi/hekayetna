@@ -43,6 +43,10 @@ re-enable it from the Actions tab if that happens.
   `supabase/migrations/` (never edit an applied migration).
 - Every new table gets `supabase/tests/<table>_rls.test.sql` (pgTAP) proving
   what `anon` and `authenticated` can and can't do. CI runs
-  `supabase test db` when a PR touches `supabase/` (enable once:
-  `supabase init`, commit `supabase/config.toml`).
+  `supabase test db` when a PR touches `supabase/` (`supabase/config.toml`
+  is committed, so this is on). Locally: `supabase db start && supabase test db`
+  (needs Docker).
+- Rows that belong to a person go with their account (`on delete cascade`);
+  shared family data uses `on delete set null`. A foreign key to `profiles`
+  or `auth.users` without one of these blocks account deletion.
 - Server secrets live in Edge Function secrets / Vault, never in the app.
