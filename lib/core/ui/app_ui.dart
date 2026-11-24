@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 export 'package:family_stories/core/ui/app_button.dart';
 export 'package:family_stories/core/ui/app_chip.dart';
 export 'package:family_stories/core/ui/app_section_label.dart';
+export 'package:family_stories/core/ui/app_tab_bar.dart';
 export 'package:family_stories/core/ui/audio_player_card.dart';
 export 'package:family_stories/core/ui/person_avatar.dart';
 export 'package:family_stories/core/ui/record_button.dart';

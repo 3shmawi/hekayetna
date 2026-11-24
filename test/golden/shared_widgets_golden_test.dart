@@ -124,6 +124,10 @@ final Map<String, Widget Function()> widgets = {
     consequenceText: '3 people can hear this: Mama, Omar, Nour.',
   ),
   'section_label': () => const AppSectionLabel('Recently added'),
+  'tab_bar': () => Align(
+    alignment: Alignment.bottomCenter,
+    child: AppTabBar(currentIndex: 0, onTap: (_) {}),
+  ),
   'skeleton_card': () => const SkeletonCard(),
   'empty_view': () => SizedBox(
     height: 400,
