@@ -1,0 +1,127 @@
+# Uploads store/ (texts + screenshots if present) to Google Play and the App
+# Store. Manual on purpose: run it when the listing is ready.
+name: Store listing
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Which store
+        type: choice
+        default: both
+        options: [both, android, ios]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check texts (limits + no placeholders)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: $/.github/actions/setup-flutter
+      - run: flutter test test/store/listing_test.dart
+        env:
+          STORE_LISTING_RELEASE: 'true'
+
+  android:
+    needs: check
+    if: inputs.platform != 'ios'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1.335.0
+        with:
+          ruby-version: '3.3'
+      - run: gem install fastlane --no-document --version 2.241.2 # zizmor: ignore[adhoc-packages] pinned; one tool, no Gemfile
+      - name: Upload to Google Play
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          # "What's new" goes on the latest release of the track release.yml
+          # uploads to (supply edits that release's notes; it needs one).
+          PLAY_TRACK: ${{ vars.PLAY_TRACK || 'internal' }}
+        run: |
+          printf '%s' "$PLAY_JSON" > "$RUNNER_TEMP/play.json"
+          ./scripts/mask_secrets.sh "$RUNNER_TEMP/play.json"
+          shots=true
+          ls store/android/*/images/phoneScreenshots/*.png >/dev/null 2>&1 && shots=false
+          images=true
+          ls store/android/*/images/featureGraphic.png >/dev/null 2>&1 && images=false
+          notes=true
+          ls store/android/*/changelogs/default.txt >/dev/null 2>&1 && notes=false
+          # A track can hold several releases (completed, draft...): supply
+          # then needs the version code. Take the newest on the track.
+          code=$(fastlane run google_play_track_version_codes \
+              package_name:"com.mohager.hekayetna" track:"$PLAY_TRACK" json_key:"$RUNNER_TEMP/play.json" \
+            | sed 's/\x1b\[[0-9;]*m//g' | grep -o 'Result: \[[0-9, ]*\]' | grep -o '[0-9]\+' | sort -n | tail -n 1)
+          if [ -z "$code" ]; then
+            echo "::error::No release on the $PLAY_TRACK track: upload a build first (release.yml)."
+            exit 1
+          fi
+          echo "Store listing for version code $code on $PLAY_TRACK"
+          fastlane supply \
+            --package_name "com.mohager.hekayetna" \
+            --json_key "$RUNNER_TEMP/play.json" \
+            --metadata_path store/android \
+            --track "$PLAY_TRACK" \
+            --version_code "$code" \
+            --skip_upload_apk true --skip_upload_aab true \
+            --skip_upload_changelogs "$notes" \
+            --skip_upload_images "$images" \
+            --skip_upload_screenshots "$shots" \
+            --changes_not_sent_for_review true
+
+  ios:
+    needs: check
+    if: inputs.platform != 'android'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Upload to App Store Connect
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          # App Review contact: Apple refuses review notes without all four.
+          REVIEW_FIRST_NAME: ${{ secrets.APP_REVIEW_FIRST_NAME }}
+          REVIEW_LAST_NAME: ${{ secrets.APP_REVIEW_LAST_NAME }}
+          REVIEW_EMAIL: ${{ secrets.APP_REVIEW_EMAIL }}
+          REVIEW_PHONE: ${{ secrets.APP_REVIEW_PHONE }}
+        run: |
+          printf '%s' "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/asc.p8"
+          ./scripts/mask_secrets.sh "$RUNNER_TEMP/asc.p8"
+          jq -n --arg id "$ASC_KEY_ID" --arg issuer "$ASC_ISSUER_ID" --rawfile key "$RUNNER_TEMP/asc.p8" \
+            '{key_id: $id, issuer_id: $issuer, key: $key, in_house: false}' > "$RUNNER_TEMP/asc.json"
+          shots=true
+          ls store/ios/screenshots/*/*.png >/dev/null 2>&1 && shots=false
+          # deliver asks "Do you want to setup deliver?" when it finds no
+          # Deliverfile and no ./metadata folder, and crashes in CI, so one is
+          # always written. It carries the App Review contact (read from the
+          # environment, never written out); the notes come from
+          # store/ios/review_information/notes.txt.
+          if [ -n "$REVIEW_FIRST_NAME" ] && [ -n "$REVIEW_LAST_NAME" ] && [ -n "$REVIEW_EMAIL" ] && [ -n "$REVIEW_PHONE" ]; then
+            echo 'app_review_information(first_name: ENV["REVIEW_FIRST_NAME"], last_name: ENV["REVIEW_LAST_NAME"], email_address: ENV["REVIEW_EMAIL"], phone_number: ENV["REVIEW_PHONE"])' > Deliverfile
+          else
+            echo "::warning::APP_REVIEW_* secrets not set: review notes skipped, App Review Information stays as it is in App Store Connect."
+            : > Deliverfile
+            rm -rf store/ios/review_information
+          fi
+          fastlane deliver \
+            --api_key_path "$RUNNER_TEMP/asc.json" \
+            --app_identifier "com.mohager.hekayetna" \
+            --metadata_path store/ios \
+            --screenshots_path store/ios/screenshots \
+            --ignore_language_directory_validation true \
+            --skip_binary_upload true \
+            --skip_screenshots "$shots" \
+            --overwrite_screenshots true \
+            --submit_for_review false \
+            --run_precheck_before_submit false \
+            --force true

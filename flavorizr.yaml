@@ -1,0 +1,32 @@
+app:
+  android:
+    flavorDimensions: "flavor-type"
+
+flavors:
+  dev:
+    app:
+      name: "Hekayetna Dev"
+    android:
+      applicationId: "com.mohager.hekayetna.dev"
+      icon: "assets/branding/icon_dev.png"
+    ios:
+      bundleId: "com.mohager.hekayetna.dev"
+      icon: "assets/branding/icon_dev.png"
+  staging:
+    app:
+      name: "Hekayetna Stg"
+    android:
+      applicationId: "com.mohager.hekayetna.stg"
+      icon: "assets/branding/icon_staging.png"
+    ios:
+      bundleId: "com.mohager.hekayetna.stg"
+      icon: "assets/branding/icon_staging.png"
+  prod:
+    app:
+      name: "Hekayetna"
+    android:
+      applicationId: "com.mohager.hekayetna"
+      icon: "assets/branding/icon.png"
+    ios:
+      bundleId: "com.mohager.hekayetna"
+      icon: "assets/branding/icon.png"

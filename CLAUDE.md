@@ -1,0 +1,342 @@
+# Family Stories
+
+Preserve family stories in the voices of the people who lived them. Arabic RTL and English, private by default.
+
+This file is the source of truth for anyone — human or AI agent — working on
+this project. Read it fully before changing code. Feature details live in
+`docs/features/`.
+
+## Stack (decided at creation — see docs/decisions/)
+
+| Area | Choice |
+|---|---|
+| Flutter | pinned in `.fvmrc` (FVM) — CI and Codemagic use the same version |
+| Package / bundle ID | `com.mohager.hekayetna` |
+| Environments | dev, staging, prod (`env/<name>.json`, flavors when > 1) |
+| Architecture | Simple clean architecture (data + presentation per feature) |
+| State management | Riverpod (Notifier) |
+| Backend | Supabase (`lib/core/backend/`, SQL in `supabase/`), kept awake by `.github/workflows/supabase-keepalive.yml` — docs/backend.md |
+| REST API | None — add one with `scripts/add_module.sh api` |
+| Monitoring | None (`lib/core/monitoring/`) |
+| Analytics & feature flags | PostHog (`lib/core/analytics/`, `lib/core/feature_flags/`) — not Firebase Analytics |
+| Modules | Sign-in: Email + password · Paid features: None · Push: None · Onboarding: yes — add one later with `scripts/add_module.sh` |
+| Routing & deep links | go_router (`lib/core/router/`), scheme `familystories://`, host `example.com` |
+| UI style | Adaptive (Material / Cupertino) — screens use `AppScaffold`, `AppCard`, `AppIconButton` from `lib/core/ui/app_ui.dart` |
+| Fonts | Inter (Latin) + Cairo (Arabic), bundled in `assets/fonts` |
+| Localization | English + Arabic (RTL), ARB files in `lib/l10n/` |
+| Lints | very_good_analysis (strict) |
+| CI/CD | GitHub Actions — merge to `main` releases to both stores |
+| Website | `website/` — landing, privacy policy, terms, delete account ((not deployed yet)) |
+
+## Commands
+With FVM installed, prefix with `fvm` (`fvm flutter test`, `fvm dart format .`).
+Upgrade Flutter for the project: `fvm use <version>` → commit `.fvmrc`.
+```bash
+./scripts/run.sh [dev staging prod]          # run with flavor + env file
+flutter test                             # unit + widget tests
+flutter test integration_test --flavor dev --dart-define-from-file=env/dev.json
+dart fix --apply && dart format .        # fix lints, format
+flutter analyze                          # must be clean
+flutter gen-l10n                         # after editing .arb files
+./scripts/new_feature.sh <name>          # scaffold feature + doc + test folders
+./scripts/agent_run.sh ios|android [env] # run on a simulator/emulator for an agent (below)
+```
+
+**Running the app as an agent (Dart MCP server)**
+The official Dart & Flutter plugin (Dart MCP server + skills) is pinned in
+`.claude/settings.json`. To see a change on a real simulator / emulator
+(Claude Code on a Mac; cloud sessions have none):
+1. `./scripts/agent_run.sh ios` (and/or `android`) — boots a device if needed,
+   runs the app in the background with the env file and the Flutter Driver
+   extension (`test_driver/agent_app.dart`, debug only), prints a DTD URI.
+2. Dart MCP `dtd` → `connect` with that URI.
+3. Drive and check it: `flutter_driver_command` (`tap` / `enter_text` /
+   `waitFor` by `ByValueKey` or `ByText`, then `screenshot`), `widget_inspector`,
+   `get_runtime_errors`. Give widgets you need to reach a `Key`. `waitFor`
+   the result before a screenshot (sheets and pages animate).
+4. After editing `lib/**`: `hot_reload` (UI, methods) or `hot_restart`
+   (initState, globals, `main`, providers). Not for comments or files
+   outside `lib/`.
+5. `./scripts/agent_run.sh stop` when done. Logs: `build/agent/<target>.log`.
+This checks behaviour while building; it never replaces the tests
+(`flutter test`, `integration_test/`). The MCP server's `launch_app` can't
+pass the env file (it blocks `--dart-define-from-file`), so use the script.
+
+## Project structure
+```
+lib/
+  main.dart, bootstrap.dart   start-up: monitoring → backend → analytics → DI → app
+  app/                        App (state wiring) + AppShell (MaterialApp.router)
+  core/
+    adaptive/                 Cupertino on iOS, Material on Android
+    analytics/  feature_flags/  backend/  monitoring/
+    config/                   Env (dart-define values), AppFlavor
+    di/                       Dependencies — composition root
+    router/                   AppRoutes (paths), appRouter, NotFoundPage
+    theme/                    AppColors, AppTextStyles, AppDimens, AppTheme
+    update/                   version-update gate (optional / force)
+  features/<feature>/         one folder per feature (layers below)
+  l10n/                       app_en.arb (template), app_ar.arb, gen/ (generated)
+test/                         mirrors lib/  ·  test/helpers/pump_app.dart
+integration_test/             end-to-end flows on a device
+docs/                         feature docs, decisions, release, deep links
+website/                      static site deployed with the app
+supabase/                     backend as code, deployed on merge (docs/backend.md)
+```
+
+Feature layers — simple:
+- **simple**: `data/` (models, repositories, data sources) + `presentation/`
+  (pages, widgets, state holders).
+- **layered**: `data/` (models, data sources, repository implementations) →
+  `domain/` (entities, repository interfaces, use cases — pure Dart, no
+  Flutter imports except value types) → `presentation/`. Presentation depends
+  on domain only; implementations are wired in `core/di/dependencies.dart`.
+
+## Rules (non-negotiable)
+
+**Before any setup or new feature (check first, then build)**
+Before writing code or touching CI, a store, a backend or a secret:
+1. **Read the current official docs** for everything the change touches —
+   Apple, Google Play, GitHub Actions, Firebase/Supabase, the tool's own docs
+   and changelog — and check the latest version. Never set up from memory:
+   requirements and tools change every year. Note the version and the date
+   you checked in the docs.
+2. **Map the secrets and data.** Every secret, key, token or piece of
+   personal data the change uses or creates, and everywhere it could end up:
+   logs, artifacts, the app binary, git history, error messages, analytics.
+   Anything inside the app is public; only publishable keys go there.
+3. **Plan the safe path before the code.** Secrets reach scripts only
+   through `env:`, a key written to a file goes through
+   `./scripts/mask_secrets.sh` before any tool reads it, no `set -x` or
+   verbose flags, least-privilege tokens, tools and actions pinned to
+   exact versions/commits (docs/security.md → "CI and secrets").
+4. **Check what exists** — branches, open PRs, helpers, docs — and extend it
+   instead of building a second one.
+5. **After:** run the security checks
+   (`gitleaks`, zizmor, `test/security/`) and update the docs in the same
+   PR (see "Docs are part of the change").
+
+If a secret ever shows up where it shouldn't (log, chat, commit): stop,
+revoke or rotate it first, then clean up (docs/security.md → "If a key
+leaks").
+
+**Every feature ships with**
+1. Unit tests (repositories, use cases, state holders).
+2. Widget tests (screens and non-trivial widgets) using `tester.pumpApp`;
+   every screen test also calls `await tester.expectAccessible()` (tap
+   targets, labels, text contrast).
+3. An integration test for its main flow in `integration_test/`.
+4. `docs/features/<feature>.md` (start from `./scripts/new_feature.sh`), linked
+   in `docs/README.md`. Update it whenever the feature changes.
+5. Its screens in `test/golden/golden_test.dart` (light/dark × English/
+   Arabic). A failing golden is a visual change: check
+   `test/golden/failures/` (or the CI artifact *golden-failures*); if it's
+   intended, `flutter test --update-goldens test/golden` and commit the
+   PNGs. Text renders as boxes there on purpose (same on Mac and CI).
+
+**Design before code for big features (Elephant-Goldfish Model)**
+The [EGM plugin](https://github.com/google/elephant-goldfish-model) is pinned
+in `.claude/settings.json` (docs/getting_started.md → "Design reviews").
+You (the elephant) know the project and write the spec; fresh "goldfish"
+reviewers read only the spec and the code, so they catch what you assumed.
+- **Use it** when a feature needs design decisions: auth, payments, sync or
+  offline data, new tables / collections or their access rules, store or CI changes, anything
+  hard to undo. Run `/egm:egm-brainstorm <idea>` → `/egm:egm-draft` →
+  `/egm:egm-review design_draft.md` → `/egm:egm-resolve`, and wait for the
+  user to approve the spec before writing code.
+- **Skip it** for small UI tweaks, copy changes and bug fixes with a clear
+  cause.
+- Save the approved spec as `docs/designs/<feature>.md` (EGM's default) and
+  link it from the feature doc's "Decisions & edge cases". Don't commit the
+  working files (`concepts_brief.md`, `design_draft.md`).
+- `/egm:egm-drift-report` checks that `docs/` still matches the code; run
+  it before a release with big changes.
+- Plugin not loaded (no `/egm:` commands)? Say so and continue without it;
+  never copy its prompts into the repo.
+
+**UI**
+- The look comes from the design in `docs/design.md` (Claude Design System +
+  Design artifacts). Read them before building a screen; don't invent
+  styles. Missing design for a screen → ask, or follow the Design System.
+- Every screen has loading, empty, error (with retry) and offline states, and
+  passes the screen checklist in `docs/design.md` (sizes, RTL, dark mode,
+  contrast, large text, semantics labels, touch targets ≥ 48).
+- No hard-coded strings: add keys to `app_en.arb` **and** `app_ar.arb`, use
+  `context.l10n.key`.
+- No hard-coded colors, text styles or sizes: use `Theme.of(context)`,
+  `AppTextStyles`, `AppDimens`, `AppColors`. New tokens go in those files.
+- Sizes scale with flutter_screenutil (`.w`, `.h`, `.sp`, `.r`) — design frame
+  375×812.
+- RTL-safe layout: `EdgeInsetsDirectional`, `AlignmentDirectional`,
+  `start`/`end` — never `left`/`right`.
+- Screens are built from `lib/core/ui/app_ui.dart` (`AppScaffold`, `AppCard`,
+  `AppIconButton`, `showAppSheet`, …) — never a style-specific widget
+  directly. Short messages use `showAppMessage` / `appMessenger`
+  (`lib/core/ui/app_message.dart`), not SnackBars (the glass style has no
+  Material `Scaffold`). New shared building blocks go there, so the UI style can change
+  in one file.
+- Icons come from `AdaptiveIcons` (`core/adaptive/`): SF Symbols' look on
+  iOS, Material outlines on Android, chevrons that mirror in RTL. A new icon
+  goes there, never `Icons.x` in a screen.
+- Platform-adaptive: use `.adaptive` constructors and `core/adaptive/`
+  widgets; check `context.isCupertino` only inside `core/adaptive/`.
+- Pages are thin: a `*_page.dart` wires state to a `*_view.dart` that only
+  takes data + callbacks.
+
+**Navigation & deep links**
+- Paths live in `AppRoutes`; register routes in `app_router.dart`; document
+  each path in `docs/deep_links.md`. Navigate with `context.go/push`.
+- Every `GoRoute` has a unique snake_case `name:` (the screen name in
+  analytics and monitoring; checked by `test/core/router/app_router_test.dart`).
+
+**Data & errors (lib/core/network/)**
+- Repositories never throw to the UI: wrap every call in `guard(() => …)` and
+  return `Future<Result<T>>` (`Success` / `Failed(AppFailure)`). `guard`
+  retries network/timeout/server errors with backoff and reports unexpected
+  ones to monitoring.
+- Screens render `LoadingView`, `EmptyView`, `ErrorView(failure, onRetry)`
+  from `lib/core/widgets/state_views.dart`; the offline banner is global.
+- New failure kinds go in `app_failure.dart` + a message in both ARB files.
+
+**Data, errors, observability**
+- Report caught errors with `Monitoring.captureException(error, stackTrace)`.
+- Analytics events: `Analytics.capture('object_verb', {...})`, snake_case, and
+  list them in the feature doc. No personal data in event properties.
+- Gate risky or unfinished features with `FeatureFlags.isEnabled(Flags.x)`.
+- Backend data goes through `lib/core/backend/backend.dart` (`Backend`), only
+  from feature `data/` sources — never from presentation or domain code.
+- Supabase: every table has RLS enabled; schema changes go in a new file in `supabase/migrations/`; every new table gets a pgTAP file in `supabase/tests/` proving what `anon` and `authenticated` can and can't do.
+
+**Secrets**
+- Nothing secret in the repo or in the app binary. `env/*.json` is
+  git-ignored; CI gets values from secrets. Only publishable values
+  (Supabase publishable key; PostHog key; Sentry DSN) go in env files.
+
+**Security (tests are mandatory — docs/security.md)**
+- `test/security/` must stay green: no secrets in source/native/website
+  files, no cleartext traffic, ATS not disabled, only the launcher activity
+  exported, deep links can't crash the app or redirect it.
+- Every new route/deep link → a case in `test/security/deep_link_test.dart`.
+- Every new table / collection → access rules + tests for them (the backend
+  rule above, docs/backend.md → "Rules").
+- Every feature that takes user input → tests for invalid/hostile input
+  (empty, too long, injection-like strings, wrong types).
+- Auth (when added): tests that protected routes redirect signed-out users and
+  that one user can't read or change another user's rows.
+- Never log tokens, passwords or personal data; never put secrets in
+  `env/*.json` (only publishable keys).
+- CI `security` job (gitleaks, OSV-Scanner, zizmor, backend rules tests) must pass;
+  fix or upgrade vulnerable packages instead of ignoring them.
+
+**CI and secrets (docs/security.md → "CI and secrets")**
+- Treat every CI log and artifact as public. Secrets reach scripts only
+  through `env:`; a key written to a file goes through
+  `./scripts/mask_secrets.sh` before any tool reads it; no `set -x`.
+- Workflows: read-only `permissions` by default, actions pinned to a commit
+  SHA, `persist-credentials: false`, no `pull_request_target`. CI runs
+  zizmor and `test/security/workflow_secrets_test.dart`; both must pass.
+- A leaked key is revoked first, then removed (docs/security.md → "If a key
+  leaks").
+
+**Docs are part of the change**
+- Any new feature, setup step, secret, workflow, store requirement or tool
+  updates its doc in the same PR: `docs/features/<feature>.md`,
+  `docs/release.md`, `docs/security.md`, `docs/getting_started.md`. Check
+  the official docs (Apple, Google Play, GitHub, the tool's own docs) when
+  you change a setup step — never rely on memory for them.
+
+**Store listing (texts and images)**
+- "Prepare the stores" means: every text in `store/` in Arabic and English
+  (no placeholders), and the screenshots, feature graphic and icon made with
+  the steps in `store/README.md` → "Screenshots and graphics" from the app's
+  real screens, the App Store header and search images (`node hero.js`) and
+  the "What's new" texts. Describe and show only what is live for every user in prod
+  (check the feature flags). Check the store sizes in Apple's and Google's
+  current docs first, and look at every image before committing.
+- It also means filling `store/play_app_content.json` (the Play Console
+  "App content" answers, which have no API) from the code, so the owner only
+  copies them from `store/tools/app_content.html`. Keep it current when the app collects new data or adds
+  ads, sign-in, payments or health features.
+
+**Store requirements**
+- Privacy policy and terms are in `website/`; keep them accurate when adding
+  data collection.
+- If the app gets user accounts: in-app account deletion + the
+  `website/delete-account.html` page are mandatory (Apple & Google policy).
+- Keep the version-update gate (`core/update/`) working.
+
+**Quality gates (CI blocks the merge)**
+- Line coverage ≥ `COVERAGE_MIN` (repo variable, default 60%) —
+  `scripts/coverage_check.sh`. Raise it over time, never lower it silently.
+- `test/l10n/arb_test.dart`: every key in both languages, same placeholders.
+- `main` is protected: merge only through PRs with green checks.
+- Dependabot opens `chore(deps)` PRs weekly; patch/minor merge themselves
+  after CI, majors need you.
+
+**Release builds**
+- Obfuscated (`--obfuscate --split-debug-info`); symbols go to Sentry
+  (`scripts/upload_symbols.sh`) and are kept 90 days as a CI artifact.
+
+**Kit**
+- This project was generated by flutter-project-kit (`.project-kit.env`).
+  `scripts/kit_sync.sh` pulls kit improvements in on a branch (3-way merge);
+  `.github/workflows/kit-sync.yml` does it weekly as a PR.
+  Improve shared things (CI, core, rules) in the kit, not only here.
+
+**Demo & social (build in public)**
+- Every user-facing feature's integration test is written as a clear demo:
+  real taps and typing in a natural order, with `beat(tester)` pauses
+  (`integration_test/helpers/demo.dart`) between steps.
+- Fill the feature doc's "Demo & post" section (hook, scenario, captions in
+  English and Egyptian Arabic, hashtags). The demo is made on demand, not
+  on every PR (it is a second ~20-min macOS run): add the **`demo`** label
+  to the PR (or Actions → **Demo video** → Run workflow) and the workflow
+  records the feature's integration test on an iOS Simulator (full glass)
+  and comments a 1080×1920 video + caption on the PR.
+  The build and install before the test is cut out: the video starts a
+  second before the test does (`scripts/record_demo_ios.sh` →
+  `compose_demo.sh`).
+- Releases are announced on LinkedIn, Facebook, Instagram, YouTube and
+  TikTok (plus Threads, Bluesky, Telegram and X when turned on in
+  `SOCIAL_PLATFORMS`) by `.github/workflows/social.yml`
+  (3shmawi/social-publisher); `social-health.yml` checks the tokens weekly
+  and `social-insights.yml` reports each post's numbers after a week: Claude (or,
+  without a Claude token, templates filled from the store "What's new" text)
+  writes the posts, the owner approves them in the `social` environment.
+  Clear `feat:`/`fix:` PR titles and an up-to-date What's new make better posts. To keep
+  something out: `[skip social]` in the release notes, or (for the
+  two-weekly posts) the `skip-social` label on the PR. A release video goes
+  in `marketing/videos/v<version>.mp4` or as a `*.mp4` release asset
+  (docs/release.md → "Social posts").
+
+**Git & releases**
+- Conventional Commits (enforced by `.githooks/commit-msg`):
+  `feat:` → minor, `fix:` → patch, `feat!:` → major, `docs/chore/ci/test/style`
+  → no release. Squash-merge PRs; the PR title is the release commit and is
+  checked by `.github/workflows/pr-title.yml`.
+- The branch is deleted automatically when its PR merges (repo setting);
+  start the next change from a fresh branch off `main`.
+- Never bump versions or build by hand — CI does it (docs/release.md).
+- Pre-commit runs format + analyze; don't bypass it.
+
+## Release flow
+`develop` → staging builds (TestFlight + Play internal staging app, APK pre-release) →
+PR to `main` → merge → store release with generated notes → once the
+version is live on Play and the App Store,
+**Announce update**'s daily check shows users an optional update sheet
+(force one by hand: Actions → **Announce update** → force).
+Backend: changes in `supabase/` deploy on merge (Supabase deploy).
+Store texts and images: `store/` → Actions → **Store listing** → Play Console →
+Send changes for review.
+
+## Definition of done
+- [ ] `flutter analyze` clean, `dart format` applied
+- [ ] Unit + widget + integration tests added and passing
+- [ ] Security tests added for new routes, tables and user input
+- [ ] Strings in both ARB files; works in Arabic (RTL) and dark mode
+- [ ] Matches the design (docs/design.md); looks right on a small phone, a large phone and a tablet
+- [ ] Loading / empty / error / offline states; accessible (contrast, large text, labels)
+- [ ] Feature doc written/updated; analytics events listed
+- [ ] Big feature → spec reviewed with EGM, approved and saved in `docs/designs/`
+- [ ] Setup, CI or secrets changed → `docs/release.md` / `docs/security.md` updated; zizmor and `test/security/` green
+- [ ] Commit message follows Conventional Commits

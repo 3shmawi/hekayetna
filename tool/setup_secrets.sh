@@ -1,0 +1,465 @@
+#!/usr/bin/env bash
+# Pushes this repo's release secrets to GitHub, from one folder on your Mac.
+#
+#   tool/setup_secrets.sh            set every secret that has a value
+#   tool/setup_secrets.sh --dry-run  show what would be set, change nothing
+#
+# Values shared by all your apps live in ~/.app-secrets/shared.env (made as a
+# template on the first run). Values that belong to one app -- its Android
+# upload keystore and passwords -- live in ~/.app-secrets/apps/<repo>/ and are
+# generated the first time, with a random password. Set APP_SECRETS_DIR to
+# keep the folder elsewhere.
+#
+# Needs: gh (logged in), keytool (any JDK), openssl. Secret values are piped
+# to gh on stdin, never passed as arguments or printed.
+set -euo pipefail
+
+DRY_RUN=false
+[[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
+
+DIR="${APP_SECRETS_DIR:-$HOME/.app-secrets}"
+SHARED="$DIR/shared.env"
+
+die() { echo "setup_secrets: $*" >&2; exit 1; }
+for tool in gh keytool openssl; do
+  command -v "$tool" >/dev/null || die "$tool is not installed"
+done
+
+REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner) ||
+  die "run this inside a GitHub repo, after 'gh auth login'"
+APP_DIR="$DIR/apps/${REPO#*/}"
+
+# Merged PR branches are deleted automatically (projects made by the kit
+# already have this; it also fixes older ones).
+if ! $DRY_RUN; then
+  gh repo edit "$REPO" --delete-branch-on-merge >/dev/null 2>&1 &&
+    echo "ok            merged branches are deleted automatically" ||
+    echo "skipped       couldn't enable 'delete branch on merge' (Settings → General)"
+fi
+
+umask 077
+mkdir -p "$DIR" "$APP_DIR"
+
+# --- Shared values: written once as a template, filled in by hand ----------
+if [[ ! -f "$SHARED" ]]; then
+  cat > "$SHARED" <<'TEMPLATE'
+# Values every app shares. Paths may use ~. Leave a value empty to skip
+# the secrets that need it; the release workflow then skips that job.
+
+# Apple (developer.apple.com -> Membership)
+APPLE_TEAM_ID=
+
+# App Store Connect API key (Users and Access -> Integrations -> Keys)
+ASC_KEY_ID=
+ASC_ISSUER_ID=
+ASC_KEY_P8_PATH=~/.app-secrets/AuthKey_XXXXXXXXXX.p8
+
+# Apple Distribution certificate, exported from Keychain as .p12 (iOS)
+IOS_CERTIFICATE_P12_PATH=~/.app-secrets/ios_distribution.p12
+IOS_CERTIFICATE_PASSWORD=
+
+# Developer ID Application certificate as .p12 (macOS outside the store)
+MACOS_DEVELOPER_ID_P12_PATH=~/.app-secrets/developer_id.p12
+MACOS_DEVELOPER_ID_P12_PASSWORD=
+
+# App Review contact on every App Store version (Apple requires all four to
+# send review notes). Phone with + and country code, e.g. +20 100 000 0000.
+APP_REVIEW_FIRST_NAME=
+APP_REVIEW_LAST_NAME=
+APP_REVIEW_EMAIL=
+APP_REVIEW_PHONE=
+
+# Google Play service account JSON (one per developer account)
+PLAY_SERVICE_ACCOUNT_JSON_PATH=~/.app-secrets/play-service-account.json
+
+# Fine-grained GitHub token with Contents: write, so a bump tag starts the
+# release. One token can cover all your repos.
+RELEASE_TOKEN=
+
+# Optional. Fine-grained GitHub token for the weekly kit-sync PR: Contents,
+# Pull requests and Workflows: read & write. One token can cover all your
+# repos. Empty = the weekly run opens an issue instead of a PR.
+KIT_SYNC_TOKEN=
+
+# Supabase personal access token (Account → Access Tokens): lets CI deploy
+# migrations and Edge Functions for every app. Using several Supabase
+# accounts? Leave it empty here and set SUPABASE_ACCESS_TOKEN per app in
+# apps/<repo>/app.env (app.env is read after this file). Per app, add to
+# apps/<repo>/app.env:  SUPABASE_SECRET_KEY=sb_secret_…  (Project settings →
+# API Keys; used only by CI to announce updates — never put it in env/*.json)
+# and SUPABASE_DB_PASSWORD=… (the database password).
+SUPABASE_ACCESS_TOKEN=
+
+# Optional: create each app's Supabase project automatically. A second access
+# token that never leaves this Mac, allowed to create projects and to read
+# API keys + API key secrets. When env/prod.json has no SUPABASE_URL, this
+# script creates (or reuses) a project named like the repo, with a random DB
+# password, and fills env/prod.json + app.env (SUPABASE_SECRET_KEY,
+# SUPABASE_DB_PASSWORD). SUPABASE_ORG = Organization settings → General →
+# slug. Free plan: 2 active projects per account.
+SUPABASE_ADMIN_TOKEN=
+SUPABASE_ORG=
+SUPABASE_REGION=eu-central-1
+
+# Firebase (only for apps created with BACKEND=firebase). No token here: the
+# script uses your own logins on this Mac -- `firebase login` (Firebase CLI:
+# npm install -g firebase-tools) to create the projects, apps and Firestore
+# database, and `gcloud auth login` (Google Cloud CLI) to create the CI
+# service account + key (apps/<repo>/firebase-deploy.json). Neither login
+# leaves this Mac; CI only gets the service-account key. FIREBASE_LOCATION:
+# Firestore location for new databases (eur3, nam5, europe-west1, ... --
+# permanent). Optional: FIREBASE_ORG_ID or FIREBASE_FOLDER_ID as the parent
+# of new projects. Use existing projects instead: FIREBASE_PROJECT=<id>
+# (prod) and FIREBASE_DEV_PROJECT=<id> (dev + staging) in apps/<repo>/app.env.
+FIREBASE_LOCATION=eur3
+FIREBASE_ORG_ID=
+
+# Sentry (only for apps using Sentry): User settings → Auth Tokens, scopes
+# org:read, team:read, project:read, project:write, project:releases -- this
+# script then creates each app's project and fills SENTRY_DSN in env/*.json.
+# The project slug defaults to the repo name; override per app with
+# SENTRY_PROJECT in apps/<repo>/app.env. Optional: SENTRY_TEAM (default: the
+# org's first team), SENTRY_URL (default https://sentry.io; EU: https://de.sentry.io).
+SENTRY_AUTH_TOKEN=
+SENTRY_ORG=
+
+# PostHog: Settings -> Personal API keys, scope project:read (it never
+# leaves this Mac). Fills POSTHOG_API_KEY + POSTHOG_HOST in env/*.json from
+# the project named like the repo (or your only project). Override per app
+# with POSTHOG_PROJECT in apps/<repo>/app.env. POSTHOG_REGION: eu or us --
+# where your PostHog account lives (eu.posthog.com or us.posthog.com).
+# Without the key the env files are still checked against PostHog.
+POSTHOG_PERSONAL_API_KEY=
+POSTHOG_REGION=eu
+
+# Codemagic (only for repos with codemagic.yaml): personal account →
+# Settings → Integrations → Codemagic API → Show. Leave the team id empty to
+# keep the free plan (free minutes don't apply to teams).
+CODEMAGIC_API_TOKEN=
+CODEMAGIC_TEAM_ID=
+
+# Who new Android keystores are issued to
+KEYSTORE_DNAME="CN=Your Name, O=Your Company, C=EG"
+
+# Social posts (.github/workflows/social.yml → 3shmawi/social-publisher; its
+# README has the steps for each value). Empty = that platform is skipped.
+# A different Facebook Page or LinkedIn page per app? Put FB_PAGE_ID,
+# FB_PAGE_TOKEN or LINKEDIN_ORG_URN in apps/<repo>/app.env instead.
+# Claude writes the posts on your Pro/Max plan: run `claude setup-token`
+# (lasts a year). Empty = fixed templates write them, no AI.
+CLAUDE_CODE_OAUTH_TOKEN=
+FB_PAGE_ID=
+FB_PAGE_TOKEN=
+# Instagram professional account linked to the Page (17841...); the Page
+# token then also needs instagram_basic + instagram_content_publish.
+IG_USER_ID=
+LINKEDIN_TOKEN=
+LINKEDIN_AUTHOR_URN=
+LINKEDIN_ORG_URN=
+LINKEDIN_CLIENT_ID=
+LINKEDIN_CLIENT_SECRET=
+LINKEDIN_REFRESH_TOKEN=
+YT_CLIENT_ID=
+YT_CLIENT_SECRET=
+YT_REFRESH_TOKEN=
+# TikTok (drafts in your TikTok inbox). TikTok replaces the refresh token on
+# every use and the workflow saves the new one itself, with
+# SOCIAL_SECRETS_TOKEN (fine-grained GitHub token: your app repos, Secrets
+# read/write). So fill TIKTOK_REFRESH_TOKEN for the FIRST upload only, then
+# delete its value here: an empty value never overwrites the repo secret.
+TIKTOK_CLIENT_KEY=
+TIKTOK_CLIENT_SECRET=
+TIKTOK_REFRESH_TOKEN=
+SOCIAL_SECRETS_TOKEN=
+# Opt-in platforms: fill them, then add the name to the repo variable
+# SOCIAL_PLATFORMS (e.g. facebook,instagram,linkedin,youtube,tiktok,threads).
+# Threads: npx tsx scripts/get-threads-token.ts in social-publisher (60-day
+# token). The weekly social-health.yml refreshes it and saves the new one
+# with SOCIAL_SECRETS_TOKEN, so like TikTok's: fill THREADS_TOKEN for the
+# FIRST upload only, then delete its value here.
+THREADS_USER_ID=
+THREADS_TOKEN=
+# Bluesky: Settings → Privacy and security → App passwords (not your password).
+BLUESKY_HANDLE=
+BLUESKY_APP_PASSWORD=
+# Telegram: a bot from @BotFather, admin of your channel; chat id @channel.
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+# X: pay-per-use API (each post is billed) — developer.x.com, Read and write.
+X_API_KEY=
+X_API_SECRET=
+X_ACCESS_TOKEN=
+X_ACCESS_SECRET=
+TEMPLATE
+  echo "Created $SHARED -- fill it in, then run this again."
+  exit 0
+fi
+
+# shellcheck disable=SC1090
+source "$SHARED"
+expand() { local p="${1:-}"; echo "${p/#\~/$HOME}"; }
+
+# --- Per-app Android keystore: generated once, then reused -----------------
+# The alias is stored as a secret, and GitHub hides every secret's text in
+# all logs. A common word ("upload") would be starred out everywhere it
+# appears, so new keystores use "<repo>-upload". Existing keystores keep
+# their alias (it's in app.env; changing it would break signing).
+KEYSTORE="$APP_DIR/upload.jks"
+APP_ENV="$APP_DIR/app.env"
+KEY_ALIAS="$(printf '%s' "${REPO#*/}" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '-')-upload"
+if [[ ! -f "$KEYSTORE" ]]; then
+  PASSWORD=$(openssl rand -base64 24 | tr -d '/+=')
+  if $DRY_RUN; then
+    echo "would create   $KEYSTORE (alias $KEY_ALIAS, random password)"
+  else
+    keytool -genkeypair -v -storetype JKS -keyalg RSA -keysize 2048 \
+      -validity 10000 -alias "$KEY_ALIAS" -keystore "$KEYSTORE" \
+      -storepass "$PASSWORD" -keypass "$PASSWORD" \
+      -dname "${KEYSTORE_DNAME:-CN=Android Upload}" >/dev/null 2>&1
+    # Keep whatever app.env already holds (backend keys…); replace only the
+    # keystore lines, so filling app.env before the first run is safe.
+    touch "$APP_ENV"
+    grep -vE '^(ANDROID_KEY_ALIAS|ANDROID_STORE_PASSWORD|ANDROID_KEY_PASSWORD)=' "$APP_ENV" > "$APP_ENV.tmp" || true
+    printf 'ANDROID_KEY_ALIAS=%s\nANDROID_STORE_PASSWORD=%s\nANDROID_KEY_PASSWORD=%s\n' \
+      "$KEY_ALIAS" "$PASSWORD" "$PASSWORD" >> "$APP_ENV.tmp"
+    mv "$APP_ENV.tmp" "$APP_ENV"
+    echo "created       $KEYSTORE -- back this folder up; Play needs the same key for every update"
+  fi
+fi
+# shellcheck disable=SC1090
+[[ -f "$APP_ENV" ]] && source "$APP_ENV"
+
+# Which backend this app was created with (.project-kit.env; projects made
+# before the option existed are Supabase).
+BACKEND=$( (. ./.project-kit.env 2>/dev/null; echo "${BACKEND:-supabase}") )
+KIT_PACKAGE_ID=$( (. ./.project-kit.env 2>/dev/null; echo "${PACKAGE_ID:-}") )
+
+# --- Supabase project: created once when env/prod.json has no SUPABASE_URL --
+# Needs SUPABASE_ADMIN_TOKEN + SUPABASE_ORG (shared.env, or app.env per app).
+# Fills env/prod.json and app.env, which are then read and uploaded below.
+if [[ $BACKEND == supabase && -n "${SUPABASE_ADMIN_TOKEN:-}" ]]; then
+  if [[ ! -f env/prod.json && -f env/example.json ]] && ! $DRY_RUN; then
+    cp env/example.json env/prod.json
+  fi
+  if ! command -v python3 >/dev/null; then
+    echo "skip          Supabase project (python3 not installed)"
+  else
+    DRY_RUN=$DRY_RUN SUPABASE_ADMIN_TOKEN="$SUPABASE_ADMIN_TOKEN" \
+      SUPABASE_ORG="${SUPABASE_ORG:-}" SUPABASE_REGION="${SUPABASE_REGION:-}" \
+      SUPABASE_PROJECT="${SUPABASE_PROJECT:-${REPO#*/}}" APP_ENV="$APP_ENV" \
+      python3 "$(dirname "$0")/supabase_project.py" env/prod.json ||
+      echo "skip          Supabase project (see the message above)"
+    # shellcheck disable=SC1090
+    [[ -f "$APP_ENV" ]] && source "$APP_ENV"
+  fi
+fi
+
+# --- Firebase projects, apps, Firestore and the CI service account ---------
+# Uses `firebase login` / `gcloud auth login` on this Mac (see shared.env).
+# Fills the empty FIREBASE_* keys in env/*.json and FIREBASE_SERVICE_ACCOUNT_
+# JSON_PATH in app.env, which are then read and uploaded below.
+if [[ $BACKEND == firebase ]]; then
+  # One env file per environment of this app (the script fills them).
+  if ! $DRY_RUN && [[ -f env/example.json ]]; then
+    for name in $( (. ./.project-kit.env 2>/dev/null; echo "${ENV_LIST:-prod}") ); do
+      if [[ ! -f env/$name.json ]]; then cp env/example.json "env/$name.json"; fi
+    done
+  fi
+  if ! command -v python3 >/dev/null; then
+    echo "skip          Firebase setup (python3 not installed)"
+  else
+    DRY_RUN=$DRY_RUN REPO_NAME="${REPO#*/}" PACKAGE_ID="$KIT_PACKAGE_ID" APP_DIR="$APP_DIR" \
+      APP_ENV="$APP_ENV" FIREBASE_LOCATION="${FIREBASE_LOCATION:-}" \
+      FIREBASE_PROJECT="${FIREBASE_PROJECT:-}" FIREBASE_DEV_PROJECT="${FIREBASE_DEV_PROJECT:-}" \
+      FIREBASE_ORG_ID="${FIREBASE_ORG_ID:-}" FIREBASE_FOLDER_ID="${FIREBASE_FOLDER_ID:-}" \
+      FIREBASE_DEPLOY_ROLES="${FIREBASE_DEPLOY_ROLES:-}" \
+      python3 "$(dirname "$0")/firebase_project.py" env/*.json ||
+      echo "skip          Firebase setup (see the message above; docs/backend.md has the manual steps)"
+    # shellcheck disable=SC1090
+    [[ -f "$APP_ENV" ]] && source "$APP_ENV"
+  fi
+fi
+
+# --- Push ------------------------------------------------------------------
+# Target: GitHub Actions secrets, or Codemagic when the repo has codemagic.yaml
+# (needs CODEMAGIC_API_TOKEN in shared.env: Codemagic → Teams → Integrations →
+# Codemagic API → Show).
+TARGET=github
+if [[ -f codemagic.yaml ]]; then
+  TARGET=codemagic
+  [[ -n "${CODEMAGIC_API_TOKEN:-}" ]] || die "add CODEMAGIC_API_TOKEN to $SHARED (Codemagic → Teams → Integrations → Codemagic API)"
+  command -v python3 >/dev/null || die "python3 is required for Codemagic"
+  STAGE_DIR=$(mktemp -d)
+  trap 'rm -rf "$STAGE_DIR"' EXIT
+fi
+
+# A network blip (a TLS handshake timeout) once stopped a run halfway, so
+# each GitHub call is tried up to 4 times, a few seconds apart. Only the
+# label is printed, never a value.
+retry() { # label command...
+  local label=$1 attempt=1
+  shift
+  until "$@"; do
+    if (( attempt >= 4 )); then
+      echo "failed        $label (after $attempt tries)" >&2
+      return 1
+    fi
+    echo "retry         $label (try $((attempt + 1)) of 4 in $((attempt * 5)) s)" >&2
+    sleep $((attempt * 5))
+    attempt=$((attempt + 1))
+  done
+}
+
+# The value stays in memory (never on disk or in a command line) so every
+# try can pipe it to gh again.
+SECRET_VALUE=""
+gh_secret_set() { # name
+  printf '%s' "$SECRET_VALUE" | gh secret set "$1" --repo "$REPO" >/dev/null
+}
+
+push() { # name  (value on stdin)
+  if [[ $TARGET == github ]]; then
+    # The trailing x keeps trailing newlines that $(...) would drop.
+    SECRET_VALUE=$(cat; printf x)
+    SECRET_VALUE=${SECRET_VALUE%x}
+    retry "$1" gh_secret_set "$1"
+    SECRET_VALUE=""
+    echo "set           $1"
+  else
+    cat > "$STAGE_DIR/$1"   # uploaded to Codemagic in one go at the end
+  fi
+}
+
+set_value() { # name value
+  local name=$1 value=${2:-}
+  if [[ -z "$value" ]]; then echo "skip          $name (no value)"; return; fi
+  if $DRY_RUN; then echo "would set     $name ($TARGET)"; return; fi
+  printf '%s' "$value" | push "$name"
+}
+
+set_file() { # name path [base64]
+  local name=$1 path encode=${3:-}
+  path=$(expand "${2:-}")
+  if [[ -z "$path" || ! -f "$path" ]]; then echo "skip          $name (no file${path:+ at $path})"; return; fi
+  if $DRY_RUN; then echo "would set     $name from $path ($TARGET)"; return; fi
+  if [[ -n "$encode" ]]; then
+    base64 < "$path" | tr -d '\n' | push "$name"
+  else
+    push "$name" < "$path"
+  fi
+}
+
+echo "Repo: $REPO"
+set_file  ANDROID_KEYSTORE_BASE64          "$KEYSTORE" base64
+set_value ANDROID_KEY_ALIAS                "${ANDROID_KEY_ALIAS:-}"
+set_value ANDROID_STORE_PASSWORD           "${ANDROID_STORE_PASSWORD:-}"
+set_value ANDROID_KEY_PASSWORD             "${ANDROID_KEY_PASSWORD:-}"
+set_file  PLAY_SERVICE_ACCOUNT_JSON        "${PLAY_SERVICE_ACCOUNT_JSON_PATH:-}"
+set_value APPLE_TEAM_ID                    "${APPLE_TEAM_ID:-}"
+set_value ASC_KEY_ID                       "${ASC_KEY_ID:-}"
+set_value ASC_ISSUER_ID                    "${ASC_ISSUER_ID:-}"
+set_file  ASC_KEY_P8_BASE64                "${ASC_KEY_P8_PATH:-}" base64
+set_file  IOS_CERTIFICATE_P12_BASE64       "${IOS_CERTIFICATE_P12_PATH:-}" base64
+set_value IOS_CERTIFICATE_PASSWORD         "${IOS_CERTIFICATE_PASSWORD:-}"
+set_file  MACOS_DEVELOPER_ID_P12_BASE64    "${MACOS_DEVELOPER_ID_P12_PATH:-}" base64
+set_value MACOS_DEVELOPER_ID_P12_PASSWORD  "${MACOS_DEVELOPER_ID_P12_PASSWORD:-}"
+set_value RELEASE_TOKEN                    "${RELEASE_TOKEN:-}"
+set_value KIT_SYNC_TOKEN                   "${KIT_SYNC_TOKEN:-}"
+set_value APP_REVIEW_FIRST_NAME            "${APP_REVIEW_FIRST_NAME:-}"
+set_value APP_REVIEW_LAST_NAME             "${APP_REVIEW_LAST_NAME:-}"
+set_value APP_REVIEW_EMAIL                 "${APP_REVIEW_EMAIL:-}"
+set_value APP_REVIEW_PHONE                 "${APP_REVIEW_PHONE:-}"
+
+# --- flutter-project-kit additions ------------------------------------------
+# Sentry: create this app's project if it's missing and fill SENTRY_DSN in
+# env/*.json where it's still empty (before the env files are uploaded below).
+if grep -q '^sentry:' pubspec.yaml 2>/dev/null; then
+  if [[ -z "${SENTRY_AUTH_TOKEN:-}" || -z "${SENTRY_ORG:-}" ]]; then
+    echo "skip          Sentry project (needs SENTRY_AUTH_TOKEN and SENTRY_ORG)"
+  elif ! command -v python3 >/dev/null; then
+    echo "skip          Sentry project (python3 not installed)"
+  else
+    DRY_RUN=$DRY_RUN SENTRY_AUTH_TOKEN="$SENTRY_AUTH_TOKEN" SENTRY_ORG="$SENTRY_ORG" \
+      SENTRY_PROJECT="${SENTRY_PROJECT:-${REPO#*/}}" SENTRY_TEAM="${SENTRY_TEAM:-}" \
+      SENTRY_URL="${SENTRY_URL:-https://sentry.io}" \
+      python3 "$(dirname "$0")/sentry_project.py" env/*.json ||
+      echo "skip          Sentry project (see the message above; set SENTRY_DSN by hand)"
+  fi
+fi
+# PostHog: fill the project key + host in env/*.json where still empty,
+# then check every file's key against its host (EU vs US mix-ups drop
+# every event silently).
+if ls env/*.json >/dev/null 2>&1; then
+  if command -v python3 >/dev/null; then
+    DRY_RUN=$DRY_RUN POSTHOG_PERSONAL_API_KEY="${POSTHOG_PERSONAL_API_KEY:-}" \
+      POSTHOG_REGION="${POSTHOG_REGION:-eu}" POSTHOG_PROJECT="${POSTHOG_PROJECT:-${REPO#*/}}" \
+      python3 "$(dirname "$0")/posthog_project.py" env/*.json ||
+      echo "skip          PostHog check (see the message above)"
+  else
+    echo "skip          PostHog check (python3 not installed)"
+  fi
+fi
+# App config for the release build (backend/PostHog/Sentry keys).
+# Names any key that is still empty (the app turns that service off).
+for f in env/prod.json env/staging.json; do
+  [[ -f $f ]] && "$(dirname "$0")/../scripts/check_env.sh" "$f"
+done
+set_file  ENV_PROD_JSON                    "env/prod.json"
+set_file  ENV_STAGING_JSON                 "env/staging.json"
+if [[ $BACKEND == supabase ]]; then
+  # Supabase: announce updates (secret key) and deploy migrations/functions.
+  set_value SUPABASE_SECRET_KEY            "${SUPABASE_SECRET_KEY:-}"
+  set_value SUPABASE_ACCESS_TOKEN          "${SUPABASE_ACCESS_TOKEN:-}"
+  set_value SUPABASE_DB_PASSWORD           "${SUPABASE_DB_PASSWORD:-}"
+fi
+# Sentry symbol upload for obfuscated builds (only when the app uses Sentry).
+if grep -q '^sentry:' pubspec.yaml 2>/dev/null; then
+  set_value SENTRY_AUTH_TOKEN              "${SENTRY_AUTH_TOKEN:-}"
+  set_value SENTRY_ORG                     "${SENTRY_ORG:-}"
+  set_value SENTRY_PROJECT                 "${SENTRY_PROJECT:-${REPO#*/}}"
+fi
+
+# Social posts run on GitHub Actions in every project (Codemagic ones too),
+# so these always go to GitHub. Older shared.env files lack these lines:
+# add them (see the template above) to use social.yml.
+SAVED_TARGET=$TARGET
+TARGET=github
+for name in CLAUDE_CODE_OAUTH_TOKEN FB_PAGE_ID FB_PAGE_TOKEN IG_USER_ID LINKEDIN_TOKEN LINKEDIN_AUTHOR_URN \
+  LINKEDIN_ORG_URN LINKEDIN_CLIENT_ID LINKEDIN_CLIENT_SECRET LINKEDIN_REFRESH_TOKEN \
+  YT_CLIENT_ID YT_CLIENT_SECRET YT_REFRESH_TOKEN \
+  TIKTOK_CLIENT_KEY TIKTOK_CLIENT_SECRET TIKTOK_REFRESH_TOKEN SOCIAL_SECRETS_TOKEN \
+  THREADS_USER_ID THREADS_TOKEN BLUESKY_HANDLE BLUESKY_APP_PASSWORD TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID \
+  X_API_KEY X_API_SECRET X_ACCESS_TOKEN X_ACCESS_SECRET; do
+  set_value "$name" "${!name:-}"
+done
+# Firebase deploy + Announce update run on GitHub Actions in every project,
+# so their key (and, for Codemagic projects, the env files they read the
+# project ids from) always go to GitHub too.
+if [[ $BACKEND == firebase ]]; then
+  set_file FIREBASE_SERVICE_ACCOUNT_JSON   "${FIREBASE_SERVICE_ACCOUNT_JSON_PATH:-}"
+  if [[ $SAVED_TARGET == codemagic ]]; then
+    set_file ENV_PROD_JSON                 "env/prod.json"
+    set_file ENV_STAGING_JSON              "env/staging.json"
+  fi
+fi
+TARGET=$SAVED_TARGET
+
+if [[ $TARGET == codemagic ]]; then
+  if ! $DRY_RUN; then
+    GROUP="${REPO#*/}_secrets" REPO="$REPO" STAGE_DIR="$STAGE_DIR" \
+      CODEMAGIC_API_TOKEN="$CODEMAGIC_API_TOKEN" CODEMAGIC_TEAM_ID="${CODEMAGIC_TEAM_ID:-}" \
+      python3 "$(dirname "$0")/codemagic_secrets.py"
+  fi
+  exit 0
+fi
+
+# Play release behaviour (repository variables). Keep "draft" until Google
+# has reviewed the app once, then: gh variable set PLAY_RELEASE_STATUS --body completed
+if ! $DRY_RUN; then
+  existing=$(gh variable list --repo "$REPO" 2>/dev/null || true)
+  grep -q '^PLAY_TRACK' <<<"$existing" ||
+    retry PLAY_TRACK gh variable set PLAY_TRACK --body internal --repo "$REPO" >/dev/null
+  grep -q '^PLAY_RELEASE_STATUS' <<<"$existing" ||
+    retry PLAY_RELEASE_STATUS gh variable set PLAY_RELEASE_STATUS --body draft --repo "$REPO" >/dev/null
+  echo "variables     PLAY_TRACK, PLAY_RELEASE_STATUS (unchanged if already set)"
+fi

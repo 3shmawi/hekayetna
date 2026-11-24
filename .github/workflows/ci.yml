@@ -1,0 +1,267 @@
+name: CI
+
+on:
+  pull_request:
+    # ready_for_review: the iOS job below skips drafts, so it starts when
+    # the PR is marked ready.
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_call:
+
+# Read-only token by default; a job that must write asks for it itself.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Format · analyze · test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: $/.github/actions/setup-flutter
+        with:
+          packages: 'false'
+
+      # Before pub get, so generated l10n files aren't checked.
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Install packages
+        run: |
+          flutter pub get
+          flutter gen-l10n
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Unit, widget, golden & security tests
+        run: flutter test --coverage
+
+      # A failing golden writes the expected / actual / diff images here.
+      - name: Golden differences
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: golden-failures
+          path: test/golden/failures/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Coverage threshold
+        env:
+          COVERAGE_MIN: ${{ vars.COVERAGE_MIN || '60' }}
+        run: ./scripts/coverage_check.sh
+
+  security:
+    name: Security scan · secrets · dependencies · database
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Secrets in git history (gitleaks)
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.30.1 \
+            git --no-banner --redact -v /repo
+
+      - name: Vulnerable dependencies (OSV-Scanner)
+        run: |
+          docker run --rm -v "$PWD:/src" ghcr.io/google/osv-scanner:v2.7.0 \
+            scan source --lockfile=/src/pubspec.lock
+
+      # Workflow security: pinned actions, least-privilege tokens, no
+      # credentials left on disk, no untrusted text run as shell code.
+      # docs/security.md → "CI and secrets".
+      - name: Workflow security (zizmor)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: pipx run zizmor==1.31.1 --min-severity low --format github .github/workflows .github/actions
+
+      # Runs once `supabase init` has created supabase/config.toml.
+      # RLS tests run when a PR touches supabase/ (or on manual runs).
+      - name: Supabase changes?
+        id: supabase
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ ! -d supabase ]; then
+            echo "No supabase/ folder — nothing to test."
+          elif [ ! -f supabase/config.toml ]; then
+            echo "::notice::No supabase/config.toml — RLS tests skipped (run 'supabase init' once)."
+          elif [ -z "$BASE_REF" ] || git diff --name-only "origin/$BASE_REF...HEAD" | grep -q '^supabase/'; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No changes under supabase/ — RLS tests skipped."
+          fi
+
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        if: steps.supabase.outputs.present == 'true'
+        with:
+          # Pinned: "latest" asks the GitHub API on every run and gets rate-limited.
+          version: 2.120.0
+
+      - name: Database security tests (RLS, pgTAP)
+        if: steps.supabase.outputs.present == 'true'
+        run: |
+          supabase db start
+          supabase test db
+
+      # Firebase projects: security-rules tests (firebase/tests, Firestore +
+      # Storage emulators, no real project) when a PR touches firebase/.
+      - name: Firebase changes?
+        id: firebase
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ ! -f firebase/tests/package.json ]; then
+            echo "No firebase/tests — nothing to test."
+          elif [ -z "$BASE_REF" ] || git diff --name-only "origin/$BASE_REF...HEAD" | grep -q '^firebase/'; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No changes under firebase/ — rules tests skipped."
+          fi
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        if: steps.firebase.outputs.present == 'true'
+        with:
+          node-version: '24'
+
+      # The Firestore emulator needs Java 21+.
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        if: steps.firebase.outputs.present == 'true'
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Firebase security-rules tests (emulator)
+        if: steps.firebase.outputs.present == 'true'
+        working-directory: firebase/tests
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+
+  # Whether the PR touches anything the app is built from. The iOS
+  # integration job is the slow one (macOS runner, Xcode build) and the
+  # Android build costs a Gradle run, so a PR that only changes docs, scripts
+  # or other workflows skips both. A skipped job counts as passed for
+  # required checks. Drafts skip it too: mark the PR
+  # "Ready for review" to run it.
+  changes:
+    name: What changed
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      app: ${{ steps.diff.outputs.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: diff
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if git diff --name-only "origin/$BASE_REF...HEAD" \
+            | grep -qE '^(lib/|ios/|android/|integration_test/|assets/|env/|l10n\.yaml$|pubspec\.(yaml|lock)$|\.fvmrc$|\.github/workflows/ci\.yml$|\.github/actions/)'; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "app=false" >> "$GITHUB_OUTPUT"
+            echo "No app changes: the iOS integration tests and the Android build are skipped." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  # Every integration test, on an iPhone simulator with full Liquid Glass
+  # (Metal), like a real phone. Same runner as the demo videos.
+  integration-ios:
+    name: Integration tests (iOS simulator)
+    needs: changes
+    if: >-
+      github.event_name == 'pull_request'
+      && github.event.pull_request.draft == false
+      && needs.changes.outputs.app == 'true'
+    runs-on: macos-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: $/.github/actions/setup-flutter
+        id: flutter
+
+      # The Xcode build is most of this job's time: keep the Swift packages
+      # and Flutter's iOS build between runs (actions/cache saves only after
+      # a green run). Not DerivedData: it is several GB, so saving and
+      # restoring it costs about what it saves. Keyed on everything that
+      # changes these; a partial match still makes the build incremental.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ~/Library/Developer/Xcode/DerivedData/SourcePackages
+            build/ios
+          key: ios-build-${{ runner.os }}-${{ steps.flutter.outputs.version }}-${{ hashFiles('pubspec.lock', 'ios/**/Package.resolved', 'ios/Podfile.lock', 'ios/**/project.pbxproj') }}
+          restore-keys: |
+            ios-build-${{ runner.os }}-${{ steps.flutter.outputs.version }}-
+
+      - name: Run integration tests
+        run: |
+          udid=$(xcrun simctl list devices available -j | jq -r \
+            '[.devices | to_entries[] | select(.key | test("iOS")) | .value[] | select(.name | test("^iPhone [0-9]+( Pro)?$"))] | last | .udid')
+          if [ -z "$udid" ] || [ "$udid" = null ]; then echo "::error::No iPhone simulator on this runner."; exit 1; fi
+          xcrun simctl boot "$udid" 2>/dev/null || true
+          xcrun simctl bootstatus "$udid" -b > /dev/null
+          set -o pipefail
+          flutter test integration_test -d "$udid" --flavor dev --dart-define-from-file=env/example.json 2>&1 | tee integration.log
+
+      # The failing lines as annotations on the run, so you don't have to
+      # dig through the whole log.
+      - name: Why the integration tests failed
+        if: failure()
+        run: |
+          [ -f integration.log ] || exit 0
+          grep -n -E 'EXCEPTION CAUGHT|Expected:|Actual:|Which:|Test failed|\[E\]|Error:|was thrown|Timed out|not found|_test\.dart:[0-9]+' integration.log \
+            | head -n 100 > failures.txt || true
+          split -b 3500 -d failures.txt part_ 2>/dev/null || true
+          n=0; for part in part_*; do [ -f "$part" ] || continue; n=$((n+1)); [ "$n" -gt 8 ] && break
+            echo "::error title=integration failures ($n)::$(sed 's/%/%25/g' "$part" | awk '{printf "%s%%0A", $0}')"
+          done
+          echo "::error title=integration log (end)::$(grep -v -E 'Kotlin|KGP|plugin|^\s*$' integration.log | tail -n 40 | tail -c 3500 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+
+  # Android: the app must build. Flows are tested on the iOS simulator
+  # above: the CI Android emulator (software rendering) went offline at the
+  # end of every app run, losing the results, in every setup tried.
+  android-build:
+    name: Android build (debug APK)
+    needs: changes
+    # Unlike the iOS job, drafts are built too: it is cheap (Ubuntu runner,
+    # Gradle cache) and a broken Android build is best known early.
+    if: github.event_name == 'pull_request' && needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: $/.github/actions/setup-flutter
+        with:
+          java: 'true'
+          gradle-cache: 'true'
+          packages: 'false'
+
+      - name: Build
+        run: |
+          flutter pub get
+          flutter gen-l10n
+          flutter build apk --debug --flavor dev --dart-define-from-file=env/example.json
