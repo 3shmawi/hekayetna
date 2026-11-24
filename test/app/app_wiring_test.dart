@@ -3,6 +3,7 @@ import 'package:family_stories/core/auth/auth.dart';
 import 'package:family_stories/core/router/app_redirect.dart';
 import 'package:family_stories/core/router/app_router.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
+import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart';
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
@@ -12,13 +13,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../helpers/pump_app.dart';
+
 /// Screen-level wiring tests over the demo repositories: routing, strings
 /// and RTL on the real app shell. Backend behavior is covered by the RLS
 /// SQL suite under supabase/tests; individual screens by their own tests.
 /// The settings language switch is covered in
 /// test/features/settings/presentation/settings_view_test.dart.
 void main() {
-  setUp(() {
+  setUp(() async {
+    // Real font metrics: the fallback test font is ~1em per character,
+    // which mis-measures every label.
+    await loadAppFonts();
     demoModeSignedInOverride = true;
     Auth.user.value = null;
   });
@@ -44,6 +50,8 @@ void main() {
             designSize: AppDimens.designSize,
             builder: (context, _) => MaterialApp.router(
               locale: locale,
+              theme: AppTheme.light,
+              darkTheme: AppTheme.dark,
               routerConfig: appRouter,
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,

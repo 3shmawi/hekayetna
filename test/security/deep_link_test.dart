@@ -2,6 +2,7 @@ import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/auth/auth.dart';
 import 'package:family_stories/core/router/app_redirect.dart';
 import 'package:family_stories/core/router/app_router.dart';
+import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/router/not_found_page.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
@@ -33,6 +34,8 @@ void main() {
           ScreenUtilInit(
             designSize: AppDimens.designSize,
             builder: (context, _) => MaterialApp.router(
+              theme: AppTheme.light,
+              darkTheme: AppTheme.dark,
               routerConfig: appRouter,
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
