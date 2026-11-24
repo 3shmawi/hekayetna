@@ -5,8 +5,8 @@ built to match. Code never invents its own look.
 
 | Source | Link |
 |---|---|
-| Design System (tokens, components, guidelines) | <!-- claude.ai/artifact/… --> |
-| Screens (Design canvas) | <!-- claude.ai/artifact/… --> |
+| Design System (tokens, components, guidelines) | [Hekayetna Design System](https://claude.ai/artifact/3DTUAPe6vLSCwpSGRNhCv1) |
+| Screens (Design canvas) | [Hekayetna App Screens](https://claude.ai/artifact/B5gEE7QpXmeEE4EPiUDuw1): feed, story, recording, who can listen, family, welcome; Arabic + dark |
 | App icon / store screenshots | <!-- claude.ai/artifact/… --> |
 
 ## Tokens → code
