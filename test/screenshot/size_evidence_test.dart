@@ -29,7 +29,10 @@ void main() {
       onSendLink: (_) {},
     ),
   };
-  final sizes = <String, Size>{'small': const Size(320, 568), 'large': const Size(428, 926)};
+  final sizes = <String, Size>{
+    'small': const Size(320, 568),
+    'large': const Size(428, 926),
+  };
 
   for (final s in scenes.entries) {
     for (final z in sizes.entries) {
@@ -47,7 +50,8 @@ void main() {
                   debugShowCheckedModeBanner: false,
                   locale: Locale(locale),
                   theme: AppTheme.light,
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
                   home: s.value(),
                 ),
