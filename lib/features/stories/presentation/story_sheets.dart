@@ -79,10 +79,7 @@ class _EditDetailsState extends State<_EditDetails> {
   Widget build(BuildContext context) {
     final s = context.l10n;
     return Padding(
-      padding: EdgeInsets.only(
-        left: AppDimens.lg,
-        right: AppDimens.lg,
-        top: AppDimens.lg,
+      padding: EdgeInsets.all(AppDimens.lg).copyWith(
         bottom: MediaQuery.viewInsetsOf(context).bottom + AppDimens.lg,
       ),
       child: SingleChildScrollView(

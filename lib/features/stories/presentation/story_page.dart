@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:family_stories/app/app_providers.dart';
+import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/router/app_routes.dart';
@@ -148,6 +149,8 @@ class _Loaded extends ConsumerWidget {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message(context.l10n))));
+    } else {
+      unawaited(Analytics.capture('story_edited'));
     }
   }
 
@@ -161,6 +164,7 @@ class _Loaded extends ConsumerWidget {
       case Failed(:final failure):
         messenger.showSnackBar(SnackBar(content: Text(failure.message(l10n))));
       case Success():
+        unawaited(Analytics.capture('story_deleted'));
         if (ref.read(audioPlayerControllerProvider).storyId == story.id) {
           await ref.read(audioPlayerControllerProvider.notifier).stop();
         }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:family_stories/app/app_providers.dart';
+import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/stories/data/models.dart';
@@ -137,6 +138,7 @@ class AudioPlayerController extends Notifier<PlayerState> {
     await _engine.setSpeed(state.speed);
     await _engine.play();
     state = state.copyWith(status: PlayerStatus.playing);
+    unawaited(Analytics.capture('story_played'));
   }
 
   Future<void> toggle() async {
@@ -169,6 +171,7 @@ class AudioPlayerController extends Notifier<PlayerState> {
 
   Future<void> setSpeed(double speed) async {
     state = state.copyWith(speed: speed);
+    unawaited(Analytics.capture('story_speed_changed', {'speed': speed}));
     if (state.storyId != null) await _engine.setSpeed(speed);
   }
 

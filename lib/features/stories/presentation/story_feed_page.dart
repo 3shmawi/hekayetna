@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:family_stories/app/app_providers.dart';
+import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
@@ -60,7 +63,16 @@ class _StoryFeedPageState extends ConsumerState<StoryFeedPage> {
       selection: _selection,
       narratorNames: {for (final p in persons) p.id: p.fullName},
       isDemo: ref.watch(isDemoModeProvider),
-      onSelectionChanged: (next) => setState(() => _selection = next),
+      onSelectionChanged: (next) {
+        setState(() => _selection = next);
+        unawaited(
+          Analytics.capture('story_feed_filtered', {
+            'narrator': next.narratorId != null,
+            'topic': next.topic != null,
+            'decade': next.decade != null,
+          }),
+        );
+      },
       onRefresh: () async {
         await ref.read(feed.notifier).refresh();
         if (!_selection.isAll) {
@@ -70,7 +82,10 @@ class _StoryFeedPageState extends ConsumerState<StoryFeedPage> {
         }
       },
       onRetry: () => ref.invalidate(feed),
-      onOpen: (story) => context.push(AppRoutes.storyDetail(story.id)),
+      onOpen: (story) {
+        unawaited(Analytics.capture('story_opened'));
+        unawaited(context.push(AppRoutes.storyDetail(story.id)));
+      },
       onPlay: (story) =>
           ref.read(audioPlayerControllerProvider.notifier).playStory(story),
       onRecord: () => context.go(AppRoutes.record),
