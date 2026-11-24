@@ -106,6 +106,12 @@ class RecorderTransitions {
 abstract class RecorderService {
   RecorderState get state;
   Stream<RecorderState> watch();
+
+  /// Live loudness 0..1 (about every 100 ms while recording).
+  Stream<double> get levels;
+
+  /// The 64-bar waveform of the take so far (0..100 each), null when empty.
+  List<int>? get waveform;
   Future<bool> ensurePermission();
 
   /// Starts a new take into draft [draftId]: reserves the first segment

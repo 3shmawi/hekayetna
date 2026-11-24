@@ -91,6 +91,12 @@ class _FakeRecorderService implements RecorderService {
   Stream<RecorderState> watch() => _controller.stream;
 
   @override
+  Stream<double> get levels => const Stream.empty();
+
+  @override
+  List<int>? get waveform => null;
+
+  @override
   Future<bool> ensurePermission() async => false;
 
   @override

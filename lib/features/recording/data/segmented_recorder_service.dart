@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:family_stories/features/recording/data/draft_store.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
 import 'package:family_stories/features/recording/data/segment_recorder.dart';
+import 'package:family_stories/features/recording/domain/waveform_builder.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 
 /// Segmented capture coordinated with the draft index (spec 02). A take is a
@@ -27,6 +28,7 @@ class SegmentedRecorderService implements RecorderService {
     this.storageCheckInterval = const Duration(seconds: 30),
   }) : _now = now ?? DateTime.now {
     _stops = _recorder.unexpectedStops.listen(_onUnexpectedStop);
+    _levelSub = _recorder.levels.listen(_onLevel);
   }
 
   final DraftStore _draftStore;
@@ -41,6 +43,9 @@ class SegmentedRecorderService implements RecorderService {
   final int minFreeBytes;
   final Duration storageCheckInterval;
   StreamSubscription<SegmentStopReason>? _stops;
+  StreamSubscription<double>? _levelSub;
+  final _levels = StreamController<double>.broadcast();
+  final _waveform = WaveformAccumulator();
   DateTime? _lastStorageCheck;
 
   final _controller = StreamController<RecorderState>.broadcast();
@@ -65,6 +70,19 @@ class SegmentedRecorderService implements RecorderService {
   Stream<RecorderState> watch() => _controller.stream;
 
   @override
+  Stream<double> get levels => _levels.stream;
+
+  @override
+  List<int>? get waveform => _waveform.build();
+
+  void _onLevel(double level) {
+    // Paused or stopped capture must not move the meter or the waveform.
+    if (_state.status != RecorderStatus.recording) return;
+    _waveform.add(level, _state.elapsed);
+    _levels.add(level);
+  }
+
+  @override
   Future<bool> ensurePermission() => _recorder.hasPermission();
 
   @override
@@ -80,6 +98,7 @@ class SegmentedRecorderService implements RecorderService {
       _emit(RecorderTransitions.fail(_state, storageFullError));
       return;
     }
+    _waveform.reset();
     _narratorPersonId = narratorPersonId;
     _topic = topic;
     _promptId = promptId;
@@ -156,6 +175,7 @@ class SegmentedRecorderService implements RecorderService {
       // Already stopped; discarding must never throw.
     }
     _ticker?.cancel();
+    _waveform.reset();
     _emit(RecorderTransitions.discard(_state));
   }
 
@@ -253,7 +273,9 @@ class SegmentedRecorderService implements RecorderService {
   Future<void> dispose() async {
     _ticker?.cancel();
     await _stops?.cancel();
+    await _levelSub?.cancel();
     await _recorder.dispose();
     await _controller.close();
+    await _levels.close();
   }
 }
