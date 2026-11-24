@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:family_stories/app/app_providers.dart';
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/theme/app_colors.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
@@ -218,10 +219,14 @@ class _NarratorPicker extends ConsumerWidget {
       future: ref
           .read(familyRepositoryProvider)
           .getMySpace()
+          .unwrap()
           .then(
             (space) => space == null
                 ? const <Person>[]
-                : ref.read(familyRepositoryProvider).listPersons(space.id),
+                : ref
+                      .read(familyRepositoryProvider)
+                      .listPersons(space.id)
+                      .unwrap(),
           ),
       builder: (context, snap) {
         final persons = snap.data ?? const [];

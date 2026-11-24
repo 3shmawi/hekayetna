@@ -1,4 +1,5 @@
 import 'package:family_stories/app/app_providers.dart';
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
@@ -207,13 +208,13 @@ void main() {
       expect(Onboarding.draft.value, isNull);
       expect(find.text(l10nEn.onboardingSeedTitle), findsNothing);
 
-      final space = (await repo.getMySpace())!;
-      final persons = await repo.listPersons(space.id);
+      final space = (await repo.getMySpace().unwrap())!;
+      final persons = await repo.listPersons(space.id).unwrap();
       final names = persons.map((p) => p.fullName).toList();
       expect(names, containsAll(['Mohamed', 'Ahmed', 'Fatma']));
 
       // Both parents hang off the new "you" person.
-      final rels = await repo.listRelationships(space.id);
+      final rels = await repo.listRelationships(space.id).unwrap();
       final you = persons.firstWhere((p) => p.fullName == 'Mohamed');
       final parents = rels
           .where(

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/ids.dart';
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/theme/app_colors.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/photos/data/models.dart';
@@ -54,7 +55,7 @@ class _StoryFeedScreenState extends ConsumerState<StoryFeedScreen> {
       body: FutureBuilder(
         future: Future.value(
           _spaceTick,
-        ).then((_) => ref.read(familyRepositoryProvider).getMySpace()),
+        ).then((_) => ref.read(familyRepositoryProvider).getMySpace().unwrap()),
         builder: (context, spaceSnap) {
           final space = spaceSnap.data;
           if (spaceSnap.connectionState != ConnectionState.done) {
@@ -83,7 +84,7 @@ class _StoryFeedScreenState extends ConsumerState<StoryFeedScreen> {
       // No space yet: no record button. Recording needs a space, so a button
       // here would promise an action that can only fail.
       floatingActionButton: FutureBuilder(
-        future: ref.read(familyRepositoryProvider).getMySpace(),
+        future: ref.read(familyRepositoryProvider).getMySpace().unwrap(),
         builder: (context, snap) => snap.data == null
             ? const SizedBox.shrink()
             : FloatingActionButton.extended(
@@ -113,7 +114,10 @@ class _NoSpaceState extends ConsumerState<_NoSpace> {
     if (_name.text.trim().isEmpty || _busy) return;
     setState(() => _busy = true);
     try {
-      await ref.read(familyRepositoryProvider).createSpace(_name.text.trim());
+      await ref
+          .read(familyRepositoryProvider)
+          .createSpace(_name.text.trim())
+          .unwrap();
       widget.onSpaceChanged();
     } on Exception catch (_) {
       if (mounted) {
@@ -130,7 +134,10 @@ class _NoSpaceState extends ConsumerState<_NoSpace> {
     if (_code.text.trim().isEmpty || _busy) return;
     setState(() => _busy = true);
     try {
-      await ref.read(familyRepositoryProvider).joinSpace(_code.text.trim());
+      await ref
+          .read(familyRepositoryProvider)
+          .joinSpace(_code.text.trim())
+          .unwrap();
       widget.onSpaceChanged();
     } on Exception catch (e) {
       if (mounted) {
@@ -225,7 +232,10 @@ class _StoryListState extends ConsumerState<_StoryList> {
   @override
   void initState() {
     super.initState();
-    _persons = ref.read(familyRepositoryProvider).listPersons(widget.spaceId);
+    _persons = ref
+        .read(familyRepositoryProvider)
+        .listPersons(widget.spaceId)
+        .unwrap();
   }
 
   @override
@@ -388,7 +398,8 @@ class _StoryListState extends ConsumerState<_StoryList> {
                 _ => null,
               },
             ),
-          ),
+          )
+          .unwrap(),
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
@@ -468,7 +479,7 @@ class StoryDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(),
       body: FutureBuilder<Story?>(
-        future: ref.read(storyRepositoryProvider).getStory(storyId),
+        future: ref.read(storyRepositoryProvider).getStory(storyId).unwrap(),
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
@@ -529,10 +540,14 @@ class _StoryPhotosGrid extends ConsumerWidget {
       future: ref
           .read(familyRepositoryProvider)
           .getMySpace()
+          .unwrap()
           .then(
             (space) => space == null
                 ? <Photo>[]
-                : ref.read(photoRepositoryProvider).listPhotos(space.id),
+                : ref
+                      .read(photoRepositoryProvider)
+                      .listPhotos(space.id)
+                      .unwrap(),
           ),
       builder: (context, snap) {
         final visible = (snap.data ?? const <Photo>[])
@@ -616,7 +631,10 @@ class _StoryPhotoThumb extends ConsumerWidget {
       );
     }
     return FutureBuilder<String>(
-      future: ref.read(photoRepositoryProvider).createImageUrl(photo.imagePath),
+      future: ref
+          .read(photoRepositoryProvider)
+          .createImageUrl(photo.imagePath)
+          .unwrap(),
       builder: (context, snap) {
         final url = snap.data;
         return ClipRRect(
@@ -685,7 +703,8 @@ class _AudioPlayerState extends ConsumerState<_AudioPlayer> {
     try {
       final url = await ref
           .read(storyRepositoryProvider)
-          .createAudioUrl(widget.story.audioPath);
+          .createAudioUrl(widget.story.audioPath)
+          .unwrap();
       if (url.startsWith('demo://')) {
         setState(() => _ready = true); // demo mode: no real file to play
         return;
@@ -817,12 +836,14 @@ class _StoryEditScreenState extends ConsumerState<StoryEditScreen> {
                 future: ref
                     .read(familyRepositoryProvider)
                     .getMySpace()
+                    .unwrap()
                     .then(
                       (space) => space == null
                           ? <Person>[]
                           : ref
                                 .read(familyRepositoryProvider)
-                                .listPersons(space.id),
+                                .listPersons(space.id)
+                                .unwrap(),
                     ),
                 builder: (context, snap) {
                   final persons = snap.data ?? const <Person>[];
@@ -881,12 +902,14 @@ class _StoryEditScreenState extends ConsumerState<StoryEditScreen> {
                 future: ref
                     .read(familyRepositoryProvider)
                     .getMySpace()
+                    .unwrap()
                     .then(
                       (space) => space == null
                           ? <Photo>[]
                           : ref
                                 .read(photoRepositoryProvider)
-                                .listPhotos(space.id),
+                                .listPhotos(space.id)
+                                .unwrap(),
                     ),
                 builder: (context, snap) {
                   final photos = snap.data ?? const <Photo>[];
@@ -961,12 +984,14 @@ class _StoryEditScreenState extends ConsumerState<StoryEditScreen> {
                   future: ref
                       .read(familyRepositoryProvider)
                       .getMySpace()
+                      .unwrap()
                       .then(
                         (space) => space == null
                             ? <FamilyMember>[]
                             : ref
                                   .read(familyRepositoryProvider)
-                                  .listMembers(space.id),
+                                  .listMembers(space.id)
+                                  .unwrap(),
                       ),
                   builder: (context, snap) {
                     final members = snap.data ?? const <FamilyMember>[];
@@ -1016,7 +1041,7 @@ class _StoryEditScreenState extends ConsumerState<StoryEditScreen> {
     setState(() => _busy = true);
     try {
       final familyRepo = ref.read(familyRepositoryProvider);
-      final space = await familyRepo.getMySpace();
+      final space = await familyRepo.getMySpace().unwrap();
       if (space == null) throw StateError('no space');
       final storyId = newUuid();
       final uid = ref.read(currentUserIdProvider);
@@ -1026,7 +1051,10 @@ class _StoryEditScreenState extends ConsumerState<StoryEditScreen> {
       final joined = await _joinTake(draft);
       final ext = joined.endsWith('.wav') ? 'wav' : 'm4a';
       final storagePath = '${space.id}/$uid/$storyId/a.$ext';
-      await ref.read(storyRepositoryProvider).uploadAudio(joined, storagePath);
+      await ref
+          .read(storyRepositoryProvider)
+          .uploadAudio(joined, storagePath)
+          .unwrap();
       final story = Story(
         id: storyId,
         spaceId: space.id,
@@ -1049,11 +1077,14 @@ class _StoryEditScreenState extends ConsumerState<StoryEditScreen> {
         photoIds: _photoIds.toList(),
       );
       try {
-        await ref.read(storyRepositoryProvider).createStory(story);
+        await ref.read(storyRepositoryProvider).createStory(story).unwrap();
       } on Exception catch (_) {
         // The take is already in the bucket; remove the orphan so failed saves
         // do not accumulate invisible objects, then let the error UI handle it.
-        await ref.read(storyRepositoryProvider).deleteAudio(storagePath);
+        await ref
+            .read(storyRepositoryProvider)
+            .deleteAudio(storagePath)
+            .unwrap();
         rethrow;
       }
       await ref.read(draftStoreProvider).delete(draft.id);

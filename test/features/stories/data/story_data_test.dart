@@ -1,3 +1,5 @@
+import 'package:family_stories/core/network/app_failure.dart';
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/stories/data/demo_story_repository.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/features/stories/data/story_repository.dart';
@@ -173,46 +175,51 @@ void main() {
     setUp(() => repo = DemoStoryRepository());
 
     test('starts with the labelled sample story', () async {
-      final all = await repo.listStories('demo-space');
+      final all = await repo.listStories('demo-space').unwrap();
       expect(all, hasLength(1));
       expect(all.single.title, contains('(sample)'));
     });
 
     test('create, read, update and delete', () async {
-      final created = await repo.createStory(_story(title: 'New'));
+      final created = await repo.createStory(_story(title: 'New')).unwrap();
       expect(created.id, isNotEmpty);
-      expect((await repo.getStory(created.id))?.title, 'New');
+      expect((await repo.getStory(created.id).unwrap())?.title, 'New');
 
-      final updated = await repo.updateStory(
-        Story(
-          id: created.id,
-          spaceId: created.spaceId,
-          title: 'Renamed',
-          visibility: StoryVisibility.family,
-          audioPath: created.audioPath,
-          durationSeconds: created.durationSeconds,
-          createdBy: created.createdBy,
-          createdAt: created.createdAt,
-        ),
-      );
+      final updated = await repo
+          .updateStory(
+            Story(
+              id: created.id,
+              spaceId: created.spaceId,
+              title: 'Renamed',
+              visibility: StoryVisibility.family,
+              audioPath: created.audioPath,
+              durationSeconds: created.durationSeconds,
+              createdBy: created.createdBy,
+              createdAt: created.createdAt,
+            ),
+          )
+          .unwrap();
       expect(updated.title, 'Renamed');
       expect(
-        (await repo.getStory(created.id))?.visibility,
+        (await repo.getStory(created.id).unwrap())?.visibility,
         StoryVisibility.family,
       );
 
-      await repo.deleteStory(created.id);
-      expect(await repo.getStory(created.id), isNull);
+      await repo.deleteStory(created.id).unwrap();
+      expect(await repo.getStory(created.id).unwrap(), isNull);
     });
 
     test('updating a missing story fails', () async {
-      expect(() => repo.updateStory(_story(id: 'nope')), throwsStateError);
+      final result = await repo.updateStory(_story(id: 'nope'));
+      expect(result, isA<Failed<Story>>());
+      expect((result as Failed<Story>).failure, isA<NotFoundFailure>());
     });
 
     test('filters by narrator, topic, person and year', () async {
-      await repo.createStory(_story(title: 'Mine'));
+      await repo.createStory(_story(title: 'Mine')).unwrap();
       Future<List<String>> titles(StoryFilter f) async => [
-        for (final s in await repo.listStories('demo-space', filter: f))
+        for (final s
+            in await repo.listStories('demo-space', filter: f).unwrap())
           s.title,
       ];
       expect(await titles(const StoryFilter(narratorId: 'p-a')), ['Mine']);
@@ -227,9 +234,12 @@ void main() {
     });
 
     test('audio helpers stay local', () async {
-      expect(await repo.createAudioUrl('a.m4a'), 'demo://audio/a.m4a');
-      expect(await repo.uploadAudio('/tmp/a.m4a', 'p/a.m4a'), 'p/a.m4a');
-      await repo.deleteAudio('p/a.m4a');
+      expect(await repo.createAudioUrl('a.m4a').unwrap(), 'demo://audio/a.m4a');
+      expect(
+        await repo.uploadAudio('/tmp/a.m4a', 'p/a.m4a').unwrap(),
+        'p/a.m4a',
+      );
+      await repo.deleteAudio('p/a.m4a').unwrap();
     });
   });
 }

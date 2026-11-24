@@ -1,3 +1,4 @@
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/family/data/family_repository.dart';
 import 'package:family_stories/features/family/data/models.dart';
 
@@ -74,22 +75,70 @@ class DemoFamilyRepository implements FamilyRepository {
   var _seq = 0;
 
   @override
-  Future<FamilySpace?> getMySpace() async => _space;
+  Future<Result<FamilySpace?>> getMySpace() => guard(_getMySpace);
 
   @override
-  Future<FamilySpace> createSpace(String name) async =>
+  Future<Result<FamilySpace>> createSpace(String name) =>
+      guard(() => _createSpace(name));
+
+  @override
+  Future<Result<FamilySpace>> joinSpace(String inviteCode) =>
+      guard(() => _joinSpace(inviteCode));
+
+  @override
+  Future<Result<List<FamilyMember>>> listMembers(String spaceId) =>
+      guard(() => _listMembers(spaceId));
+
+  @override
+  Future<Result<void>> removeMember(String membershipId) =>
+      guard(() => _removeMember(membershipId));
+
+  @override
+  Future<Result<List<Person>>> listPersons(String spaceId) =>
+      guard(() => _listPersons(spaceId));
+
+  @override
+  Future<Result<Person>> createPerson(Person person) =>
+      guard(() => _createPerson(person));
+
+  @override
+  Future<Result<Person>> updatePerson(Person person) =>
+      guard(() => _updatePerson(person));
+
+  @override
+  Future<Result<List<Relationship>>> listRelationships(String spaceId) =>
+      guard(() => _listRelationships(spaceId));
+
+  @override
+  Future<Result<Relationship>> addRelationship({
+    required String personId,
+    required String relatedPersonId,
+    required RelationshipType type,
+  }) => guard(
+    () => _addRelationship(
+      personId: personId,
+      relatedPersonId: relatedPersonId,
+      type: type,
+    ),
+  );
+
+  @override
+  Future<Result<void>> confirmRelationship(String relationshipId) =>
+      guard(() => _confirmRelationship(relationshipId));
+
+  Future<FamilySpace?> _getMySpace() async => _space;
+
+  Future<FamilySpace> _createSpace(String name) async =>
       FamilySpace(id: 'demo-space', name: name, inviteCode: 'DEMO-1234');
 
-  @override
-  Future<FamilySpace> joinSpace(String inviteCode) async {
+  Future<FamilySpace> _joinSpace(String inviteCode) async {
     if (inviteCode.trim().isEmpty) {
       throw const FamilyException('invalid_invite_code');
     }
     return _space;
   }
 
-  @override
-  Future<List<FamilyMember>> listMembers(String spaceId) async => const [
+  Future<List<FamilyMember>> _listMembers(String spaceId) async => const [
     FamilyMember(
       id: 'm1',
       userId: 'demo-user',
@@ -107,15 +156,12 @@ class DemoFamilyRepository implements FamilyRepository {
     ),
   ];
 
-  @override
-  Future<void> removeMember(String membershipId) async {}
+  Future<void> _removeMember(String membershipId) async {}
 
-  @override
-  Future<List<Person>> listPersons(String spaceId) async =>
+  Future<List<Person>> _listPersons(String spaceId) async =>
       List.unmodifiable(_persons);
 
-  @override
-  Future<Person> createPerson(Person person) async {
+  Future<Person> _createPerson(Person person) async {
     final p = Person(
       id: 'p-${_seq++}',
       spaceId: person.spaceId,
@@ -130,20 +176,17 @@ class DemoFamilyRepository implements FamilyRepository {
     return p;
   }
 
-  @override
-  Future<Person> updatePerson(Person person) async {
+  Future<Person> _updatePerson(Person person) async {
     final i = _persons.indexWhere((p) => p.id == person.id);
     if (i < 0) throw const FamilyException('not_found');
     _persons[i] = person;
     return person;
   }
 
-  @override
-  Future<List<Relationship>> listRelationships(String spaceId) async =>
+  Future<List<Relationship>> _listRelationships(String spaceId) async =>
       List.unmodifiable(_relationships);
 
-  @override
-  Future<Relationship> addRelationship({
+  Future<Relationship> _addRelationship({
     required String personId,
     required String relatedPersonId,
     required RelationshipType type,
@@ -159,8 +202,7 @@ class DemoFamilyRepository implements FamilyRepository {
     return r;
   }
 
-  @override
-  Future<void> confirmRelationship(String relationshipId) async {
+  Future<void> _confirmRelationship(String relationshipId) async {
     final i = _relationships.indexWhere((r) => r.id == relationshipId);
     if (i < 0) throw const FamilyException('not_found');
     final r = _relationships[i];

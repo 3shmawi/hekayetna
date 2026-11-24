@@ -19,6 +19,19 @@ sealed class Result<T> {
   };
 }
 
+extension ResultValue<T> on Result<T> {
+  /// The value, or throws the [AppFailure]. For code that has not moved to
+  /// switching on the result yet.
+  T unwrap() => switch (this) {
+    Success<T>(:final value) => value,
+    Failed<T>(:final failure) => throw failure,
+  };
+}
+
+extension FutureResultValue<T> on Future<Result<T>> {
+  Future<T> unwrap() async => (await this).unwrap();
+}
+
 final class Success<T> extends Result<T> {
   const Success(this.value);
 
