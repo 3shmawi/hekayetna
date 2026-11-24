@@ -232,6 +232,8 @@ class _NarratorPicker extends ConsumerWidget {
         final persons = snap.data ?? const [];
         return DropdownButtonFormField<String>(
           initialValue: selected,
+          // Keeps the dropdown's inner row within a tight parent.
+          isExpanded: true,
           decoration: InputDecoration(
             labelText: s.chooseNarrator,
             prefixIcon: const Icon(Icons.record_voice_over),
