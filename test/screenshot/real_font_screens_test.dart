@@ -59,7 +59,9 @@ Future<void> loadRealFonts() async {
   final icons = FontLoader('MaterialIcons')
     ..addFont(
       File(
-        '/home/sandbox/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+        // `flutter test` sets FLUTTER_ROOT to the SDK it runs from.
+        '${Platform.environment['FLUTTER_ROOT']}'
+        '/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
       ).readAsBytes().then((b) => ByteData.view(b.buffer)),
     );
   await icons.load();

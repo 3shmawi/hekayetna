@@ -1,9 +1,30 @@
 # Database & access-control design
 
-Status: written and syntax-validated (pglast). **Not yet executed against a live
-PostgreSQL/Supabase instance** — no project credentials exist yet. The RLS test
-suite in `supabase/tests/rls_access_tests.sql` must run green before any
-security claim is made.
+Status: migrations 0003–0007 run green against the local Supabase stack
+(`supabase db start` + `supabase test db`, CLI 2.120.0, checked 2026-11-24).
+The access tests are `supabase/tests/family_access.test.sql` and
+`supabase/tests/family_fixes.test.sql`; CI runs them on every PR that touches
+`supabase/`.
+
+### Fixed in migration 0007 (review, 2026-11-24)
+- **Creating a family** goes through `create_family_space(name)` (security
+  definer): it inserts the space and the caller's `owner` membership in one
+  transaction. A direct insert can't work under RLS (the creator isn't a
+  member yet, and members can't add themselves).
+- **Account deletion**: the user's stories, photos and grants go with the
+  account (`on delete cascade`); family spaces, people and relationships stay
+  with the family and forget their creator (`on delete set null`). The
+  `delete-account` Edge Function removes the user's own files in Storage
+  first (`storage_objects_of_user`, service role only).
+- **A space never loses its owner**: when the last owner leaves or deletes
+  their account, the longest-standing member becomes owner.
+- **Rows stay in their family**: `space_id` (and a membership's `user_id`)
+  can't change after insert, so nobody can move a story or person into
+  another family.
+- **Editing sharing** (`SupabaseStoryRepository.updateStory`): old grants are
+  removed before the new ones are written, so taking someone off a story
+  takes their access away; a family story that stays a family story keeps
+  its original snapshot.
 
 ## Entity map
 

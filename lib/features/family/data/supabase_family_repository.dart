@@ -25,18 +25,19 @@ class SupabaseFamilyRepository implements FamilyRepository {
 
   @override
   Future<FamilySpace> createSpace(String name) async {
+    // One RPC creates the space and the caller's owner membership together:
+    // RLS hides a space from anyone who isn't a member yet, and members
+    // can't add themselves (migration 0007).
+    final id = await _client.rpc<String>(
+      'create_family_space',
+      params: {'p_name': name},
+    );
     final row = await _client
         .from('family_spaces')
-        .insert({'name': name, 'created_by': _uid})
         .select()
+        .eq('id', id)
         .single();
-    final space = FamilySpace.fromJson(row);
-    await _client.from('family_memberships').insert({
-      'space_id': space.id,
-      'user_id': _uid,
-      'role': 'owner',
-    });
-    return space;
+    return FamilySpace.fromJson(row);
   }
 
   @override

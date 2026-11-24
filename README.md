@@ -18,7 +18,8 @@ private by default.
 - **Family**: create a family space or join one with an invite code, build the
   family tree, and link people to stories and photos.
 - **Photos**: upload, caption and tag family photos.
-- **Accounts**: email + password sign-in, with in-app account deletion.
+- **Accounts**: email + password or an emailed sign-in link, password reset,
+  and in-app account deletion (removes the user's stories, photos and files).
 - **Demo mode**: runs without a backend, using sample data, with a clear
   "demo" label.
 
@@ -57,6 +58,18 @@ lib/core/       router, theme, adaptive UI, backend, analytics, network
 supabase/       migrations (RLS on every table) + pgTAP access tests
 docs/           features, designs, backend, security, release
 ```
+
+## Before the first store release
+
+1. `tool/setup_secrets.sh --dry-run`, then `tool/setup_secrets.sh` on your Mac
+   (creates the Supabase project, fills `env/prod.json` and the GitHub
+   secrets). Copy the Supabase values into `env/dev.json` / `env/staging.json`
+   or point those at a separate project.
+2. Actions → **Supabase deploy** → Run workflow (migrations + Edge Functions).
+3. Supabase → Authentication → URL Configuration: add
+   `familystories://auth-callback` to the redirect URLs.
+4. Fill `store/` and `website/` (privacy policy, terms, delete-account page),
+   see [docs/release.md](docs/release.md).
 
 ## Docs
 

@@ -78,6 +78,15 @@ class SupabaseStoryRepository implements StoryRepository {
 
   @override
   Future<Story> updateStory(Story story) async {
+    final before = await getStory(story.id);
+    final visibilityChanged = before?.visibility != story.visibility;
+    // Old grants go first, so removing someone from a "selected" story or
+    // making a shared story private takes their access away. A family story
+    // that stays a family story keeps its snapshot: re-saving it must not
+    // share it with members who joined after it was shared.
+    if (visibilityChanged || story.visibility == StoryVisibility.selected) {
+      await _client.from('story_recipients').delete().eq('story_id', story.id);
+    }
     await _client
         .from('stories')
         .update({
@@ -86,7 +95,9 @@ class SupabaseStoryRepository implements StoryRepository {
           'topic': story.topic,
           'approx_date_label': story.approxDateLabel,
           'approx_year': story.approxYear,
-          'visibility': story.visibility.name,
+          // Only when it changes: setting it fires the family-share
+          // snapshot trigger (migration 0003).
+          if (visibilityChanged) 'visibility': story.visibility.name,
           'updated_at': DateTime.now().toIso8601String(),
         })
         .eq('id', story.id);

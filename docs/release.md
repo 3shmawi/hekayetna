@@ -273,6 +273,8 @@ are pinned by hand — bump them here and in the kit together:
 | OSV-Scanner | CI `security` job | v2.7.0 |
 | Supabase CLI | Supabase workflows, CI RLS tests | 2.120.0 |
 | firebase-tools | Firebase deploy, `firebase/tests` | 15.37.0 |
+| Flutter | `.fvmrc` (all workflows) | 3.47.9 |
+| Gradle / AGP / Kotlin | `android/gradle/wrapper/gradle-wrapper.properties`, `android/settings.gradle.kts`. Flutter 3.47 needs at least Gradle 8.14, AGP 8.11.1 and Kotlin 2.2.20. AGP 9 needs the new DSL migration | 8.14.8 / 8.13.2 / 2.3.20 |
 | EGM plugin (`google/elephant-goldfish-model`) | `.claude/settings.json` (`ref`), design reviews | v0.1.1 |
 
 ## One-time setup
