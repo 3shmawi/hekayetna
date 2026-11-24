@@ -24,10 +24,10 @@ class ConsentSheet extends StatelessWidget {
     final l10n = context.l10n;
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(
-        AppDimens.lg,
+        AppDimens.xl,
         0,
-        AppDimens.lg,
-        AppDimens.lg,
+        AppDimens.xl,
+        AppDimens.xl,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -39,7 +39,7 @@ class ConsentSheet extends StatelessWidget {
           ),
           SizedBox(height: AppDimens.sm),
           Text(l10n.consentBody, style: AppTextStyles.body),
-          SizedBox(height: AppDimens.lg),
+          SizedBox(height: AppDimens.xl),
           Row(
             spacing: AppDimens.sm,
             children: [

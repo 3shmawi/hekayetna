@@ -71,10 +71,10 @@ class UpdateView extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(
-        AppDimens.lg,
+        AppDimens.xl,
         AppDimens.sm,
-        AppDimens.lg,
-        AppDimens.lg,
+        AppDimens.xl,
+        AppDimens.xl,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -95,7 +95,7 @@ class UpdateView extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: AppDimens.md),
+          SizedBox(height: AppDimens.lg),
           Semantics(
             header: true,
             child: Text(
@@ -114,7 +114,7 @@ class UpdateView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ],
-          SizedBox(height: AppDimens.md),
+          SizedBox(height: AppDimens.lg),
           // "1.0.0 → 1.1.0" reads left to right in Arabic too; screen
           // readers get the full sentence.
           Semantics(
@@ -140,7 +140,7 @@ class UpdateView extends StatelessWidget {
             ),
           ),
           if (points.isNotEmpty) ...[
-            SizedBox(height: AppDimens.lg),
+            SizedBox(height: AppDimens.xl),
             Text(l10n.updateWhatsNew, style: AppTextStyles.label),
             SizedBox(height: AppDimens.sm),
             for (final point in points)
@@ -156,7 +156,7 @@ class UpdateView extends StatelessWidget {
                 ),
               ),
           ],
-          SizedBox(height: AppDimens.lg),
+          SizedBox(height: AppDimens.xl),
           AdaptiveButton(
             key: const Key('update_now'),
             onPressed: () => unawaited(_openStore(context)),

@@ -17,7 +17,7 @@ class NotFoundPage extends StatelessWidget {
     return AppScaffold(
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(AppDimens.lg),
+          padding: EdgeInsets.all(AppDimens.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -26,7 +26,7 @@ class NotFoundPage extends StatelessWidget {
                 style: AppTextStyles.headline,
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: AppDimens.lg),
+              SizedBox(height: AppDimens.xl),
               AdaptiveButton(
                 onPressed: () => context.go(AppRoutes.home),
                 child: Text(l10n.notFoundGoHome),

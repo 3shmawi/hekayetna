@@ -67,7 +67,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     return AppScaffold(
       title: l10n.newPasswordTitle,
       body: ListView(
-        padding: EdgeInsets.all(AppDimens.lg),
+        padding: EdgeInsets.all(AppDimens.xl),
         children: [
           TextField(
             key: const Key('new_password_field'),
@@ -83,7 +83,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
             ),
           ),
           if (_error case final error?) ...[
-            SizedBox(height: AppDimens.md),
+            SizedBox(height: AppDimens.lg),
             Text(
               error,
               style: AppTextStyles.body.copyWith(
@@ -91,7 +91,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
               ),
             ),
           ],
-          SizedBox(height: AppDimens.lg),
+          SizedBox(height: AppDimens.xl),
           AdaptiveButton(
             key: const Key('new_password_save'),
             onPressed: _busy ? null : () => unawaited(_save()),
