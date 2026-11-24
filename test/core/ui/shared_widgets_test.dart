@@ -383,4 +383,105 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+  group('accessibility (tester.expectAccessible)', () {
+    testWidgets('buttons, chip, avatar, section label', (tester) async {
+      await tester.pumpWidgetOnScaffold(
+        SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AppButton.primary(label: 'Save story', onPressed: () {}),
+              const SizedBox(height: 12),
+              AppButton.secondary(label: 'Record again', onPressed: () {}),
+              const SizedBox(height: 12),
+              AppButton.destructive(label: 'Delete', onPressed: () {}),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  AppChip(label: 'All', selected: true, onTap: () {}),
+                  const SizedBox(width: 8),
+                  AppChip(
+                    label: 'Sitto',
+                    selected: false,
+                    onTap: () {},
+                    leading: const PersonAvatar(name: 'Sitto', size: 28),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const AppSectionLabel('Recently added'),
+            ],
+          ),
+        ),
+      );
+      await tester.expectAccessible();
+    });
+
+    testWidgets('story card, player, picker, empty view', (tester) async {
+      await tester.pumpWidgetOnScaffold(
+        SingleChildScrollView(
+          child: Column(
+            children: [
+              StoryCard(
+                title: 'The first Om Ali',
+                narratorName: 'Sitto',
+                dateLabel: 'Ramadan, late 1950s',
+                duration: '2:34',
+                topicLabel: 'Ramadan & Eid',
+                onOpen: () {},
+                onPlay: () {},
+              ),
+              AudioPlayerCard(
+                title: 'The first Om Ali',
+                subtitle: 'Told by Sitto',
+                position: '1:12',
+                duration: '2:34',
+                isPlaying: false,
+                speed: '1x',
+                waveform: const [0.2, 0.5, 0.9, 0.6, 0.3],
+                onToggle: () {},
+                onSeek: (_) {},
+                onSpeed: () {},
+              ),
+              VisibilityPicker(
+                value: StoryVisibility.selectedPeople,
+                onChanged: (_) {},
+                consequenceText: '3 people can hear this.',
+              ),
+              EmptyView(
+                title: 'No stories yet',
+                message: 'Ask Sitto about her first home.',
+                actionLabel: 'Record the first story',
+                onAction: () {},
+                icon: Icons.graphic_eq,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.expectAccessible();
+    });
+
+    testWidgets('record button under reduced motion', (tester) async {
+      // The breathing halo never settles, so check the control with
+      // Reduce Motion on (AC-6 keeps the halo off there).
+      await tester.pumpWidgetOnScaffold(
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const RecordButtonStatus(state: RecordButtonState.recording),
+              const SizedBox(height: 8),
+              RecordButton(
+                state: RecordButtonState.recording,
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.expectAccessible();
+    });
+  });
 }
