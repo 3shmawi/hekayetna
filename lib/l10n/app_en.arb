@@ -210,6 +210,54 @@
     }
   },
   "feedNarratorFallback": "Family",
+  "storyMore": "More",
+  "storyEditDetails": "Edit details",
+  "storyWhoCanListen": "Who can listen",
+  "storyDelete": "Delete story",
+  "storyTold": "Told by {name}",
+  "@storyTold": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "storyRecordedBy": "Recorded by {name}",
+  "@storyRecordedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "storyInThisStory": "In this story",
+  "storyVisFamily": "The whole family can hear this ({count} people)",
+  "@storyVisFamily": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "storyVisSelected": "{count} people can hear this: {names}",
+  "@storyVisSelected": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "storyVisPrivate": "Only you can hear this",
+  "storyDeleteTitle": "Delete this story?",
+  "storyDeleteBody": "Everyone loses access and the recording is removed. You can't undo this.",
+  "storyDeleted": "Story deleted",
+  "storyNotShared": "This story isn't shared with you",
+  "storyEditTitle": "Edit details",
+  "storySpeedLabel": "Playback speed",
+  "storyPickPeopleSoon": "Choosing specific people is coming soon. For now pick only you or the whole family.",
   "noTopic": "No topic",
   "ownerRole": "Owner",
   "pause": "Pause",

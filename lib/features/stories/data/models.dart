@@ -58,6 +58,32 @@ class Story {
     ],
   );
 
+  Story copyWith({
+    String? title,
+    String? Function()? description,
+    String? Function()? approxDateLabel,
+    StoryVisibility? visibility,
+  }) => Story(
+    id: id,
+    spaceId: spaceId,
+    title: title ?? this.title,
+    description: description == null ? this.description : description(),
+    topic: topic,
+    approxDateLabel: approxDateLabel == null
+        ? this.approxDateLabel
+        : approxDateLabel(),
+    approxYear: approxYear,
+    visibility: visibility ?? this.visibility,
+    audioPath: audioPath,
+    durationSeconds: durationSeconds,
+    createdBy: createdBy,
+    createdAt: createdAt,
+    narratorIds: narratorIds,
+    peopleIds: peopleIds,
+    photoIds: photoIds,
+    recipientUserIds: recipientUserIds,
+  );
+
   final String id;
   final String spaceId;
   final String title;

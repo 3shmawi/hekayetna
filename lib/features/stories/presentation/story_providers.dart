@@ -51,6 +51,13 @@ final personsProvider = FutureProvider.family<List<Person>, String>(
       (await ref.watch(familyRepositoryProvider).listPersons(spaceId)).unwrap(),
 );
 
+/// Members of a space, for "Recorded by" and the visibility note.
+// ignore: specify_nonobvious_property_types
+final membersProvider = FutureProvider.family<List<FamilyMember>, String>(
+  (ref, spaceId) async =>
+      (await ref.watch(familyRepositoryProvider).listMembers(spaceId)).unwrap(),
+);
+
 /// Stories of the current space for one filter. Built once per filter and
 /// kept: rebuilding a widget never refetches, only [StoryFeedNotifier.refresh].
 // ignore: specify_nonobvious_property_types

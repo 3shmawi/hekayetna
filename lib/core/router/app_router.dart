@@ -13,6 +13,7 @@ import 'package:family_stories/features/recording/presentation/preview_screen.da
 import 'package:family_stories/features/recording/presentation/record_screen.dart';
 import 'package:family_stories/features/settings/presentation/settings_page.dart';
 import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
+import 'package:family_stories/features/stories/presentation/story_page.dart';
 import 'package:family_stories/features/stories/presentation/story_screens.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -57,7 +58,7 @@ final appRouter = GoRouter(
                   path: ':id',
                   name: 'story_detail',
                   builder: (context, state) =>
-                      StoryDetailScreen(storyId: state.pathParameters['id']!),
+                      StoryPage(storyId: state.pathParameters['id']!),
                 ),
               ],
             ),

@@ -219,7 +219,24 @@ class _WaveformPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (waveform.isEmpty) return;
+    if (waveform.isEmpty) {
+      // No waveform data yet: a plain progress track of the same height.
+      final track = Paint()
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = size.height / 8;
+      final y = size.height / 2;
+      final rtl = direction == TextDirection.rtl;
+      final startX = rtl ? size.width : 0.0;
+      final endX = rtl ? 0.0 : size.width;
+      canvas
+        ..drawLine(Offset(startX, y), Offset(endX, y), track..color = rest)
+        ..drawLine(
+          Offset(startX, y),
+          Offset(startX + (endX - startX) * progress, y),
+          track..color = played,
+        );
+      return;
+    }
     final count = waveform.length;
     final barWidth = size.width / (count * 1.5);
     final paint = Paint()..strokeCap = StrokeCap.round;

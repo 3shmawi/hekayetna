@@ -170,6 +170,54 @@
     }
   },
   "feedNarratorFallback": "العيلة",
+  "storyMore": "المزيد",
+  "storyEditDetails": "عدّل التفاصيل",
+  "storyWhoCanListen": "مين يقدر يسمع",
+  "storyDelete": "امسح الحكاية",
+  "storyTold": "بصوت {name}",
+  "@storyTold": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "storyRecordedBy": "سجّلها {name}",
+  "@storyRecordedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "storyInThisStory": "في الحكاية دي",
+  "storyVisFamily": "العيلة كلها تقدر تسمعها ({count})",
+  "@storyVisFamily": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "storyVisSelected": "{count} يقدروا يسمعوها: {names}",
+  "@storyVisSelected": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "storyVisPrivate": "إنت بس اللي تقدر تسمعها",
+  "storyDeleteTitle": "تمسح الحكاية دي؟",
+  "storyDeleteBody": "الكل هيفقد الوصول والتسجيل هيتمسح. مفيش رجوع.",
+  "storyDeleted": "الحكاية اتمسحت",
+  "storyNotShared": "الحكاية دي مش متشاركة معاك",
+  "storyEditTitle": "عدّل التفاصيل",
+  "storySpeedLabel": "سرعة التشغيل",
+  "storyPickPeopleSoon": "اختيار ناس معينين جاي قريب. دلوقتي اختار إنت بس أو العيلة كلها.",
   "noTopic": "من غير موضوع",
   "ownerRole": "المسؤول",
   "pause": "وقفة",
