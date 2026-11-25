@@ -132,6 +132,7 @@ extension AppFailureMessage on AppFailure {
     TimeoutFailure() => l10n.errorTimeout,
     UnauthorizedFailure() => l10n.errorUnauthorized,
     NotFoundFailure() => l10n.errorNotFound,
+    ConflictFailure() => l10n.errorSaveConflict,
     ValidationFailure() => l10n.errorValidation,
     StorageFullFailure() => l10n.errorStorageFull,
     ServerFailure() || UnknownFailure() => l10n.errorUnknown,

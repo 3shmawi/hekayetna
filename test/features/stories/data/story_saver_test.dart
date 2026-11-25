@@ -254,33 +254,87 @@ void main() {
     },
   );
 
-  test('a story changed since is left alone, not overwritten', () async {
-    final edited = Story(
-      id: 'story-1',
-      spaceId: 'sp1',
-      title: 'renamed by the user',
-      visibility: StoryVisibility.private,
-      audioPath: 'sp1/u1/story-1/a.wav',
-      durationSeconds: 95,
-      topic: 'war',
-      createdBy: 'u1',
-      createdAt: DateTime(2026),
-    );
+  Story remote({
+    String title = 't',
+    StoryVisibility visibility = StoryVisibility.private,
+    List<String> recipients = const [],
+  }) => Story(
+    id: 'story-1',
+    spaceId: 'sp1',
+    title: title,
+    visibility: visibility,
+    audioPath: 'sp1/u1/story-1/a.wav',
+    durationSeconds: 95,
+    topic: 'war',
+    createdBy: 'u1',
+    createdAt: DateTime(2026),
+    recipientUserIds: recipients,
+  );
+
+  test('a story changed since is a conflict: untouched, draft kept', () async {
     when(
       () => stories.getStory(any()),
-    ).thenAnswer((_) async => Success(edited));
+    ).thenAnswer((_) async => Success(remote(title: 'renamed by the user')));
+    final r = await saver().save(
+      draft,
+      const StorySaveRequest(title: 't', visibility: StoryVisibility.private),
+    );
+    expect((r as Failed<Story>).failure, isA<ConflictFailure>());
+    expect(await drafts.get('d1'), isNotNull);
+    verifyNever(() => stories.createStory(any()));
+    verifyNever(() => stories.updateStory(any()));
+    verifyNever(() => stories.deleteAudio(any()));
+  });
+
+  test('a different privacy setting is a conflict, draft kept', () async {
+    when(() => stories.getStory(any())).thenAnswer(
+      (_) async => Success(remote(visibility: StoryVisibility.family)),
+    );
+    final r = await saver().save(
+      draft,
+      const StorySaveRequest(title: 't', visibility: StoryVisibility.private),
+    );
+    expect((r as Failed<Story>).failure, isA<ConflictFailure>());
+    expect(await drafts.get('d1'), isNotNull);
+  });
+
+  test('extra remote recipients are a conflict, never "saved"', () async {
+    when(() => stories.getStory(any())).thenAnswer(
+      (_) async => Success(
+        remote(
+          visibility: StoryVisibility.selected,
+          recipients: const ['u2', 'u9'],
+        ),
+      ),
+    );
     final r = await saver().save(
       draft,
       const StorySaveRequest(
         title: 't',
-        visibility: StoryVisibility.private,
-        narratorIds: ['p1'],
+        visibility: StoryVisibility.selected,
+        recipientUserIds: ['u2'],
       ),
     );
-    expect((r as Success<Story>).value.title, 'renamed by the user');
+    expect((r as Failed<Story>).failure, isA<ConflictFailure>());
+    expect(await drafts.get('d1'), isNotNull);
     verifyNever(() => stories.createStory(any()));
-    verifyNever(() => stories.updateStory(any()));
   });
+
+  test(
+    'an identical existing story is saved and the draft is released',
+    () async {
+      when(
+        () => stories.getStory(any()),
+      ).thenAnswer((_) async => Success(remote()));
+      final r = await saver().save(
+        draft,
+        const StorySaveRequest(title: 't', visibility: StoryVisibility.private),
+      );
+      expect(r, isA<Success<Story>>());
+      expect(await drafts.get('d1'), isNull);
+      verifyNever(() => stories.createStory(any()));
+    },
+  );
 
   test('no session fails before anything is read or uploaded', () async {
     final r = await saver(userId: null).save(
@@ -328,13 +382,14 @@ void main() {
       attemptTimeout: timeout,
     );
 
-    Story storyOf(String title) => Story(
-      id: 'x',
+    Story storyOf(Object id) => Story(
+      id: '$id',
       spaceId: 'sp1',
-      title: title,
+      title: 't',
       visibility: StoryVisibility.private,
-      audioPath: 'p',
-      durationSeconds: 1,
+      audioPath: 'sp1/u1/$id/a.wav',
+      topic: 'war',
+      durationSeconds: 95,
       createdBy: 'u1',
       createdAt: DateTime(2026),
     );
@@ -418,11 +473,11 @@ void main() {
       final first = await s.save(draft, req);
       expect((first as Failed<Story>).failure, isA<TimeoutFailure>());
       // the write landed remotely meanwhile
-      when(
-        () => stories.getStory(any()),
-      ).thenAnswer((_) async => Success(storyOf('landed')));
+      when(() => stories.getStory(any())).thenAnswer(
+        (i) async => Success(storyOf(i.positionalArguments[0]! as Object)),
+      );
       final second = await s.save(draft, req);
-      expect((second as Success<Story>).value.title, 'landed');
+      expect(second, isA<Success<Story>>());
       expect(await drafts.get('d1'), isNull);
       verify(() => stories.uploadAudio(any(), any())).called(1); // no new write
       verifyNever(() => stories.createStory(any()));
@@ -517,11 +572,11 @@ void main() {
     });
 
     test('after a restart an already created story is reused', () async {
-      when(
-        () => stories.getStory(any()),
-      ).thenAnswer((_) async => Success(storyOf('earlier')));
+      when(() => stories.getStory(any())).thenAnswer(
+        (i) async => Success(storyOf(i.positionalArguments[0]! as Object)),
+      );
       final r = await stable().save(draft, req);
-      expect((r as Success<Story>).value.title, 'earlier');
+      expect(r, isA<Success<Story>>());
       verifyNever(() => stories.uploadAudio(any(), any()));
       verifyNever(() => stories.createStory(any()));
       expect(await drafts.get('d1'), isNull);
@@ -530,14 +585,15 @@ void main() {
     test('create fails but the story exists: reused, audio kept', () async {
       var calls = 0;
       when(() => stories.getStory(any())).thenAnswer(
-        (_) async =>
-            ++calls == 1 ? const Success(null) : Success(storyOf('late')),
+        (i) async => ++calls == 1
+            ? const Success(null)
+            : Success(storyOf(i.positionalArguments[0]! as Object)),
       );
       when(
         () => stories.createStory(any()),
       ).thenAnswer((_) async => const Failed(TimeoutFailure()));
       final r = await stable().save(draft, req);
-      expect((r as Success<Story>).value.title, 'late');
+      expect(r, isA<Success<Story>>());
       verifyNever(() => stories.deleteAudio(any()));
     });
 
