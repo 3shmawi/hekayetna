@@ -108,6 +108,66 @@ void main() {
     expect(back.topic, 'funny_memories');
   });
 
+  test('legacy draft JSON loads as one finished closed segment (AC-4)', () {
+    final draft = StoryDraft.fromJson({
+      'id': 'd1',
+      'filePath': '/docs/drafts/d1.m4a',
+      'narratorPersonId': 'p1',
+      'topic': 'childhood_first_home',
+      'durationSeconds': 95,
+      'updatedAt': '2026-11-20T10:00:00.000',
+    });
+    expect(draft.status, DraftStatus.finished);
+    expect(draft.segments, hasLength(1));
+    expect(draft.segments.single.path, '/docs/drafts/d1.m4a');
+    expect(draft.segments.single.durationMs, 95000);
+    expect(draft.segments.single.closed, isTrue);
+    expect(draft.filePath, '/docs/drafts/d1.m4a');
+    expect(draft.durationSeconds, 95);
+    expect(draft.createdAt, draft.updatedAt);
+  });
+
+  test('a draft built from the legacy shape is finished, not resumable', () {
+    final draft = StoryDraft(
+      id: 'd3',
+      filePath: '/tmp/d3.m4a',
+      durationSeconds: 12,
+      updatedAt: DateTime(2026, 11, 23),
+    );
+    expect(draft.status, DraftStatus.finished);
+    expect(draft.segments.single.closed, isTrue);
+    expect(draft.duration, const Duration(seconds: 12));
+  });
+
+  test('segmented drafts round-trip status, promptId and createdAt', () {
+    final created = DateTime.utc(2026, 11, 24, 9);
+    final draft = StoryDraft(
+      id: 'd2',
+      segments: const [
+        DraftSegment(path: '/x/seg-001-1.wav', durationMs: 30000, closed: true),
+        DraftSegment(path: '/x/seg-002-2.wav', durationMs: 4200),
+      ],
+      status: DraftStatus.paused,
+      narratorPersonId: 'p2',
+      topic: 'funny_memories',
+      promptId: 'prompt-7',
+      createdAt: created,
+      updatedAt: DateTime.utc(2026, 11, 24, 9, 5),
+    );
+    final back = StoryDraft.fromJson(draft.toJson());
+    expect(back.status, DraftStatus.paused);
+    expect(back.promptId, 'prompt-7');
+    expect(back.createdAt, created);
+    expect(back.segments, hasLength(2));
+    expect(back.segments[1].closed, isFalse);
+    expect(back.segments[1].durationMs, 4200);
+    expect(back.duration, const Duration(milliseconds: 34200));
+    expect(back.durationSeconds, 34);
+    // legacy fields are still written for pre-spec-02 builds
+    expect(draft.toJson()['filePath'], '/x/seg-001-1.wav');
+    expect(draft.toJson()['durationSeconds'], 34);
+  });
+
   group('DemoStoryRepository', () {
     late DemoStoryRepository repo;
     setUp(() => repo = DemoStoryRepository());

@@ -4,14 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const idle = RecorderState(status: RecorderStatus.idle);
 
-  test('start from idle begins recording with a file path', () {
-    final s = RecorderTransitions.start(idle, '/tmp/a.m4a');
+  test('start from idle begins recording bound to the draft', () {
+    final s = RecorderTransitions.start(idle, 'd1');
     expect(s.status, RecorderStatus.recording);
-    expect(s.filePath, '/tmp/a.m4a');
+    expect(s.draftId, 'd1');
   });
 
   test('pause and resume only work in their valid states', () {
-    final rec = RecorderTransitions.start(idle, '/tmp/a.m4a');
+    final rec = RecorderTransitions.start(idle, 'd1');
     expect(RecorderTransitions.pause(rec).status, RecorderStatus.paused);
     // pausing twice is a no-op, not an error
     final paused = RecorderTransitions.pause(rec);
@@ -22,7 +22,7 @@ void main() {
   });
 
   test('stop works from recording and paused, never from idle', () {
-    final rec = RecorderTransitions.start(idle, '/tmp/a.m4a');
+    final rec = RecorderTransitions.start(idle, 'd1');
     expect(RecorderTransitions.stop(rec).status, RecorderStatus.stopped);
     expect(
       RecorderTransitions.stop(RecorderTransitions.pause(rec)).status,
@@ -32,22 +32,22 @@ void main() {
   });
 
   test('interruption pauses an active recording and keeps the take', () {
-    final rec = RecorderTransitions.start(idle, '/tmp/a.m4a');
+    final rec = RecorderTransitions.start(idle, 'd1');
     final interrupted = RecorderTransitions.interrupt(rec);
     expect(interrupted.status, RecorderStatus.paused);
-    expect(interrupted.filePath, isNotNull);
+    expect(interrupted.draftId, isNotNull);
     expect(interrupted.hasTake, isTrue);
   });
 
   test('double-tapping start while recording cannot corrupt state', () {
-    final rec = RecorderTransitions.start(idle, '/tmp/a.m4a');
-    final again = RecorderTransitions.start(rec, '/tmp/b.m4a');
+    final rec = RecorderTransitions.start(idle, 'd1');
+    final again = RecorderTransitions.start(rec, 'd2');
     expect(again.status, RecorderStatus.recording);
-    expect(again.filePath, '/tmp/a.m4a');
+    expect(again.draftId, 'd1');
   });
 
   test('discard always returns to idle', () {
-    final rec = RecorderTransitions.start(idle, '/tmp/a.m4a');
+    final rec = RecorderTransitions.start(idle, 'd1');
     expect(RecorderTransitions.discard(rec).status, RecorderStatus.idle);
   });
 }

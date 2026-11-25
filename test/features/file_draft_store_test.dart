@@ -64,4 +64,46 @@ void main() {
     final all = await store.list();
     expect(all.single.id, 'a');
   });
+
+  test(
+    'newSegmentPath creates the draft directory and unique WAV names',
+    () async {
+      final p1 = await store.newSegmentPath('d1');
+      final p2 = await store.newSegmentPath('d1');
+      expect(p1, isNot(p2));
+      expect(p1, startsWith('${dir.path}/d1/'));
+      expect(p1, endsWith('.wav'));
+      expect(Directory('${dir.path}/d1').existsSync(), isTrue);
+    },
+  );
+
+  test('segment numbering continues from the highest existing index', () async {
+    final p1 = await store.newSegmentPath('d2');
+    await File(p1).writeAsBytes([1]);
+    final p2 = await store.newSegmentPath('d2');
+    expect(p2, contains('seg-002-'));
+  });
+
+  test('delete removes every segment file and the draft directory', () async {
+    final p1 = await store.newSegmentPath('a');
+    final p2 = await store.newSegmentPath('a');
+    await File(p1).writeAsBytes([1, 2]);
+    await File(p2).writeAsBytes([3, 4]);
+    await store.save(
+      StoryDraft(
+        id: 'a',
+        segments: [
+          DraftSegment(path: p1, durationMs: 1000, closed: true),
+          DraftSegment(path: p2, durationMs: 2000, closed: true),
+        ],
+        status: DraftStatus.finished,
+        updatedAt: DateTime(2026, 11, 24),
+      ),
+    );
+    await store.delete('a');
+    expect(await store.list(), isEmpty);
+    expect(File(p1).existsSync(), isFalse);
+    expect(File(p2).existsSync(), isFalse);
+    expect(Directory('${dir.path}/a').existsSync(), isFalse);
+  });
 }

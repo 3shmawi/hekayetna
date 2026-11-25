@@ -9,6 +9,7 @@ import 'package:family_stories/features/auth/presentation/new_password_page.dart
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart';
 import 'package:family_stories/features/family/presentation/family_screens.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
+import 'package:family_stories/features/recording/presentation/continue_recording_screen.dart';
 import 'package:family_stories/features/recording/presentation/preview_screen.dart';
 import 'package:family_stories/features/recording/presentation/record_screen.dart';
 import 'package:family_stories/features/settings/presentation/settings_page.dart';
@@ -69,6 +70,13 @@ final appRouter = GoRouter(
               name: 'record',
               builder: (context, state) => const RecordScreen(),
               routes: [
+                GoRoute(
+                  path: 'continue',
+                  name: 'record_continue',
+                  // Over the tab bar and whatever is open (also on launch).
+                  parentNavigatorKey: rootNavigatorKey,
+                  builder: (context, state) => const ContinueRecordingScreen(),
+                ),
                 GoRoute(
                   path: 'preview/:draftId',
                   name: 'record_preview',

@@ -6,6 +6,7 @@ import 'package:family_stories/features/stories/data/models.dart';
 /// browser, never for production data.
 class MemoryDraftStore implements DraftStore {
   final _drafts = <String, StoryDraft>{};
+  final _segmentCounts = <String, int>{};
 
   @override
   Future<List<StoryDraft>> list() async =>
@@ -20,4 +21,12 @@ class MemoryDraftStore implements DraftStore {
 
   @override
   Future<void> delete(String id) async => _drafts.remove(id);
+
+  @override
+  Future<String> newSegmentPath(String draftId) async {
+    final next = (_segmentCounts[draftId] ?? 0) + 1;
+    _segmentCounts[draftId] = next;
+    final index = next.toString().padLeft(3, '0');
+    return 'memory://drafts/$draftId/seg-$index.wav';
+  }
 }

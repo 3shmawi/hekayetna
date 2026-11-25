@@ -157,7 +157,9 @@ class SupabaseStoryRepository implements StoryRepository {
         .upload(
           storagePath,
           File(localPath),
-          fileOptions: const FileOptions(contentType: 'audio/mp4'),
+          fileOptions: FileOptions(
+            contentType: localPath.endsWith('.wav') ? 'audio/wav' : 'audio/mp4',
+          ),
         );
     return storagePath;
   }

@@ -2,6 +2,7 @@ import 'package:family_stories/core/auth/auth.dart';
 import 'package:family_stories/core/auth/backend_auth.dart';
 import 'package:family_stories/core/review/review_prompt.dart';
 import 'package:family_stories/features/onboarding/data/onboarding.dart';
+import 'package:family_stories/features/recording/data/draft_recovery.dart';
 import 'package:family_stories/features/recording/data/draft_store.dart';
 import 'package:family_stories/features/recording/data/file_draft_store.dart';
 import 'package:family_stories/features/settings/data/settings_repository.dart';
@@ -23,6 +24,8 @@ abstract final class Dependencies {
     Onboarding.load(prefs);
     final docs = await getApplicationDocumentsDirectory();
     draftStore = FileDraftStore(directoryPath: '${docs.path}/drafts');
+    // Spec 02: a take cut off by a kill becomes `interrupted`, never lost.
+    await DraftRecovery(draftStore).run();
     await Auth.start(BackendAuthService());
   }
 }

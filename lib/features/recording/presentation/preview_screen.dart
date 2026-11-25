@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/theme/app_colors.dart';
+import 'package:family_stories/features/recording/data/segment_joiner.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +48,16 @@ class _RecordingPreviewScreenState
       if (isFixture) {
         await _player.setUrl(draft.filePath);
       } else {
-        await _player.setFilePath(draft.filePath);
+        // A take is several segments: play them as one joined file.
+        final multi =
+            draft.segments.length > 1 || draft.filePath.endsWith('.wav');
+        final path = multi
+            ? await SegmentJoiner.join(
+                draft.segments,
+                '${File(draft.filePath).parent.path}/preview.wav',
+              )
+            : draft.filePath;
+        await _player.setFilePath(path);
       }
       setState(() => _draft = draft);
     } on Exception catch (_) {

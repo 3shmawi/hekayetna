@@ -4,6 +4,7 @@ import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/update/app_update_listener.dart';
 import 'package:family_stories/core/widgets/offline_banner.dart';
+import 'package:family_stories/features/recording/presentation/launch_recovery_listener.dart';
 import 'package:family_stories/features/settings/data/app_settings.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +35,10 @@ class AppShell extends StatelessWidget {
         supportedLocales: AppLocalizations.supportedLocales,
         builder: (context, child) => AppUpdateListener(
           child: ConsentListener(
-            child: OfflineBanner(child: child ?? const SizedBox.shrink()),
+            child: LaunchRecoveryListener(
+              router: appRouter,
+              child: OfflineBanner(child: child ?? const SizedBox.shrink()),
+            ),
           ),
         ),
       ),

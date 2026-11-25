@@ -7,4 +7,9 @@ abstract class DraftStore {
   Future<void> save(StoryDraft draft);
   Future<StoryDraft?> get(String id);
   Future<void> delete(String id);
+
+  /// Reserves the path for the next audio segment of [draftId], creating
+  /// the draft's directory if needed. The store owns every file location;
+  /// callers never build paths themselves.
+  Future<String> newSegmentPath(String draftId);
 }
