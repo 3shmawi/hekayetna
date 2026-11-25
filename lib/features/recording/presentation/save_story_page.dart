@@ -58,6 +58,7 @@ class _SaveStoryPageState extends ConsumerState<SaveStoryPage> {
   bool _submitted = false;
   bool _busy = false;
   SavePhase? _phase;
+  SavePhase? _failedPhase;
   AppFailure? _failure;
 
   AudioPlayer? _player;
@@ -159,6 +160,7 @@ class _SaveStoryPageState extends ConsumerState<SaveStoryPage> {
         );
         setState(() {
           _busy = false;
+          _failedPhase = _phase;
           _phase = null;
           _failure = failure;
         });
@@ -326,7 +328,13 @@ class _SaveStoryPageState extends ConsumerState<SaveStoryPage> {
             Padding(
               padding: EdgeInsets.only(bottom: AppDimens.sm),
               child: Text(
-                '${s.saveStoryFailed} ${_failure!.message(s)}',
+                _failure is TimeoutFailure
+                    ? s.saveStoryStillSending
+                    : '${switch (_failedPhase) {
+                        SavePhase.preparing || null => s.saveStoryFailedPrepare,
+                        SavePhase.uploading => s.saveStoryFailedUpload,
+                        SavePhase.creating => s.saveStoryFailedCreate,
+                      }} ${s.saveStoryFailed} ${_failure!.message(s)}',
                 style: AppTextStyles.caption.copyWith(
                   color: Theme.of(context).colorScheme.error,
                 ),
