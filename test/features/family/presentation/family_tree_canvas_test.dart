@@ -1,6 +1,7 @@
 import 'package:family_stories/features/family/domain/family_graph.dart';
 import 'package:family_stories/features/family/domain/family_layout.dart';
 import 'package:family_stories/features/family/presentation/family_tree_canvas.dart';
+import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -203,4 +204,94 @@ void main() {
     await _pump(t, g, selected: 'khalSon');
     expect(find.byType(CustomPaint), findsWidgets);
   });
+
+  for (final rtl in [false, true]) {
+    testWidgets('every node can be brought clear of the controls and legend '
+        '(small screen, ${rtl ? 'RTL' : 'LTR'})', (t) async {
+      final g = bigGraph();
+      final r = await _pump(t, g, locale: Locale(rtl ? 'ar' : 'en'));
+      t.view
+        ..physicalSize = const Size(640, 1136)
+        ..devicePixelRatio = 2;
+      await t.pump();
+      await t.pump();
+      final handle = t.ensureSemantics();
+      final lx = lookupAppLocalizations(Locale(rtl ? 'ar' : 'en'));
+      List<Rect> overlays() => [
+        // The four controls are one column; the legend is one row.
+        for (var i = 0; i < find.byType(IconButton).evaluate().length; i++)
+          t.getRect(find.byType(IconButton).at(i)),
+        t
+            .getRect(find.text(lx.treeLegendStories).last)
+            .expandToInclude(t.getRect(find.text(lx.treeLegendPending).last)),
+      ];
+      bool covered(Rect n) => overlays().any(n.overlaps);
+
+      // Which node sits furthest toward the bottom and the end side.
+      final layout = layoutFamily(g);
+      final base = rtl ? layout.mirrored() : layout;
+      final ids = base.nodes.keys.toList();
+      for (final id in ids) {
+        r.controller.focusOn(id);
+        await t.pump();
+        final view = t.getRect(find.byType(FamilyTreeCanvas));
+        final nodeRect = t.getRect(
+          find.bySemanticsLabel(RegExp('^${RegExp.escape(id)}[,،]')),
+        );
+        expect(
+          view.contains(nodeRect.center),
+          isTrue,
+          reason: '$id is not on screen after focus',
+        );
+        expect(
+          covered(nodeRect),
+          isFalse,
+          reason: '$id sits under the controls or legend after focus',
+        );
+      }
+      // And by hand: from each corner node, dragging must move the tree
+      // freely in every direction (the boundary never traps a node under
+      // the controls or legend).
+      final entries = base.nodes.entries.toList();
+      final corners = {
+        entries.reduce(
+          (a, b) => a.value.center.dy >= b.value.center.dy ? a : b,
+        ),
+        entries.reduce(
+          (a, b) => a.value.center.dx >= b.value.center.dx ? a : b,
+        ),
+        entries.reduce(
+          (a, b) => a.value.center.dx <= b.value.center.dx ? a : b,
+        ),
+      };
+      for (final far in corners) {
+        r.controller.focusOn(far.key);
+        await t.pump();
+        final f = find.bySemanticsLabel(
+          RegExp('^${RegExp.escape(far.key)}[,،]'),
+        );
+        for (final d in const [
+          Offset(100, 0),
+          Offset(-100, 0),
+          Offset(0, 100),
+          Offset(0, -100),
+        ]) {
+          final before = t.getCenter(f);
+          await t.dragFrom(
+            t.getCenter(find.byType(FamilyTreeCanvas)) + const Offset(0, 200),
+            d,
+          );
+          await t.pump();
+          final moved = t.getCenter(f) - before;
+          expect(
+            (moved - d).distance,
+            lessThan(25),
+            reason: '${far.key} is stuck: moved $moved for a drag of $d',
+          );
+        }
+      }
+      await t.pumpAndSettle();
+      handle.dispose();
+    });
+  }
 }
