@@ -12,6 +12,7 @@ class VisibilityPicker extends StatelessWidget {
     required this.value,
     required this.onChanged,
     required this.consequenceText,
+    this.filled,
     super.key,
   });
 
@@ -20,6 +21,10 @@ class VisibilityPicker extends StatelessWidget {
 
   /// e.g. "3 people can hear this: Mama, Omar, Nour."
   final String consequenceText;
+
+  /// Optional filled-selection look (auth/SaveStory theme): colors for the
+  /// selected card and the card text. Null keeps the app-wide look.
+  final VisibilityFill? filled;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +43,7 @@ class VisibilityPicker extends StatelessWidget {
           _VisibilityOption(
             label: label,
             selected: value == option,
+            fill: filled,
             onTap: () => onChanged(option),
           ),
           SizedBox(height: AppDimens.sm),
@@ -54,13 +60,31 @@ class VisibilityPicker extends StatelessWidget {
 
 enum StoryVisibility { onlyMe, selectedPeople, wholeFamily }
 
+/// Colors for the filled selected card.
+class VisibilityFill {
+  const VisibilityFill({
+    required this.selected,
+    required this.onSelected,
+    required this.idle,
+    required this.onIdle,
+    required this.serif,
+  });
+  final Color selected;
+  final Color onSelected;
+  final Color idle;
+  final Color onIdle;
+  final String serif;
+}
+
 class _VisibilityOption extends StatelessWidget {
   const _VisibilityOption({
     required this.label,
     required this.selected,
     required this.onTap,
+    this.fill,
   });
 
+  final VisibilityFill? fill;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -84,11 +108,15 @@ class _VisibilityOption extends StatelessWidget {
               vertical: AppDimens.md,
             ),
             decoration: BoxDecoration(
-              color: selected ? scheme.primaryContainer : scheme.surface,
-              border: Border.all(
-                color: selected ? scheme.primary : scheme.outlineVariant,
-                width: selected ? 2 : 1,
-              ),
+              color: fill != null
+                  ? (selected ? fill!.selected : fill!.idle)
+                  : (selected ? scheme.primaryContainer : scheme.surface),
+              border: fill != null
+                  ? null
+                  : Border.all(
+                      color: selected ? scheme.primary : scheme.outlineVariant,
+                      width: selected ? 2 : 1,
+                    ),
               borderRadius: BorderRadius.circular(AppDimens.radiusMd),
             ),
             alignment: AlignmentDirectional.centerStart,
@@ -97,7 +125,14 @@ class _VisibilityOption extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.label,
+                style: fill == null
+                    ? AppTextStyles.label
+                    : AppTextStyles.label.copyWith(
+                        color: selected ? fill!.onSelected : fill!.onIdle,
+                        fontFamily: selected ? fill!.serif : null,
+                        fontFamilyFallback: const ['Cairo'],
+                        fontWeight: selected ? FontWeight.w600 : null,
+                      ),
               ),
             ),
           ),

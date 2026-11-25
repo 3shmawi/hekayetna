@@ -249,4 +249,31 @@ void main() {
     await tester.pumpAndSettle();
     await shot(tester, 'error_ar_dark');
   });
+
+  testWidgets('visibility scrolled, en light, whole family', (tester) async {
+    await pump(tester);
+    await tester.scrollUntilVisible(
+      find.text('The whole family'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -150));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('The whole family'));
+    await tester.pumpAndSettle();
+    await shot(tester, 'visibility_en_light');
+  });
+
+  testWidgets('visibility scrolled, ar dark, default only me', (tester) async {
+    SharedPreferences.setMockInitialValues({'settings.locale': 'ar'});
+    prefs = await SharedPreferences.getInstance();
+    await pump(tester, locale: const Locale('ar'), dark: true);
+    await tester.scrollUntilVisible(
+      find.byType(VisibilityPicker),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await shot(tester, 'visibility_ar_dark');
+  });
 }

@@ -11,6 +11,7 @@ import 'package:family_stories/core/network/connectivity_provider.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
+import 'package:family_stories/core/theme/app_fonts.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_message.dart';
@@ -475,6 +476,13 @@ class _SaveStoryPageState extends ConsumerState<SaveStoryPage> {
                     AppSectionLabel(s.whoCanHear),
                     SizedBox(height: AppDimens.sm),
                     VisibilityPicker(
+                      filled: VisibilityFill(
+                        selected: AuthPalette.of(context).primary,
+                        onSelected: AuthPalette.of(context).onPrimary,
+                        idle: AuthPalette.of(context).field,
+                        onIdle: AuthPalette.of(context).text,
+                        serif: AppFonts.authDisplay,
+                      ),
                       value: _toPicker(_visibility),
                       onChanged: (v) =>
                           setState(() => _visibility = _fromPicker(v)),
@@ -569,7 +577,19 @@ class _TakeCard extends StatelessWidget {
     final s = context.l10n;
     final mm = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
     final ss = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return AppCard(
+    final p = AuthPalette.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: p.fieldRaised,
+        borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 12,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
       child: Padding(
         padding: EdgeInsets.all(AppDimens.lg),
         child: Column(
@@ -577,12 +597,19 @@ class _TakeCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                AppIconButton(
-                  icon: playing
-                      ? AdaptiveIcons.pause(context)
-                      : AdaptiveIcons.play(context),
+                IconButton.filled(
+                  icon: Icon(
+                    playing
+                        ? AdaptiveIcons.pause(context)
+                        : AdaptiveIcons.play(context),
+                  ),
                   tooltip: playing ? s.saveStoryPauseListen : s.saveStoryPlay,
                   onPressed: onToggle,
+                  style: IconButton.styleFrom(
+                    backgroundColor: p.primary,
+                    foregroundColor: p.onPrimary,
+                    minimumSize: Size.square(AppDimens.targetMin),
+                  ),
                 ),
                 SizedBox(width: AppDimens.sm),
                 Text(

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 /// Colours of the auth screens, from the approved "Warm Heritage Archive"
 /// direction (Stitch project design tokens), light and a dark counterpart
-/// derived here (Stitch's dark variants are not generated yet).
+/// taken from the Stitch dark references (signin/savestory dark HTML).
 // ignore: use_enums
 class AuthPalette {
   const AuthPalette._({
@@ -56,19 +56,19 @@ class AuthPalette {
   );
 
   static const dark = AuthPalette._(
-    background: Color(0xFF131A15),
-    field: Color(0xFF222A24),
-    fieldRaised: Color(0xFF2A332C),
-    track: Color(0xFF222A24),
-    selected: Color(0xFF3A483C),
-    onSelected: Color(0xFFEDF2EB),
-    primary: Color(0xFFB5CDB6),
-    onPrimary: Color(0xFF0F2214),
-    accent: Color(0xFFE9C176),
-    secondaryFill: Color(0xFF2D372F),
-    text: Color(0xFFEDF2EB),
-    textSoft: Color(0xFFC3C8C0),
-    placeholder: Color(0xFFA9AFA7),
+    background: Color(0xFF111A13),
+    field: Color(0xFF1A251E),
+    fieldRaised: Color(0xFF1A251E),
+    track: Color(0xFF1A251E),
+    selected: Color(0xFF27372C),
+    onSelected: Color(0xFFF3F7F2),
+    primary: Color(0xFF2F4A35),
+    onPrimary: Color(0xFFF3F7F2),
+    accent: Color(0xFFCBB47E),
+    secondaryFill: Color(0xFF1A251E),
+    text: Color(0xFFF3F7F2),
+    textSoft: Color(0xFF9EACA1),
+    placeholder: Color(0xFF9EABA0),
   );
 
   static AuthPalette of(BuildContext context) =>
@@ -108,7 +108,15 @@ class AuthTheme extends StatelessWidget {
           fontFamilyFallback: fallback,
         ),
         scaffoldBackgroundColor: p.background,
-        appBarTheme: base.appBarTheme.copyWith(backgroundColor: p.background),
+        appBarTheme: base.appBarTheme.copyWith(
+          backgroundColor: p.background,
+          titleTextStyle: AppTextStyles.title.copyWith(
+            color: p.text,
+            fontFamily: AppFonts.authDisplay,
+            fontFamilyFallback: fallback,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         inputDecorationTheme: base.inputDecorationTheme.copyWith(
           fillColor: p.field,
           border: border(Colors.transparent),

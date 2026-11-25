@@ -86,6 +86,12 @@ class AppScaffold extends StatelessWidget {
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
+                          fontFamily: Theme.of(
+                            context,
+                          ).appBarTheme.titleTextStyle?.fontFamily,
+                          fontFamilyFallback: Theme.of(
+                            context,
+                          ).appBarTheme.titleTextStyle?.fontFamilyFallback,
                         ),
                       ),
                 leading: leading,
