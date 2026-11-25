@@ -12,7 +12,7 @@ class TreeMetrics {
 
   /// Space between the bottom of a circle and the top of its label.
   static const labelGap = 6.0;
-  static const labelHeight = 40.0;
+  static const labelHeight = 44.0;
   static const defaultLabelWidth = 120.0;
   static const spouseGap = 24.0;
   static const minSiblingDistance = 140.0;
@@ -115,6 +115,48 @@ class FamilyLayout {
 
   /// Top of the "Not connected yet" row (for its heading).
   final double unconnectedTop;
+
+  /// The same layout flipped left to right, for right-to-left languages
+  /// (the start side is the right).
+  FamilyLayout mirrored() {
+    final width = bounds.right + bounds.left;
+    double fx(double x) => width - x;
+    Offset fo(Offset o) => Offset(fx(o.dx), o.dy);
+    Rect fr(Rect r) => Rect.fromLTRB(fx(r.right), r.top, fx(r.left), r.bottom);
+    return FamilyLayout(
+      nodes: {
+        for (final e in nodes.entries)
+          e.key: NodeLayout(
+            id: e.key,
+            center: fo(e.value.center),
+            label: fr(e.value.label),
+            level: e.value.level,
+          ),
+      },
+      ropes: [
+        for (final r in ropes)
+          Rope(
+            kind: r.kind,
+            points: r.points.map(fo).toList(),
+            pending: r.pending,
+            parents: r.parents,
+            child: r.child,
+          ),
+      ],
+      pills: [
+        for (final p in pills)
+          RopePill(
+            kind: p.kind,
+            at: fo(p.at),
+            pending: p.pending,
+            personId: p.personId,
+          ),
+      ],
+      bounds: fr(bounds),
+      unconnected: unconnected,
+      unconnectedTop: unconnectedTop,
+    );
+  }
 }
 
 /// Lays the family out as generation rows with couples side by side,
@@ -160,6 +202,58 @@ class _Layouter {
   final _placedUnits = <_Unit>{};
   final _familiesByHost = <String, List<List<String>>>{};
   final _x = <String, double>{};
+
+  /// Spouses plus co-parents (people who share a child): they sit side by
+  /// side so a child's two parents are never far apart, even when no
+  /// spouse row was recorded.
+  late final Map<String, List<String>> _partners = _buildPartners();
+
+  final _depthCache = <String, int>{};
+
+  /// How many generations of ancestors a person has (cycle safe).
+  int _depth(String id, [Set<String>? seen]) {
+    final cached = _depthCache[id];
+    if (cached != null) return cached;
+    final stack = seen ?? <String>{};
+    if (!stack.add(id)) return 0;
+    var best = 0;
+    for (final p in g.parentsOf(id)) {
+      final d = _depth(p, stack) + 1;
+      if (d > best) best = d;
+    }
+    stack.remove(id);
+    return _depthCache[id] = best;
+  }
+
+  /// A couple whose members both have parents hangs under the family of
+  /// the one with the deeper known ancestry (the other keeps a long rope
+  /// to their own parents).
+  String _primaryOf(_Unit u) {
+    var best = u.members.first;
+    for (final m in u.members) {
+      if (_depth(m) > _depth(best)) best = m;
+    }
+    return best;
+  }
+
+  Map<String, List<String>> _buildPartners() {
+    final m = <String, Set<String>>{};
+    for (final id in g.persons.keys) {
+      m.putIfAbsent(id, () => {}).addAll(g.spousesOf(id));
+    }
+    for (final kids in g.children.values) {
+      // `children` is per parent; co-parents are found through each child.
+      for (final c in kids) {
+        final ps = g.parentsOf(c);
+        for (final a in ps) {
+          for (final b in ps) {
+            if (a != b) m.putIfAbsent(a, () => {}).add(b);
+          }
+        }
+      }
+    }
+    return {for (final e in m.entries) e.key: (e.value.toList()..sort())};
+  }
 
   double w(String id) {
     final v = labelWidthOf(id);
@@ -269,13 +363,13 @@ class _Layouter {
       final stack = [id];
       while (stack.isNotEmpty) {
         final cur = stack.removeLast();
-        for (final s in g.spousesOf(cur)) {
+        for (final s in _partners[cur] ?? const <String>[]) {
           if (comp.add(s)) stack.add(s);
         }
       }
       final sorted = comp.toList()..sort();
       final start = sorted.firstWhere(
-        (e) => g.spousesOf(e).length == 1,
+        (e) => (_partners[e] ?? const <String>[]).length == 1,
         orElse: () => sorted.first,
       );
       final order = <String>[];
@@ -283,7 +377,7 @@ class _Layouter {
       void walk(String cur) {
         if (!seen.add(cur)) return;
         order.add(cur);
-        g.spousesOf(cur).forEach(walk);
+        (_partners[cur] ?? const <String>[]).forEach(walk);
       }
 
       walk(start);
@@ -391,7 +485,9 @@ class _Layouter {
       for (final family in _familiesByHost[m] ?? const <List<String>>[]) {
         final kids = [
           for (final c in _childrenOfFamily(family))
-            if (!_placedUnits.contains(_unitOf[c])) c,
+            if (!_placedUnits.contains(_unitOf[c]) &&
+                _primaryOf(_unitOf[c]!) == c)
+              c,
         ];
         if (kids.isEmpty) continue;
         var desired = pos[index[m]!];
@@ -576,7 +672,11 @@ class _Layouter {
       final busY = parentY + TreeMetrics.busDrop;
       final trunkTops = <Offset>[];
       if (family.length == 2 &&
-          g.spousesOf(family[0]).contains(family[1]) &&
+          _unitOf[family[0]] == _unitOf[family[1]] &&
+          (_unitOf[family[0]]!.members.indexOf(family[0]) -
+                      _unitOf[family[1]]!.members.indexOf(family[1]))
+                  .abs() ==
+              1 &&
           parents[0].center.dy == parents[1].center.dy &&
           (parents[0].center.dx - parents[1].center.dx).abs() > 0) {
         final knotX = (parents[0].center.dx + parents[1].center.dx) / 2;
@@ -728,4 +828,50 @@ class _Group {
   double width = 0;
   double left = 0;
   double centre = 0;
+}
+
+/// Indexes into [FamilyLayout.ropes] that lie on [path] (the path between
+/// the selected person and "me"). A parent-child step lights the child's
+/// drop and its family trunk; a spouse step lights the couple rope; a
+/// sibling step lights both siblings' drops.
+Set<int> ropesOnPath(FamilyLayout layout, KinPath path) {
+  final pairs = <String>{};
+  String key(String a, String b) => a.compareTo(b) < 0 ? '$a|$b' : '$b|$a';
+  for (var i = 0; i + 1 < path.people.length; i++) {
+    pairs.add(key(path.people[i], path.people[i + 1]));
+  }
+  bool onPath(String a, String b) => pairs.contains(key(a, b));
+  final lit = <int>{};
+  final litFamilies = <String>{};
+  String fam(Rope r) => r.parents.join('|');
+  for (var i = 0; i < layout.ropes.length; i++) {
+    final r = layout.ropes[i];
+    switch (r.kind) {
+      case RopeKind.couple:
+        if (onPath(r.parents[0], r.parents[1])) lit.add(i);
+      case RopeKind.drop:
+        final c = r.child!;
+        final viaParent = r.parents.any((p) => onPath(p, c));
+        final viaSibling =
+            path.people.contains(c) &&
+            layout.ropes.any(
+              (o) =>
+                  o.kind == RopeKind.drop &&
+                  o.child != c &&
+                  fam(o) == fam(r) &&
+                  onPath(o.child!, c),
+            );
+        if (viaParent || viaSibling) {
+          lit.add(i);
+          litFamilies.add(fam(r));
+        }
+      case RopeKind.trunk:
+        break;
+    }
+  }
+  for (var i = 0; i < layout.ropes.length; i++) {
+    final r = layout.ropes[i];
+    if (r.kind == RopeKind.trunk && litFamilies.contains(fam(r))) lit.add(i);
+  }
+  return lit;
 }

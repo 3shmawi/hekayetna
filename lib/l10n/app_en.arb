@@ -389,5 +389,49 @@
         "type": "String"
       }
     }
-  }
+  },
+  "treeNodeSemantics": "{name}, {relation}, {count, plural, =0{no stories yet} =1{1 story} other{{count} stories}}",
+  "@treeNodeSemantics": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "relation": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "treeNodeSemanticsNoRelation": "{name}, {count, plural, =0{no stories yet} =1{1 story} other{{count} stories}}",
+  "@treeNodeSemanticsNoRelation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "treeMarried": "Married",
+  "treePendingPill": "Not confirmed",
+  "treeZoomIn": "Zoom in",
+  "treeZoomOut": "Zoom out",
+  "treeFit": "Show the whole family",
+  "treeCenterMe": "Center on me",
+  "treeZoomPercent": "{percent}%",
+  "@treeZoomPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "treeLegendStories": "Has stories",
+  "treeLegendNone": "No stories yet",
+  "treeLegendPending": "Not confirmed",
+  "treeNotConnected": "Not connected yet",
+  "treeNotConnectedHint": "Add how they're related"
 }

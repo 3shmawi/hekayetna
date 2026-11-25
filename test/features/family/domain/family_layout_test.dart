@@ -233,6 +233,27 @@ void main() {
     expect(l.nodes['ggm']!.center.dy, lessThan(l.nodes['sitto']!.center.dy));
   });
 
+  test('mirrored flips x and keeps the geometry clean', () {
+    final fam = bigFamily();
+    final g = FamilyGraph.build(persons: fam.persons, relationships: fam.rels);
+    final l = layoutFamily(g);
+    final m = l.mirrored();
+    expectClean(m);
+    final width = l.bounds.right + l.bounds.left;
+    for (final id in l.nodes.keys) {
+      expect(
+        m.nodes[id]!.center.dx,
+        closeTo(width - l.nodes[id]!.center.dx, 0.001),
+      );
+      expect(m.nodes[id]!.center.dy, l.nodes[id]!.center.dy);
+    }
+    // Parents stay to the right of what was their left.
+    expect(
+      m.nodes['sitto']!.center.dx > m.nodes['giddu']!.center.dx,
+      l.nodes['sitto']!.center.dx < l.nodes['giddu']!.center.dx,
+    );
+  });
+
   test('layout is deterministic', () {
     final fam = bigFamily();
     final g = FamilyGraph.build(persons: fam.persons, relationships: fam.rels);
