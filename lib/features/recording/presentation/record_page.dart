@@ -82,7 +82,7 @@ class _RecordPageState extends ConsumerState<RecordPage> {
     );
     if (!mounted) return;
     if (resume ?? false) {
-      unawaited(context.push(AppRoutes.recordPreview(draft.id)));
+      unawaited(context.push(AppRoutes.recordNewStory(draft.id)));
     } else if (resume == false) {
       await ref.read(draftStoreProvider).delete(draft.id);
     }
@@ -115,7 +115,7 @@ class _RecordPageState extends ConsumerState<RecordPage> {
     await recorder.stop();
     final id = _currentDraftId ?? recorder.state.draftId;
     if (id != null && mounted) {
-      unawaited(context.push(AppRoutes.recordPreview(id)));
+      unawaited(context.push(AppRoutes.recordNewStory(id)));
     }
   }
 

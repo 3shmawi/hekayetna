@@ -4,8 +4,10 @@ import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/monitoring/monitoring.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/family/data/models.dart';
+import 'package:family_stories/features/photos/data/models.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/features/stories/data/story_repository.dart';
+import 'package:family_stories/features/stories/data/story_saver.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The family space of the signed-in user, fetched once and cached.
@@ -49,6 +51,13 @@ class CurrentSpaceNotifier extends AsyncNotifier<FamilySpace?> {
 final personsProvider = FutureProvider.family<List<Person>, String>(
   (ref, spaceId) async =>
       (await ref.watch(familyRepositoryProvider).listPersons(spaceId)).unwrap(),
+);
+
+/// Photos of a space the member can see, for linking to a story.
+// ignore: specify_nonobvious_property_types
+final spacePhotosProvider = FutureProvider.family<List<Photo>, String>(
+  (ref, spaceId) async =>
+      (await ref.watch(photoRepositoryProvider).listPhotos(spaceId)).unwrap(),
 );
 
 /// Members of a space, for "Recorded by" and the visibility note.
@@ -164,3 +173,14 @@ class StoryActions {
     return result;
   }
 }
+
+/// Builds the [StorySaver] for the signed-in user. Tests override it to
+/// skip joining audio files.
+final storySaverProvider = Provider<StorySaver>(
+  (ref) => StorySaver(
+    stories: ref.watch(storyRepositoryProvider),
+    family: ref.watch(familyRepositoryProvider),
+    drafts: ref.watch(draftStoreProvider),
+    userId: ref.watch(currentUserIdProvider),
+  ),
+);

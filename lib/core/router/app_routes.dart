@@ -16,7 +16,6 @@ abstract final class AppRoutes {
 
   /// Nested paths (used with `context.push`, never as branch roots).
   static String storyDetail(String id) => '/stories/$id';
-  static String recordPreview(String draftId) => '/record/preview/$draftId';
   static String recordNewStory(String draftId) => '/record/new-story/$draftId';
   static String personDetail(String id) => '/family/people/$id';
 

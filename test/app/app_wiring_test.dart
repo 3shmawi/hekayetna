@@ -120,10 +120,10 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester);
-    appRouter.go('/record/preview/does-not-exist');
+    appRouter.go('/record/new-story/does-not-exist');
     await tester.pumpAndSettle();
     final l10n = lookupAppLocalizations(const Locale('en'));
-    expect(find.text(l10n.errorUnknown), findsOneWidget);
+    expect(find.text(l10n.saveStoryMissing), findsOneWidget);
     expect(find.byIcon(Icons.play_arrow), findsNothing);
   });
 }
