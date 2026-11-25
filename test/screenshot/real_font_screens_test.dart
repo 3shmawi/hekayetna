@@ -45,21 +45,23 @@ final Map<String, Widget Function()> scenes = {
   'onboarding': () => const OnboardingPage(),
 };
 
-Widget _recordView(RecordButtonState state) => RecordView(
-  buttonState: state,
-  elapsed: const Duration(minutes: 2, seconds: 14),
-  levels: [for (var i = 0; i < 20; i++) (i % 7) / 7],
-  narratorName: 'Sitto Amina',
-  draftSaved: true,
-  canFinish: true,
-  topicLabel: 'Childhood & first home',
-  promptText: 'What is your earliest memory?',
-  onDifferentQuestion: () {},
-  onClose: () {},
-  onToggle: () {},
-  onPickNarrator: () {},
-  onPickTopic: () {},
-  onDone: () {},
+Widget _recordView(RecordButtonState state) => Builder(
+  builder: (context) => RecordView(
+    buttonState: state,
+    elapsed: const Duration(minutes: 2, seconds: 14),
+    levels: [for (var i = 0; i < 20; i++) (i % 7) / 7],
+    narratorName: 'Sitto Amina',
+    draftSaved: true,
+    canFinish: true,
+    topicLabel: 'Childhood & first home',
+    promptText: context.l10n.recordPrompt1,
+    onDifferentQuestion: () {},
+    onClose: () {},
+    onToggle: () {},
+    onPickNarrator: () {},
+    onPickTopic: () {},
+    onDone: () {},
+  ),
 );
 
 Future<void> loadRealFonts() async {

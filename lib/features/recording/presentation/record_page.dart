@@ -237,12 +237,7 @@ class _RecordPageState extends ConsumerState<RecordPage> {
     final narrator = persons
         .where((p) => p.id == settings.lastNarratorId)
         .firstOrNull;
-    final prompts = [
-      s.recordPrompt1,
-      s.recordPrompt2,
-      s.recordPrompt3,
-      s.recordPrompt4,
-    ];
+    final prompts = starterQuestions(s);
     return StreamBuilder<RecorderState>(
       stream: recorder.watch(),
       initialData: recorder.state,
@@ -277,6 +272,15 @@ class _RecordPageState extends ConsumerState<RecordPage> {
     );
   }
 }
+
+/// The starter questions, in the current language. Authored copy: it
+/// comes from the ARB files, never from a hard-coded string.
+List<String> starterQuestions(AppLocalizations s) => [
+  s.recordPrompt1,
+  s.recordPrompt2,
+  s.recordPrompt3,
+  s.recordPrompt4,
+];
 
 const _addPersonResult = '__add_person__';
 

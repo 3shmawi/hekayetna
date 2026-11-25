@@ -4,6 +4,7 @@ library;
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
+import 'package:family_stories/features/recording/presentation/record_page.dart';
 import 'package:family_stories/features/recording/presentation/record_view.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +23,7 @@ RecordView _view(String locale, RecordButtonState state) {
     narratorName: ar ? 'ستّو أمينة' : 'Sitto Amina',
     draftSaved: true,
     canFinish: true,
-    promptText: ar ? 'إيه أول ذكرى فاكرها؟' : 'What is your earliest memory?',
+    promptText: starterQuestions(lookupAppLocalizations(Locale(locale))).first,
     onDifferentQuestion: () {},
     onClose: () {},
     onToggle: () {},
