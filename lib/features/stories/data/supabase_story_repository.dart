@@ -48,6 +48,10 @@ class SupabaseStoryRepository implements StoryRepository {
       guard(() => _uploadAudio(localPath, storagePath));
 
   @override
+  Future<Result<int?>> audioSize(String storagePath) =>
+      guard(() => _audioSize(storagePath));
+
+  @override
   Future<Result<void>> deleteAudio(String storagePath) =>
       guard(() => _deleteAudio(storagePath));
 
@@ -214,6 +218,12 @@ class SupabaseStoryRepository implements StoryRepository {
           ),
         );
     return storagePath;
+  }
+
+  Future<int?> _audioSize(String storagePath) async {
+    final files = _client.storage.from('story-audio');
+    if (!await files.exists(storagePath)) return null;
+    return (await files.info(storagePath)).size;
   }
 
   Future<void> _deleteAudio(String storagePath) async {

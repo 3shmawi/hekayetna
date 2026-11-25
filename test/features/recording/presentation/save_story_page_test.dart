@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/network/connectivity_provider.dart';
@@ -52,7 +54,12 @@ void main() {
 
   late SharedPreferences prefs;
 
+  late File takeFile;
+
   setUp(() async {
+    final dir = Directory.systemTemp.createTempSync('savepage_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    takeFile = File('${dir.path}/take.wav')..writeAsBytesSync([1, 2, 3, 4]);
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     created = null;
@@ -102,6 +109,12 @@ void main() {
     when(
       () => photos.listPhotos('sp1'),
     ).thenAnswer((_) async => const Success(<Photo>[]));
+    when(
+      () => stories.getStory(any()),
+    ).thenAnswer((_) async => const Success(null));
+    when(
+      () => stories.audioSize(any()),
+    ).thenAnswer((_) async => const Success(null));
     when(
       () => stories.uploadAudio(any(), any()),
     ).thenAnswer((i) async => Success(i.positionalArguments[1] as String));
@@ -160,7 +173,7 @@ void main() {
               family: family,
               drafts: drafts,
               userId: 'u1',
-              joinTake: (_) async => '/tmp/take.wav',
+              joinTake: (_) async => takeFile.path,
             ),
           ),
         ],
@@ -184,6 +197,13 @@ void main() {
     String label = 'Save story',
   ]) async {
     await tester.tap(find.text(label));
+    // The saver reads the real take file to hash it; real IO needs real async.
+    for (var i = 0; i < 20; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 25)),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+    }
     await tester.pumpAndSettle();
   }
 
@@ -260,6 +280,8 @@ void main() {
 
       expect(find.text('Retry'), findsOneWidget);
       expect(find.textContaining("The story wasn't saved"), findsOneWidget);
+      // names the step that failed: the audio was uploaded, create failed
+      expect(find.textContaining('The audio is uploaded'), findsOneWidget);
       expect(find.text('Keep me'), findsOneWidget);
       expect(await drafts.get('d1'), isNotNull);
       expect(find.text('FEED PAGE'), findsNothing);

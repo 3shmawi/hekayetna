@@ -1,0 +1,211 @@
+import 'package:family_stories/core/theme/app_dimens.dart';
+import 'package:family_stories/core/theme/app_theme.dart';
+import 'package:family_stories/features/family/domain/family_graph.dart';
+import 'package:family_stories/features/family/presentation/person_sheet.dart';
+import 'package:family_stories/features/stories/data/models.dart';
+import 'package:family_stories/features/stories/player/audio_player_controller.dart';
+import 'package:family_stories/features/stories/presentation/story_providers.dart';
+import 'package:family_stories/l10n/l10n.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import '../../../helpers/pump_app.dart';
+import '../domain/family_fixtures.dart';
+
+Story _story(String id, String narrator, String? topic) => Story(
+  id: id,
+  spaceId: 's',
+  title: 'Story $id',
+  visibility: StoryVisibility.family,
+  audioPath: 'p/$id.wav',
+  durationSeconds: 120,
+  createdBy: 'u',
+  createdAt: DateTime(2026),
+  narratorIds: [narrator],
+  topic: topic,
+);
+
+class _Feed extends StoryFeedNotifier {
+  _Feed(super.filter);
+  @override
+  Future<List<Story>> build() async => [
+    _story('a', 'sitto', 'funny_memories'),
+    _story('b', 'sitto', 'life_events'),
+    _story('c', 'sitto', 'funny_memories'),
+    _story('d', 'sitto', 'funny_memories'),
+    _story('e', 'mama', null),
+  ];
+}
+
+class _Player extends AudioPlayerController {
+  static final queued = <String>[];
+  static final played = <String>[];
+  @override
+  PlayerState build() => const PlayerState();
+  @override
+  Future<void> playQueue(List<Story> stories) async =>
+      queued.addAll(stories.map((s) => s.id));
+  @override
+  Future<void> playStory(Story story) async => played.add(story.id);
+}
+
+void main() {
+  late FamilyGraph graph;
+  setUp(() {
+    _Player.queued.clear();
+    _Player.played.clear();
+    final fam = bigFamily();
+    graph = FamilyGraph.build(
+      persons: fam.persons,
+      relationships: fam.rels,
+      meId: 'me',
+      storiesByNarrator: {
+        'sitto': [120, 120, 120, 120],
+      },
+    );
+  });
+
+  Widget host(Future<Object?> Function(BuildContext) open) => ProviderScope(
+    overrides: [
+      storyFeedProvider.overrideWith2(_Feed.new),
+      audioPlayerControllerProvider.overrideWith(_Player.new),
+    ],
+    child: Builder(
+      builder: (context) => Scaffold(
+        body: Center(
+          child: TextButton(
+            onPressed: () => open(context),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  Widget sheet({double scale = 1}) => ProviderScope(
+    overrides: [
+      storyFeedProvider.overrideWith2(_Feed.new),
+      audioPlayerControllerProvider.overrideWith(_Player.new),
+    ],
+    child: Scaffold(
+      body: Builder(
+        builder: (context) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(scale)),
+          child: PersonSheet(graph: graph, personId: 'sitto'),
+        ),
+      ),
+    ),
+  );
+
+  testWidgets(
+    'Play all and Record share a row when both labels fit (short name)',
+    (t) async {
+      final fam = bigFamily();
+      graph = FamilyGraph.build(
+        persons: [
+          for (final p in fam.persons)
+            if (p.id == 'sitto') person('sitto', null, 'Ali') else p,
+        ],
+        relationships: fam.rels,
+        meId: 'me',
+        storiesByNarrator: {
+          'sitto': [120, 120, 120, 120],
+        },
+      );
+      // The test font (Ahem) is far wider than the app's real one, so
+      // shrink the text to the room the labels have on a phone.
+      await t.pumpApp(sheet(scale: 0.5));
+      await t.pumpAndSettle();
+      final play = t.getTopLeft(find.text('Play all'));
+      final record = t.getTopLeft(find.textContaining('Record '));
+      expect(play.dy, record.dy);
+      expect(find.textContaining('…'), findsNothing);
+    },
+  );
+
+  testWidgets('they stack, full labels, when half the width is too small', (
+    t,
+  ) async {
+    await t.pumpApp(sheet());
+    await t.pumpAndSettle();
+    final play = t.getTopLeft(find.text('Play all'));
+    final record = t.getTopLeft(find.textContaining('Record '));
+    expect(record.dy, greaterThan(play.dy + 40));
+  });
+
+  testWidgets('Play all queues the right stories', (t) async {
+    await t.pumpApp(sheet());
+    await t.pumpAndSettle();
+    expect(find.text('Play all'), findsOneWidget);
+    await t.tap(find.text('Play all'));
+    await t.pumpAndSettle();
+    expect(_Player.queued, ['a', 'b', 'c', 'd']);
+  });
+
+  testWidgets('topic chips filter the voices and See all offers the rest', (
+    t,
+  ) async {
+    await t.pumpApp(sheet());
+    await t.pumpAndSettle();
+    expect(find.text('See all 4'), findsOneWidget);
+    await t.tap(find.textContaining('Important life events '));
+    await t.pumpAndSettle();
+    expect(find.text('Story b'), findsOneWidget);
+    expect(find.text('Story a'), findsNothing);
+    expect(find.textContaining('See all'), findsNothing);
+  });
+
+  testWidgets('the close button dismisses the sheet (artboard X)', (t) async {
+    t.view
+      ..physicalSize = const Size(1125, 2436)
+      ..devicePixelRatio = 3;
+    addTearDown(t.view.reset);
+    // The sheet is a route, so the provider scope sits above the app.
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [
+          storyFeedProvider.overrideWith2(_Feed.new),
+          audioPlayerControllerProvider.overrideWith(_Player.new),
+        ],
+        child: ScreenUtilInit(
+          designSize: AppDimens.designSize,
+          builder: (context, _) => MaterialApp(
+            theme: AppTheme.light,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () =>
+                      showPersonSheet(context, graph: graph, personId: 'sitto'),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await t.tap(find.text('open'));
+    await t.pumpAndSettle();
+    expect(find.byType(PersonSheet), findsOneWidget);
+    expect(find.byTooltip('Close'), findsOneWidget);
+    await t.tap(find.byTooltip('Close'));
+    await t.pumpAndSettle();
+    expect(find.byType(PersonSheet), findsNothing);
+  });
+
+  testWidgets('the long-press menu has exactly three actions', (t) async {
+    await t.pumpApp(host((c) => showPersonQuickMenu(c, name: 'Hany')));
+    await t.tap(find.text('open'));
+    await t.pumpAndSettle();
+    expect(find.byType(ListTile), findsNWidgets(3));
+    expect(find.text('Record Hany'), findsOneWidget);
+    expect(find.text('Add a relative'), findsOneWidget);
+    expect(find.text('Edit person'), findsOneWidget);
+  });
+}

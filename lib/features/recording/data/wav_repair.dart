@@ -1,6 +1,28 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+/// Where the audio sits in a WAV file and how it is encoded.
+class WavLayout {
+  const WavLayout({
+    required this.channels,
+    required this.sampleRate,
+    required this.bitsPerSample,
+    required this.dataStart,
+    required this.dataBytes,
+  });
+
+  final int channels;
+  final int sampleRate;
+  final int bitsPerSample;
+
+  /// Byte offset of the first PCM byte.
+  final int dataStart;
+
+  /// PCM bytes (whole frames), measured from the real file length, not the
+  /// header field (an unclosed file carries a placeholder).
+  final int dataBytes;
+}
+
 /// Result of inspecting a WAV file: its playable length in milliseconds.
 class WavInfo {
   const WavInfo({required this.durationMs, required this.repaired});
@@ -18,6 +40,35 @@ class WavInfo {
 abstract final class WavRepair {
   static const _headerMin = 44;
 
+  /// How much of the file start is scanned for the `data` chunk. Core Audio
+  /// (iOS) pads the header with a filler chunk, so the audio does not start
+  /// at byte 44 there.
+  static const _headScan = 65536;
+
+  /// Where the PCM starts and its format, for joining segments. Returns null
+  /// when the file is missing, is not a PCM WAV, or holds no audio. Does not
+  /// modify the file.
+  static Future<WavLayout?> layout(File file) async {
+    if (!file.existsSync()) return null;
+    final length = await file.length();
+    if (length <= _headerMin) return null;
+    final raf = await file.open();
+    try {
+      final head = await raf.read(length < _headScan ? length : _headScan);
+      final fmt = _parse(head, length);
+      if (fmt == null || fmt.dataBytes <= 0) return null;
+      return WavLayout(
+        channels: fmt.channels,
+        sampleRate: fmt.sampleRate,
+        bitsPerSample: fmt.bitsPerSample,
+        dataStart: fmt.dataSizeOffset + 4,
+        dataBytes: fmt.dataBytes,
+      );
+    } finally {
+      await raf.close();
+    }
+  }
+
   /// Inspects [file], fixes its header in place when needed, and returns the
   /// measured length. Returns null when the file is missing or holds no
   /// audio (no valid header, or zero PCM bytes).
@@ -28,7 +79,7 @@ abstract final class WavRepair {
     final raf = await file.open(mode: FileMode.append);
     try {
       await raf.setPosition(0);
-      final head = await raf.read(length < 4096 ? length : 4096);
+      final head = await raf.read(length < _headScan ? length : _headScan);
       final fmt = _parse(head, length);
       if (fmt == null || fmt.dataBytes <= 0) return null;
       final riffSize = length - 8;

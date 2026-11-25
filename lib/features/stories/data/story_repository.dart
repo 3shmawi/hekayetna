@@ -52,6 +52,10 @@ abstract class StoryRepository {
   /// reads require story access. Returns the storage path to persist.
   Future<Result<String>> uploadAudio(String localPath, String storagePath);
 
+  /// Size in bytes of the stored audio object, or null when none exists.
+  /// Used to verify an object an earlier attempt left before reusing it.
+  Future<Result<int?>> audioSize(String storagePath);
+
   /// Removes an uploaded object. Used when the story-row insert fails after a
   /// successful upload, so no orphan objects accumulate. Only the object's
   /// owner can delete, per the storage delete policy.
