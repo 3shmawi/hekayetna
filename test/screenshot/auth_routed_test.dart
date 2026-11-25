@@ -148,8 +148,9 @@ void main() {
         lessThanOrEqualTo(tester.getRect(find.byType(Scrollable).first).bottom),
       );
     }
-    if (state == 'loading')
+    if (state == 'loading') {
       await tester.pump(const Duration(milliseconds: 700));
+    }
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile('evidence/auth_routed_$name.png'),
