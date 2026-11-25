@@ -28,7 +28,6 @@ class SegmentedRecorderService implements RecorderService {
     this.storageCheckInterval = const Duration(seconds: 30),
   }) : _now = now ?? DateTime.now {
     _stops = _recorder.unexpectedStops.listen(_onUnexpectedStop);
-    _levelSub = _recorder.levels.listen(_onLevel);
   }
 
   final DraftStore _draftStore;
@@ -43,6 +42,8 @@ class SegmentedRecorderService implements RecorderService {
   final int minFreeBytes;
   final Duration storageCheckInterval;
   StreamSubscription<SegmentStopReason>? _stops;
+  // Cancelled in _stopLevels, which every stop path and dispose call.
+  // ignore: cancel_subscriptions
   StreamSubscription<double>? _levelSub;
   final _levels = StreamController<double>.broadcast();
   final _waveform = WaveformAccumulator();
@@ -74,6 +75,16 @@ class SegmentedRecorderService implements RecorderService {
 
   @override
   List<int>? get waveform => _waveform.build();
+
+  // Listened only while capturing: the plugin's amplitude stream runs a
+  // timer, which must not exist while idle or paused.
+  void _startLevels() => _levelSub ??= _recorder.levels.listen(_onLevel);
+
+  Future<void> _stopLevels() async {
+    final sub = _levelSub;
+    _levelSub = null;
+    await sub?.cancel();
+  }
 
   void _onLevel(double level) {
     // Paused or stopped capture must not move the meter or the waveform.
@@ -109,6 +120,7 @@ class SegmentedRecorderService implements RecorderService {
     _segmentStartedAt = _now();
     _lastFlush = _segmentStartedAt;
     await _recorder.start(path);
+    _startLevels();
     _emit(next.copyWith(segments: [segment]));
     _startTicker();
   }
@@ -135,6 +147,7 @@ class SegmentedRecorderService implements RecorderService {
     if (identical(next, _state)) return;
     final closed = await _closeOpenSegment();
     _ticker?.cancel();
+    unawaited(_stopLevels());
     await _saveDraft(_state.draftId!, DraftStatus.paused, closed);
     _emit(next.copyWith(segments: closed, elapsed: _totalDuration(closed)));
   }
@@ -152,6 +165,7 @@ class SegmentedRecorderService implements RecorderService {
     _segmentStartedAt = _now();
     _lastFlush = _segmentStartedAt;
     await _recorder.start(path);
+    _startLevels();
     await _saveDraft(draftId, DraftStatus.recording, segments);
     _emit(next.copyWith(segments: segments));
     _startTicker();
@@ -163,6 +177,7 @@ class SegmentedRecorderService implements RecorderService {
     if (identical(next, _state)) return;
     final closed = await _closeOpenSegment();
     _ticker?.cancel();
+    unawaited(_stopLevels());
     await _saveDraft(_state.draftId!, DraftStatus.finished, closed);
     _emit(next.copyWith(segments: closed, elapsed: _totalDuration(closed)));
   }
@@ -175,6 +190,7 @@ class SegmentedRecorderService implements RecorderService {
       // Already stopped; discarding must never throw.
     }
     _ticker?.cancel();
+    unawaited(_stopLevels());
     _waveform.reset();
     _emit(RecorderTransitions.discard(_state));
   }
@@ -202,6 +218,7 @@ class SegmentedRecorderService implements RecorderService {
     _segmentStartedAt = _now();
     _lastFlush = _segmentStartedAt;
     await _recorder.start(path);
+    _startLevels();
     await _saveDraft(draftId, DraftStatus.recording, segments);
     _emit(_state.copyWith(segments: segments));
   }
@@ -272,8 +289,8 @@ class SegmentedRecorderService implements RecorderService {
   @override
   Future<void> dispose() async {
     _ticker?.cancel();
+    unawaited(_stopLevels());
     await _stops?.cancel();
-    await _levelSub?.cancel();
     await _recorder.dispose();
     await _controller.close();
     await _levels.close();
