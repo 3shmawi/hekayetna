@@ -181,7 +181,19 @@ class _FamilyTreeCanvasState extends State<FamilyTreeCanvas> {
         Expanded(
           child: Row(
             children: [
-              Expanded(child: _viewer(layout)),
+              Expanded(
+                child: Stack(
+                  children: [
+                    Positioned.fill(child: _viewer(layout)),
+                    // Artboard: the zoom % chip sits at the start, top.
+                    PositionedDirectional(
+                      start: AppDimens.md,
+                      top: AppDimens.sm,
+                      child: _ZoomChip(zoom: _scale),
+                    ),
+                  ],
+                ),
+              ),
               _Controls(
                 zoom: _scale,
                 onZoomIn: () => _zoomButton(1.25),
@@ -386,6 +398,9 @@ class _PillWidget extends StatelessWidget {
         },
       ),
     };
+    // Artboard and spec 05: rope pills are lowercase ("daughter", "married").
+    // Arabic has no case, so this leaves it unchanged.
+    final shown = text.toLowerCase();
     return Positioned(
       left: pill.at.dx - 44,
       top: pill.at.dy - 11,
@@ -403,7 +418,7 @@ class _PillWidget extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             child: Text(
-              text,
+              shown,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.tabLabel.copyWith(
@@ -753,24 +768,6 @@ class _Controls extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    l10n.treeZoomPercent((zoom * 100).round()),
-                    style: AppTextStyles.tabLabel,
-                    softWrap: false,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: AppDimens.sm),
             button(AdaptiveIcons.zoomIn(context), l10n.treeZoomIn, onZoomIn),
             SizedBox(height: AppDimens.sm),
             button(AdaptiveIcons.zoomOut(context), l10n.treeZoomOut, onZoomOut),
@@ -784,6 +781,32 @@ class _Controls extends StatelessWidget {
             ),
             SizedBox(height: AppDimens.sm),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ZoomChip extends StatelessWidget {
+  const _ZoomChip({required this.zoom});
+
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        border: Border.all(color: scheme.outlineVariant),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Text(
+          context.l10n.treeZoomPercent((zoom * 100).round()),
+          style: AppTextStyles.tabLabel,
+          softWrap: false,
         ),
       ),
     );
@@ -847,7 +870,7 @@ class _Legend extends StatelessWidget {
                     width: 18,
                     child: CustomPaint(
                       size: const Size(18, 2),
-                      painter: _DashSample(scheme.onSurfaceVariant),
+                      painter: _DotsSample(scheme.onSurfaceVariant),
                     ),
                   ),
                   l10n.treeLegendPending,
@@ -861,20 +884,19 @@ class _Legend extends StatelessWidget {
   }
 }
 
-class _DashSample extends CustomPainter {
-  const _DashSample(this.color);
+/// Three dots, as the artboard legend draws "not confirmed".
+class _DotsSample extends CustomPainter {
+  const _DotsSample(this.color);
   final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = color
-      ..strokeWidth = 2;
-    canvas
-      ..drawLine(Offset.zero, const Offset(6, 0), p)
-      ..drawLine(const Offset(10, 0), const Offset(16, 0), p);
+    final p = Paint()..color = color;
+    for (final x in const [2.0, 9.0, 16.0]) {
+      canvas.drawCircle(Offset(x, 1), 1.5, p);
+    }
   }
 
   @override
-  bool shouldRepaint(_DashSample old) => old.color != color;
+  bool shouldRepaint(_DotsSample old) => old.color != color;
 }

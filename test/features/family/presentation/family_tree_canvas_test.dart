@@ -141,11 +141,11 @@ void main() {
 
   testWidgets('pills and relation lines hide below 75% zoom', (t) async {
     final r = await _pump(t, bigGraph());
-    expect(find.text('Married'), findsWidgets);
+    expect(find.text('married'), findsWidgets);
     expect(find.text('Mother'), findsWidgets);
     r.controller.zoomBy(0.6);
     await t.pump();
-    expect(find.text('Married'), findsNothing);
+    expect(find.text('married'), findsNothing);
     expect(find.text('Mother'), findsNothing);
   });
 
@@ -223,6 +223,10 @@ void main() {
         // The four controls are one column; the legend is one row.
         for (var i = 0; i < find.byType(IconButton).evaluate().length; i++)
           t.getRect(find.byType(IconButton).at(i)),
+        // The zoom % chip floats at the start, top.
+        t.getRect(
+          find.text(lx.treeZoomPercent((r.controller.scale * 100).round())),
+        ),
         t
             .getRect(find.text(lx.treeLegendStories).last)
             .expandToInclude(t.getRect(find.text(lx.treeLegendPending).last)),
