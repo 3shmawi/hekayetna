@@ -1,12 +1,16 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:family_stories/app/app_providers.dart';
+import 'package:family_stories/core/adaptive/adaptive.dart';
 import 'package:family_stories/core/ids.dart';
 import 'package:family_stories/core/network/result.dart';
+import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/theme/app_colors.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/family/data/models.dart';
+import 'package:family_stories/features/family/domain/invite_code.dart';
 import 'package:family_stories/features/family/presentation/family_tree_page.dart';
 import 'package:family_stories/features/family/presentation/family_tree_providers.dart';
 import 'package:family_stories/features/family/presentation/family_tree_view.dart';
@@ -15,7 +19,6 @@ import 'package:family_stories/features/photos/data/models.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -62,20 +65,22 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen> {
                         space.name,
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      subtitle: Text('${s.inviteCode}: ${space.inviteCode}'),
+                      subtitle: switch (InviteCode.parse(
+                        space.inviteShortCode,
+                      )) {
+                        // The code is isolated left-to-right so Arabic text
+                        // around it does not scramble it.
+                        final ShortInviteCode c => Text(
+                          '${s.inviteCodeLabel}: \u2066${c.display}\u2069',
+                        ),
+                        _ => null,
+                      },
+                      onTap: () => unawaited(context.push(AppRoutes.invite)),
                       trailing: IconButton(
-                        tooltip: s.inviteCode,
-                        icon: const Icon(Icons.copy_outlined),
-                        onPressed: () async {
-                          await Clipboard.setData(
-                            ClipboardData(text: space.inviteCode),
-                          );
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(s.inviteCopied)),
-                            );
-                          }
-                        },
+                        tooltip: s.inviteTitle,
+                        icon: Icon(AdaptiveIcons.invite(context)),
+                        onPressed: () =>
+                            unawaited(context.push(AppRoutes.invite)),
                       ),
                     ),
                   ),
