@@ -22,6 +22,7 @@ class AudioPlayerCard extends StatelessWidget {
     this.title,
     this.eyebrow,
     this.name,
+    this.nameDirection,
     super.key,
   });
 
@@ -34,6 +35,9 @@ class AudioPlayerCard extends StatelessWidget {
   /// then.
   final String? eyebrow;
   final String? name;
+
+  /// Direction of [name], which is user-written text.
+  final TextDirection? nameDirection;
 
   /// Already formatted ("1:12").
   final String position;
@@ -126,7 +130,11 @@ class AudioPlayerCard extends StatelessWidget {
                 SizedBox(width: AppDimens.lg),
                 TextButton(
                   onPressed: onSpeed,
-                  child: Text(speed, style: AppTextStyles.label),
+                  child: Text(
+                    speed,
+                    textDirection: TextDirection.ltr,
+                    style: AppTextStyles.label,
+                  ),
                 ),
               ],
             ),
@@ -206,6 +214,7 @@ extension on AudioPlayerCard {
                       ),
                       Text(
                         name!,
+                        textDirection: nameDirection,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.title,
@@ -236,7 +245,11 @@ extension on AudioPlayerCard {
                   child: Center(
                     child: TextButton(
                       onPressed: onSpeed,
-                      child: Text(speed, style: AppTextStyles.label),
+                      child: Text(
+                        speed,
+                        textDirection: TextDirection.ltr,
+                        style: AppTextStyles.label,
+                      ),
                     ),
                   ),
                 ),
