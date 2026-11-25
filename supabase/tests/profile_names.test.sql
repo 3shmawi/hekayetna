@@ -60,9 +60,14 @@ select pg_temp._assert(public.set_my_display_name('  Sami ') = 'Sami', 'the save
 select pg_temp._assert(
   (select display_name from public.profiles where id = 'b1111111-1111-1111-1111-111111111111') = 'Sami',
   'the name must be saved on the caller profile');
+-- The other profile is not visible to this user (no shared family), so
+-- check it as the table owner.
+set local role postgres;
 select pg_temp._assert(
   (select display_name is distinct from 'Sami' from public.profiles where id = 'b2222222-2222-2222-2222-222222222222'),
   'another profile must not change');
+set local role authenticated;
+set local "request.jwt.claims" = '{"sub":"b1111111-1111-1111-1111-111111111111"}';
 
 do $$
 begin
