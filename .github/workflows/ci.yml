@@ -216,7 +216,11 @@ jobs:
           restore-keys: |
             ios-build-${{ runner.os }}-${{ steps.flutter.outputs.version }}-
 
+      # Diagnostic: this step once ran 63 min with no output after the Xcode
+      # build. The step cap ends a hang early so the annotations below run;
+      # -v prints the launch / VM-service lines. No test or lint is changed.
       - name: Run integration tests
+        timeout-minutes: 25
         run: |
           udid=$(xcrun simctl list devices available -j | jq -r \
             '[.devices | to_entries[] | select(.key | test("iOS")) | .value[] | select(.name | test("^iPhone [0-9]+( Pro)?$"))] | last | .udid')
@@ -224,7 +228,16 @@ jobs:
           xcrun simctl boot "$udid" 2>/dev/null || true
           xcrun simctl bootstatus "$udid" -b > /dev/null
           set -o pipefail
-          flutter test integration_test -d "$udid" --flavor dev --dart-define-from-file=env/example.json 2>&1 | tee integration.log
+          flutter test -v integration_test -d "$udid" --flavor dev --dart-define-from-file=env/example.json 2>&1 | tee integration.log
+
+      - name: Upload the full integration log
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: integration-ios-log
+          path: integration.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       # The failing lines as annotations on the run, so you don't have to
       # dig through the whole log.
