@@ -482,7 +482,7 @@
   "personAddRelative": "Add a relative",
   "personPhotos": "Photos",
   "inviteTitle": "Invite family",
-  "inviteScanHint": "At the dinner table? Let them scan this with their camera. They'll join the {family} family after signing in.",
+  "inviteScanHint": "At the dinner table? Let them scan this with their camera. They'll join {family} after signing in.",
   "@inviteScanHint": {
     "placeholders": {
       "family": {

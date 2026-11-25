@@ -10,9 +10,12 @@ import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_ui.dart' hide StoryVisibility;
 import 'package:family_stories/features/auth/presentation/sign_in_view.dart';
 import 'package:family_stories/features/family/domain/family_graph.dart';
+import 'package:family_stories/features/family/domain/invite_code.dart';
 import 'package:family_stories/features/family/presentation/family_screens.dart';
 import 'package:family_stories/features/family/presentation/family_tree_page.dart';
 import 'package:family_stories/features/family/presentation/family_tree_providers.dart';
+import 'package:family_stories/features/family/presentation/invite_page.dart';
+import 'package:family_stories/features/family/presentation/join_screen.dart';
 import 'package:family_stories/features/family/presentation/person_sheet.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
@@ -47,6 +50,17 @@ final Map<String, Widget Function()> scenes = {
     onSendLink: (_) {},
   ),
   'family': () => const _DemoScope(child: FamilyHomeScreen()),
+  'invite_page': () => _DemoScope(
+    child: InvitePage(
+      familyName: 'Ashmawy family',
+      shortCode: const ShortInviteCode('7K4QM9X'),
+      isOwner: true,
+      onRotate: () async => null,
+    ),
+  ),
+  'join_screen': () => const _DemoScope(child: JoinScreen(rawCode: '7K4QM9X')),
+  'join_invalid': () =>
+      const _DemoScope(child: JoinScreen(rawCode: '../../etc/passwd')),
   'record': () => const _DemoScope(child: RecordPage()),
   'record_recording': () => _recordView(RecordButtonState.recording),
   'record_paused': () => _recordView(RecordButtonState.paused),
@@ -233,6 +247,8 @@ void main() {
         if (dark &&
             !(name.startsWith('record') ||
                 name.startsWith('tree') ||
+                name.startsWith('invite') ||
+                name.startsWith('join') ||
                 name.startsWith('person'))) {
           continue;
         }
