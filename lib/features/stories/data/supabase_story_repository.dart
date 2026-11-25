@@ -89,27 +89,47 @@ class SupabaseStoryRepository implements StoryRepository {
   }
 
   Future<Story> _createStory(Story story) async {
-    final row = await _client
-        .from('stories')
-        .insert({
-          if (story.id.isNotEmpty) 'id': story.id,
-          'space_id': story.spaceId,
-          'title': story.title,
-          'description': story.description,
-          'topic': story.topic,
-          'approx_date_label': story.approxDateLabel,
-          'approx_year': story.approxYear,
-          'visibility': story.visibility.name,
-          'audio_path': story.audioPath,
-          'duration_seconds': story.durationSeconds,
-          'created_by': _uid,
-          if (story.waveform != null) 'waveform': story.waveform,
-        })
-        .select()
-        .single();
+    final values = <String, Object?>{
+      if (story.id.isNotEmpty) 'id': story.id,
+      'space_id': story.spaceId,
+      'title': story.title,
+      'description': story.description,
+      'topic': story.topic,
+      'approx_date_label': story.approxDateLabel,
+      'approx_year': story.approxYear,
+      'visibility': story.visibility.name,
+      'audio_path': story.audioPath,
+      'duration_seconds': story.durationSeconds,
+      'created_by': _uid,
+    };
+    final waveform = story.waveform;
+    Future<Map<String, dynamic>> insert(Map<String, Object?> v) =>
+        _client.from('stories').insert(v).select().single();
+    Map<String, dynamic> row;
+    if (waveform == null) {
+      row = await insert(values);
+    } else {
+      try {
+        row = await insert({...values, 'waveform': waveform});
+      } on PostgrestException catch (e) {
+        // A backend that has not applied the waveform migration yet rejects
+        // the whole insert (no row is created), so one retry without the
+        // waveform cannot duplicate the story. The recording is kept; only
+        // the optional waveform is left out. Any other error is real.
+        if (!_isMissingWaveformColumn(e)) rethrow;
+        row = await insert(values);
+      }
+    }
     final id = row['id'] as String;
     await _syncJoins(id, story);
     return (await _getStory(id))!;
+  }
+
+  /// PostgREST says PGRST204 ("Could not find the 'waveform' column ...") for
+  /// an unknown column; Postgres itself says 42703 (undefined_column).
+  static bool _isMissingWaveformColumn(PostgrestException e) {
+    final mentionsWaveform = e.message.contains('waveform');
+    return mentionsWaveform && (e.code == 'PGRST204' || e.code == '42703');
   }
 
   Future<Story> _updateStory(Story story) async {

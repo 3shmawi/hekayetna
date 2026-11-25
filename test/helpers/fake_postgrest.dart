@@ -71,7 +71,11 @@ class FakeQuery<T> extends Fake implements PostgrestFilterBuilder<T> {
     Function? onError,
   }) {
     final key = '${call.table}.${call.op}';
-    final scripted = world.responses[key];
+    // A scripted sequence answers one request at a time, in order.
+    final queue = world.sequences[key];
+    final scripted = (queue != null && queue.isNotEmpty)
+        ? queue.removeAt(0)
+        : world.responses[key];
     final Future<dynamic> result;
     if (scripted is Exception) {
       result = Future<dynamic>.error(scripted);
@@ -114,6 +118,7 @@ class FakeTable extends Fake implements SupabaseQueryBuilder {
 
 class FakeWorld {
   final responses = <String, Object?>{};
+  final sequences = <String, List<Object?>>{};
   final calls = <Call>[];
   List<Call> on(String table, String op) => [
     for (final c in calls)
