@@ -81,6 +81,8 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: 'continue',
                   name: 'record_continue',
+                  // Over the tab bar and whatever is open (also on launch).
+                  parentNavigatorKey: rootNavigatorKey,
                   builder: (context, state) => const ContinueRecordingScreen(),
                 ),
                 GoRoute(
