@@ -38,6 +38,10 @@ void main() {
           builder: (_, _) => const OnboardingPage(),
         ),
         GoRoute(
+          path: AppRoutes.join,
+          builder: (_, _) => const Scaffold(body: Text('join-stub')),
+        ),
+        GoRoute(
           path: AppRoutes.stories,
           builder: (_, _) => const Scaffold(body: Text('home-stub')),
         ),
@@ -117,8 +121,9 @@ void main() {
     ) async {
       await pumpWelcome(tester);
       await tester.pumpAndSettle();
-      expect(find.text(l10nEn.onboardingWelcomeTitle), findsOneWidget);
+      expect(find.text(l10nEn.onboardingHeroTitle), findsOneWidget);
 
+      await tester.ensureVisible(find.byKey(const Key('onboarding_next')));
       await tester.tap(find.byKey(const Key('onboarding_next')));
       await tester.pumpAndSettle();
       await tester.enterText(
@@ -153,23 +158,44 @@ void main() {
     testWidgets('back returns to the previous step', (tester) async {
       await pumpWelcome(tester);
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('onboarding_next')));
       await tester.tap(find.byKey(const Key('onboarding_next')));
       await tester.pumpAndSettle();
       expect(find.text(l10nEn.onboardingYouTitle), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('onboarding_back')));
       await tester.pumpAndSettle();
-      expect(find.text(l10nEn.onboardingWelcomeTitle), findsOneWidget);
+      expect(find.text(l10nEn.onboardingHeroTitle), findsOneWidget);
     });
 
-    testWidgets('Skip finishes at once without a draft', (tester) async {
+    testWidgets('the first screen has no Skip; Skip works after it', (
+      tester,
+    ) async {
       await pumpWelcome(tester);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('onboarding_skip')), findsNothing);
+      await tester.ensureVisible(find.byKey(const Key('onboarding_next')));
+      await tester.tap(find.byKey(const Key('onboarding_next')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_skip')));
       await tester.pumpAndSettle();
       expect(find.text('home-stub'), findsOneWidget);
       expect(Onboarding.seen.value, isTrue);
       expect(Onboarding.draft.value, isNull);
+    });
+
+    testWidgets('"I have an invite code" opens the join screen', (
+      tester,
+    ) async {
+      await pumpWelcome(tester);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const Key('onboarding_have_invite')),
+      );
+      await tester.tap(find.byKey(const Key('onboarding_have_invite')));
+      await tester.pumpAndSettle();
+      expect(find.text('join-stub'), findsOneWidget);
+      expect(Onboarding.seen.value, isFalse);
     });
 
     testWidgets('meets accessibility guidelines', (tester) async {
