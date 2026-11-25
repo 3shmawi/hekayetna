@@ -224,6 +224,57 @@ void main() {
       expect(world.on('stories', 'insert'), hasLength(1));
     });
 
+    test(
+      'Postgres undefined_column (42703) for waveform is also retried once',
+      () async {
+        world.sequences['stories.insert'] = [
+          const PostgrestException(
+            message: 'column "waveform" of relation "stories" does not exist',
+            code: '42703',
+          ),
+          {'id': 's9'},
+        ];
+        world.responses['story_narrators.insert'] = null;
+        world.responses['stories.select'] = [_row(id: 's9')];
+        final r = await repo.createStory(_story(id: '', waveform: [1]));
+        expect(r, isA<Success<Story>>());
+        expect(world.on('stories', 'insert'), hasLength(2));
+      },
+    );
+
+    test('a missing column other than waveform is not retried', () async {
+      world.responses['stories.insert'] = const PostgrestException(
+        message:
+            "Could not find the 'description' column of 'stories' in the "
+            'schema cache',
+        code: 'PGRST204',
+      );
+      final r = await repo.createStory(_story(id: '', waveform: [1]));
+      expect(r, isA<Failed<Story>>());
+      // guard() may repeat a failed call (existing behaviour); what matters
+      // is that no attempt falls back to a row without the waveform.
+      for (final c in world.on('stories', 'insert')) {
+        expect((c.args.single! as Map).containsKey('waveform'), isTrue);
+      }
+    });
+
+    test('the fallback retries once: a failing retry is reported, no third '
+        'insert', () async {
+      world.sequences['stories.insert'] = [
+        const PostgrestException(
+          message:
+              "Could not find the 'waveform' column of 'stories' in the "
+              'schema cache',
+          code: 'PGRST204',
+        ),
+        const PostgrestException(message: 'denied', code: '42501'),
+      ];
+      final r = await repo.createStory(_story(id: '', waveform: [1]));
+      expect(r, isA<Failed<Story>>());
+      expect(world.on('stories', 'insert'), hasLength(2));
+      expect(world.on('story_narrators', 'insert'), isEmpty);
+    });
+
     test('without a waveform the insert never carries the column', () async {
       world.responses['stories.insert'] = {'id': 's9'};
       world.responses['story_narrators.insert'] = null;
