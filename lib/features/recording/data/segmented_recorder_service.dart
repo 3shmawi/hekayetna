@@ -125,6 +125,41 @@ class SegmentedRecorderService implements RecorderService {
     _startTicker();
   }
 
+  @override
+  Future<void> continueDraft(String draftId) async {
+    final next = RecorderTransitions.start(_state, draftId);
+    if (identical(next, _state)) return;
+    final draft = await _draftStore.get(draftId);
+    if (draft == null) {
+      _emit(
+        RecorderTransitions.fail(_state, RecorderService.continueMissingError),
+      );
+      return;
+    }
+    if (await _storageLow()) {
+      _emit(RecorderTransitions.fail(_state, storageFullError));
+      return;
+    }
+    _narratorPersonId = draft.narratorPersonId;
+    _topic = draft.topic;
+    _promptId = draft.promptId;
+    // An interrupted draft's last segment was re-measured on launch; treat
+    // every kept segment as closed.
+    final kept = [
+      for (final seg in draft.segments)
+        if (seg.durationMs > 0) seg.copyWith(closed: true),
+    ];
+    final path = await _draftStore.newSegmentPath(draftId);
+    final segments = [...kept, DraftSegment(path: path, durationMs: 0)];
+    // Indexed before capture starts, like a fresh take (AC-1).
+    await _saveDraft(draftId, DraftStatus.recording, segments);
+    _segmentStartedAt = _now();
+    _lastFlush = _segmentStartedAt;
+    await _recorder.start(path);
+    _emit(next.copyWith(segments: segments, elapsed: _totalDuration(kept)));
+    _startTicker();
+  }
+
   /// `RecorderState.error` value when recording could not start for lack of
   /// space; the screen maps it to `AppFailure.storageFull`.
   static const storageFullError = 'storage_full';
