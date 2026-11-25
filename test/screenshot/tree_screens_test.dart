@@ -136,7 +136,7 @@ void main() {
         frame(
           locale: Locale(locale),
           theme: () => AppTheme.light,
-          child: const OnboardingPage(),
+          child: const ProviderScope(child: OnboardingPage()),
         ),
       );
       await tester.pumpAndSettle();
@@ -183,7 +183,7 @@ void main() {
       frame(
         locale: const Locale('ar'),
         theme: () => AppTheme.light,
-        child: const OnboardingPage(),
+        child: const ProviderScope(child: OnboardingPage()),
       ),
     );
     await tester.pumpAndSettle();

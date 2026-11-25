@@ -5,9 +5,12 @@ import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/theme/app_colors.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
+import 'package:family_stories/core/ui/language_switch.dart';
 import 'package:family_stories/features/onboarding/data/onboarding.dart';
+import 'package:family_stories/features/settings/presentation/settings_controller.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// The first-launch welcome (`/welcome`): a progressive start instead of a
@@ -15,14 +18,14 @@ import 'package:go_router/go_router.dart';
 /// your parents, and watch the tree grow with each step. The names are kept
 /// as a draft (onboarding.dart); the Family tab offers to add exactly these
 /// people, and nothing is created before that confirmation.
-class OnboardingPage extends StatefulWidget {
+class OnboardingPage extends ConsumerStatefulWidget {
   const OnboardingPage({super.key});
 
   @override
-  State<OnboardingPage> createState() => _OnboardingPageState();
+  ConsumerState<OnboardingPage> createState() => _OnboardingPageState();
 }
 
-class _OnboardingPageState extends State<OnboardingPage> {
+class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   static const _steps = 4;
 
   int _step = 0;
@@ -58,6 +61,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
     if (_step == 0) {
       return _WelcomeStep(
         steps: _steps,
+        onLocaleChanged: ref
+            .read(settingsControllerProvider.notifier)
+            .setLocale,
         onStart: () => setState(() => _step = 1),
         onInvite: () => context.go(AppRoutes.join),
       );
@@ -485,11 +491,13 @@ class _SeedTreePainter extends CustomPainter {
 class _WelcomeStep extends StatelessWidget {
   const _WelcomeStep({
     required this.steps,
+    required this.onLocaleChanged,
     required this.onStart,
     required this.onInvite,
   });
 
   final int steps;
+  final ValueChanged<Locale> onLocaleChanged;
   final VoidCallback onStart;
   final VoidCallback onInvite;
 
@@ -514,6 +522,14 @@ class _WelcomeStep extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: LanguageSwitch(
+                        key: const Key('onboarding_language'),
+                        onChanged: onLocaleChanged,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     Semantics(
                       label: l10n.onboardingProgress(1, steps),
                       child: Align(

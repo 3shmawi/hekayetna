@@ -3,6 +3,7 @@ import 'package:family_stories/core/auth/auth_redirect.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
+import 'package:family_stories/core/ui/language_switch.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart'
     show SignInPage;
 import 'package:family_stories/l10n/l10n.dart';
@@ -99,7 +100,10 @@ class _SignInViewState extends State<SignInView> {
         padding: EdgeInsets.all(AppDimens.xl),
         children: [
           if (widget.onLocaleChanged case final onLocale?) ...[
-            _LanguageSwitch(onChanged: onLocale),
+            LanguageSwitch(
+              key: const Key('sign_in_language'),
+              onChanged: onLocale,
+            ),
             SizedBox(height: AppDimens.lg),
           ],
           TextField(
@@ -240,30 +244,3 @@ class _SignInViewState extends State<SignInView> {
 
 /// Two always-visible language choices. Each name is written in its own
 /// language so it can be found without reading the current one.
-class _LanguageSwitch extends StatelessWidget {
-  const _LanguageSwitch({required this.onChanged});
-
-  final ValueChanged<Locale> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final current = Localizations.localeOf(context).languageCode;
-    return Wrap(
-      key: const Key('sign_in_language'),
-      spacing: AppDimens.sm,
-      runSpacing: AppDimens.sm,
-      children: [
-        for (final (label, locale) in [
-          (l10n.languageEnglish, const Locale('en')),
-          (l10n.languageArabic, const Locale('ar')),
-        ])
-          ChoiceChip(
-            label: Text(label),
-            selected: current == locale.languageCode,
-            onSelected: (_) => onChanged(locale),
-          ),
-      ],
-    );
-  }
-}

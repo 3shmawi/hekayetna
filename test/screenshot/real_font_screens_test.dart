@@ -174,7 +174,7 @@ final Map<String, Widget Function()> scenes = {
   'record': () => const _DemoScope(child: RecordPage()),
   'record_recording': () => _recordView(RecordButtonState.recording),
   'record_paused': () => _recordView(RecordButtonState.paused),
-  'onboarding': () => const OnboardingPage(),
+  'onboarding': () => const ProviderScope(child: OnboardingPage()),
   'tree_page': () => ProviderScope(
     overrides: [
       familyGraphProvider.overrideWith((ref, _) async => _treeGraph()),

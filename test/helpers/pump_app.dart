@@ -53,6 +53,7 @@ extension AccessibilityChecks on WidgetTester {
 
 /// English strings, for finders: `find.text(l10nEn.settingsTitle)`.
 final AppLocalizations l10nEn = lookupAppLocalizations(const Locale('en'));
+final AppLocalizations l10nAr = lookupAppLocalizations(const Locale('ar'));
 
 /// Real glyphs instead of the test font: every font in the app's font
 /// manifest (the app's fonts, Material and Cupertino icons). Golden tests

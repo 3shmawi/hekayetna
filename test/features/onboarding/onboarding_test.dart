@@ -9,6 +9,8 @@ import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/family/presentation/family_screens.dart';
 import 'package:family_stories/features/onboarding/data/onboarding.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
+import 'package:family_stories/features/settings/data/settings_repository.dart';
+import 'package:family_stories/features/settings/presentation/settings_controller.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,7 +27,8 @@ void main() {
     Onboarding.load(await SharedPreferences.getInstance());
   }
 
-  Future<void> pumpWelcome(WidgetTester tester) {
+  Future<void> pumpWelcome(WidgetTester tester) async {
+    final prefs = await SharedPreferences.getInstance();
     tester.view
       ..physicalSize = const Size(1125, 2436)
       ..devicePixelRatio = 3;
@@ -48,15 +51,25 @@ void main() {
       ],
     );
     addTearDown(router.dispose);
-    return tester.pumpWidget(
-      AppUi.testWrap(
-        ScreenUtilInit(
-          designSize: AppDimens.designSize,
-          builder: (context, _) => MaterialApp.router(
-            theme: AppTheme.light,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            routerConfig: router,
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsRepositoryProvider.overrideWithValue(
+            SettingsRepository(prefs),
+          ),
+        ],
+        child: AppUi.testWrap(
+          ScreenUtilInit(
+            designSize: AppDimens.designSize,
+            builder: (context, _) => Consumer(
+              builder: (context, ref, _) => MaterialApp.router(
+                theme: AppTheme.light,
+                locale: ref.watch(settingsControllerProvider).locale,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                routerConfig: router,
+              ),
+            ),
           ),
         ),
       ),
@@ -196,6 +209,36 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('join-stub'), findsOneWidget);
       expect(Onboarding.seen.value, isFalse);
+    });
+
+    testWidgets('the first screen switches language and keeps it', (
+      tester,
+    ) async {
+      await pumpWelcome(tester);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('onboarding_language')), findsOneWidget);
+      expect(find.text(l10nEn.onboardingHeroTitle), findsOneWidget);
+
+      await tester.tap(find.text('العربية'));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nEn.onboardingHeroTitle), findsNothing);
+      expect(find.text(l10nAr.onboardingHeroTitle), findsOneWidget);
+      expect(
+        Directionality.of(
+          tester.element(find.text(l10nAr.onboardingHeroTitle)),
+        ),
+        TextDirection.rtl,
+      );
+      expect(
+        (await SharedPreferences.getInstance()).getString('settings.locale'),
+        isNotNull,
+      );
+
+      // The choice carries into the next step.
+      await tester.ensureVisible(find.byKey(const Key('onboarding_next')));
+      await tester.tap(find.byKey(const Key('onboarding_next')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nAr.onboardingYouTitle), findsOneWidget);
     });
 
     testWidgets('meets accessibility guidelines', (tester) async {
