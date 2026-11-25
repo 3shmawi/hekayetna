@@ -79,6 +79,7 @@ Future<(MemoryDraftStore, _Recorder)> _pump(
           ),
         ),
       ),
+      GoRoute(path: '/record', builder: (context, _) => const Text('live')),
       GoRoute(
         path: '/continue',
         builder: (context, _) => const ContinueRecordingScreen(),
@@ -144,7 +145,7 @@ void main() {
     await t.tap(find.byKey(const Key('resume_continue_d1')));
     await t.pumpAndSettle();
     expect(recorder.continued, ['d1']);
-    expect(find.text('open'), findsOneWidget); // back on the record screen
+    expect(find.text('live'), findsOneWidget); // the live record screen
   });
 
   testWidgets('no microphone permission: nothing starts', (t) async {
