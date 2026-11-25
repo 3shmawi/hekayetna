@@ -15,6 +15,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.expand = true,
     this.busy = false,
+    this.wrap = false,
     super.key,
   }) : _kind = _Kind.primary;
 
@@ -24,6 +25,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.expand = true,
     this.busy = false,
+    this.wrap = false,
     super.key,
   }) : _kind = _Kind.secondary;
 
@@ -33,6 +35,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.expand = true,
     this.busy = false,
+    this.wrap = false,
     super.key,
   }) : _kind = _Kind.destructive;
 
@@ -43,6 +46,7 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.expand = true,
     this.busy = false,
+    this.wrap = false,
     super.key,
   }) : _kind = _Kind.record;
 
@@ -51,6 +55,11 @@ class AppButton extends StatelessWidget {
   final IconData? icon;
   final bool expand;
   final bool busy;
+
+  /// A long label wraps onto more lines and the button grows, instead of
+  /// one line cut with an ellipsis. Only for buttons in a scrolling column:
+  /// the default keeps the fixed height that Row/Expanded layouts need.
+  final bool wrap;
   final _Kind _kind;
 
   @override
@@ -67,11 +76,10 @@ class AppButton extends StatelessWidget {
       _Kind.destructive => (scheme.errorContainer, scheme.error, null),
       _Kind.record => (hk.record, hk.onRecord, null),
     };
-    // At least the standard height; a long label (Arabic, large text size,
-    // narrow phone) wraps onto more lines and the button grows instead of
-    // cutting the words off.
     final child = ConstrainedBox(
-      constraints: BoxConstraints(minHeight: AppDimens.buttonHeight),
+      constraints: wrap
+          ? BoxConstraints(minHeight: AppDimens.buttonHeight)
+          : BoxConstraints.tightFor(height: AppDimens.buttonHeight),
       child: Center(
         widthFactor: expand ? null : 1,
         child: busy
@@ -82,21 +90,28 @@ class AppButton extends StatelessWidget {
                   valueColor: AlwaysStoppedAnimation(foreground),
                 ),
               )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: AppDimens.iconMd),
-                    SizedBox(width: AppDimens.sm),
-                  ],
-                  Flexible(
-                    child: Text(
-                      label,
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.label,
+            : Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: wrap ? AppDimens.sm : 0,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (icon != null) ...[
+                      Icon(icon, size: AppDimens.iconMd),
+                      SizedBox(width: AppDimens.sm),
+                    ],
+                    Flexible(
+                      child: Text(
+                        label,
+                        textAlign: wrap ? TextAlign.center : null,
+                        maxLines: wrap ? null : 1,
+                        overflow: wrap ? null : TextOverflow.ellipsis,
+                        style: AppTextStyles.label,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
       ),
     );
@@ -105,10 +120,7 @@ class AppButton extends StatelessWidget {
       foregroundColor: foreground,
       disabledBackgroundColor: background.withValues(alpha: 0.5),
       disabledForegroundColor: foreground.withValues(alpha: 0.6),
-      padding: EdgeInsets.symmetric(
-        horizontal: AppDimens.xl,
-        vertical: AppDimens.sm,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: AppDimens.xl),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
         side: border ?? BorderSide.none,

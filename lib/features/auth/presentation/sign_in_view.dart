@@ -148,6 +148,7 @@ class _SignInViewState extends State<SignInView> {
           SizedBox(height: AppDimens.xl),
           AppButton.primary(
             key: const Key('sign_in_submit'),
+            wrap: true,
             label: signUp ? l10n.authSignUpButton : l10n.authSignInButton,
             onPressed: enabled ? _submit : null,
             busy: widget.busy,
@@ -156,6 +157,7 @@ class _SignInViewState extends State<SignInView> {
             SizedBox(height: AppDimens.sm),
             AppButton.secondary(
               key: const Key('sign_in_send_link'),
+              wrap: true,
               label: l10n.authSendLink,
               icon: AdaptiveIcons.mail(context),
               onPressed: enabled
@@ -171,6 +173,7 @@ class _SignInViewState extends State<SignInView> {
             Center(
               child: AppButton.secondary(
                 key: const Key('sign_in_forgot'),
+                wrap: true,
                 label: l10n.authForgotPassword,
                 expand: false,
                 onPressed: enabled
@@ -185,6 +188,7 @@ class _SignInViewState extends State<SignInView> {
           Center(
             child: AppButton.secondary(
               key: const Key('sign_in_switch_mode'),
+              wrap: true,
               label: signUp ? l10n.authSwitchToSignIn : l10n.authSwitchToSignUp,
               expand: false,
               onPressed: enabled
@@ -213,6 +217,7 @@ class _SignInViewState extends State<SignInView> {
             if (widget.onApple case final onApple?)
               AppButton.secondary(
                 key: const Key('sign_in_apple'),
+                wrap: true,
                 label: l10n.authContinueWithApple,
                 icon: AdaptiveIcons.apple,
                 onPressed: enabled ? onApple : null,
@@ -221,6 +226,7 @@ class _SignInViewState extends State<SignInView> {
               SizedBox(height: AppDimens.sm),
               AppButton.secondary(
                 key: const Key('sign_in_google'),
+                wrap: true,
                 label: l10n.authContinueWithGoogle,
                 onPressed: enabled ? onGoogle : null,
               ),
