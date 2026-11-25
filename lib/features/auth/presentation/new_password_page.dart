@@ -8,7 +8,7 @@ import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
 import 'package:family_stories/core/ui/app_message.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
-import 'package:family_stories/core/ui/brand_panel.dart';
+import 'package:family_stories/core/ui/auth_chrome.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -64,43 +64,48 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return AppScaffold(
-      title: l10n.newPasswordTitle,
-      body: ListView(
-        padding: EdgeInsets.all(AppDimens.xl),
-        children: [
-          const BrandPanel(),
-          SizedBox(height: AppDimens.xl),
-          TextField(
-            key: const Key('new_password_field'),
-            controller: _password,
-            enabled: !_busy,
-            obscureText: true,
-            autofillHints: const [AutofillHints.newPassword],
-            maxLength: AuthInput.passwordMaxLength,
-            onSubmitted: (_) => unawaited(_save()),
-            decoration: InputDecoration(
-              labelText: l10n.authPassword,
-              counterText: '',
-            ),
-          ),
-          if (_error case final error?) ...[
-            SizedBox(height: AppDimens.lg),
-            Text(
-              error,
-              style: AppTextStyles.body.copyWith(
-                color: Theme.of(context).colorScheme.error,
+    return AuthTheme(
+      child: Builder(
+        builder: (context) => AppScaffold(
+          background: AuthPalette.of(context).background,
+          title: l10n.newPasswordTitle,
+          body: ListView(
+            padding: EdgeInsets.all(AppDimens.xl),
+            children: [
+              const AuthEmblem(),
+              SizedBox(height: AppDimens.xl),
+              TextField(
+                key: const Key('new_password_field'),
+                controller: _password,
+                enabled: !_busy,
+                obscureText: true,
+                autofillHints: const [AutofillHints.newPassword],
+                maxLength: AuthInput.passwordMaxLength,
+                onSubmitted: (_) => unawaited(_save()),
+                decoration: InputDecoration(
+                  labelText: l10n.authPassword,
+                  counterText: '',
+                ),
               ),
-            ),
-          ],
-          SizedBox(height: AppDimens.xl),
-          AppButton.primary(
-            key: const Key('new_password_save'),
-            label: l10n.newPasswordSave,
-            busy: _busy,
-            onPressed: () => unawaited(_save()),
+              if (_error case final error?) ...[
+                SizedBox(height: AppDimens.lg),
+                Text(
+                  error,
+                  style: AppTextStyles.body.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ],
+              SizedBox(height: AppDimens.xl),
+              AppButton.primary(
+                key: const Key('new_password_save'),
+                label: l10n.newPasswordSave,
+                busy: _busy,
+                onPressed: () => unawaited(_save()),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

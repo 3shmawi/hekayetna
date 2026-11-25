@@ -127,6 +127,11 @@ void main() {
       if (state == 'error') await tester.pumpAndSettle();
     }
     if (state == 'keyboard') {
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('sign_in_password')),
+        80,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.showKeyboard(find.byKey(const Key('sign_in_password')));
       await tester.enterText(
         find.byKey(const Key('sign_in_password')),

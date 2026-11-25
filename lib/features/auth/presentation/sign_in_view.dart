@@ -3,7 +3,7 @@ import 'package:family_stories/core/auth/auth_redirect.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
-import 'package:family_stories/core/ui/brand_panel.dart';
+import 'package:family_stories/core/ui/auth_chrome.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart'
     show SignInPage;
 import 'package:family_stories/l10n/l10n.dart';
@@ -94,181 +94,162 @@ class _SignInViewState extends State<SignInView> {
     final scheme = Theme.of(context).colorScheme;
     final signUp = _mode == SignInMode.signUp;
     final enabled = !widget.busy;
-    return AppScaffold(
-      title: signUp ? l10n.authSignUpTitle : l10n.authSignInTitle,
-      body: ListView(
-        padding: EdgeInsets.all(AppDimens.xl),
-        children: [
-          const BrandPanel(),
-          SizedBox(height: AppDimens.xl),
-          if (widget.onLocaleChanged case final onLocale?) ...[
-            _LanguageSwitch(onChanged: onLocale),
-            SizedBox(height: AppDimens.lg),
-          ],
-          TextField(
-            key: const Key('sign_in_email'),
-            controller: _email,
-            enabled: enabled,
-            keyboardType: TextInputType.emailAddress,
-            autofillHints: const [AutofillHints.email],
-            textInputAction: TextInputAction.next,
-            maxLength: AuthInput.emailMaxLength,
-            decoration: InputDecoration(
-              labelText: l10n.authEmail,
-              errorText: _emailError,
-              counterText: '',
-            ),
-          ),
-          SizedBox(height: AppDimens.lg),
-          TextField(
-            key: const Key('sign_in_password'),
-            controller: _password,
-            enabled: enabled,
-            obscureText: true,
-            autofillHints: [
-              if (signUp) AutofillHints.newPassword else AutofillHints.password,
-            ],
-            maxLength: AuthInput.passwordMaxLength,
-            onSubmitted: (_) => _submit(),
-            decoration: InputDecoration(
-              labelText: l10n.authPassword,
-              errorText: _passwordError,
-              counterText: '',
-            ),
-          ),
-          if (!signUp)
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: _LinkButton(
-                key: const Key('sign_in_forgot'),
-                label: l10n.authForgotPassword,
-                onPressed: enabled
-                    ? () {
-                        if (_validEmail()) {
-                          widget.onForgotPassword(_email.text.trim());
-                        }
-                      }
-                    : null,
+    return AuthTheme(
+      child: Builder(
+        builder: (context) => AppScaffold(
+          background: AuthPalette.of(context).background,
+          title: signUp ? l10n.authSignUpTitle : l10n.authSignInTitle,
+          body: ListView(
+            padding: EdgeInsets.all(AppDimens.xl),
+            children: [
+              const AuthEmblem(),
+              SizedBox(height: AppDimens.xl),
+              if (widget.onLocaleChanged case final onLocale?) ...[
+                AuthLanguageSwitch(onChanged: onLocale),
+                SizedBox(height: AppDimens.lg),
+              ],
+              TextField(
+                key: const Key('sign_in_email'),
+                controller: _email,
+                enabled: enabled,
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.email],
+                textInputAction: TextInputAction.next,
+                maxLength: AuthInput.emailMaxLength,
+                decoration: InputDecoration(
+                  labelText: l10n.authEmail,
+                  errorText: _emailError,
+                  counterText: '',
+                ),
               ),
-            ),
-          if (widget.error case final error? when error.isNotEmpty) ...[
-            SizedBox(height: AppDimens.lg),
-            Text(
-              error,
-              key: const Key('sign_in_error'),
-              style: AppTextStyles.body.copyWith(color: scheme.error),
-            ),
-          ],
-          if (widget.notice case final notice?) ...[
-            SizedBox(height: AppDimens.lg),
-            Text(notice, key: const Key('sign_in_notice')),
-          ],
-          SizedBox(height: AppDimens.xl),
-          AppButton.primary(
-            key: const Key('sign_in_submit'),
-            wrap: true,
-            label: signUp ? l10n.authSignUpButton : l10n.authSignInButton,
-            onPressed: enabled ? _submit : null,
-            busy: widget.busy,
-          ),
-          if (!signUp) ...[
-            SizedBox(height: AppDimens.sm),
-            AppButton.secondary(
-              key: const Key('sign_in_send_link'),
-              wrap: true,
-              label: l10n.authSendLink,
-              icon: AdaptiveIcons.mail(context),
-              onPressed: enabled
-                  ? () {
-                      if (_validEmail()) {
-                        widget.onSendLink(_email.text.trim());
-                      }
-                    }
-                  : null,
-            ),
-          ],
-          Center(
-            child: _LinkButton(
-              key: const Key('sign_in_switch_mode'),
-              label: signUp ? l10n.authSwitchToSignIn : l10n.authSwitchToSignUp,
-              onPressed: enabled
-                  ? () => setState(
-                      () => _mode = signUp
-                          ? SignInMode.signIn
-                          : SignInMode.signUp,
-                    )
-                  : null,
-            ),
-          ),
-          if (widget.onApple != null || widget.onGoogle != null) ...[
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: AppDimens.lg),
-              child: Row(
-                children: [
-                  const Expanded(child: Divider()),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: AppDimens.sm),
-                    child: Text(l10n.authOr),
-                  ),
-                  const Expanded(child: Divider()),
+              SizedBox(height: AppDimens.lg),
+              TextField(
+                key: const Key('sign_in_password'),
+                controller: _password,
+                enabled: enabled,
+                obscureText: true,
+                autofillHints: [
+                  if (signUp)
+                    AutofillHints.newPassword
+                  else
+                    AutofillHints.password,
                 ],
+                maxLength: AuthInput.passwordMaxLength,
+                onSubmitted: (_) => _submit(),
+                decoration: InputDecoration(
+                  labelText: l10n.authPassword,
+                  errorText: _passwordError,
+                  counterText: '',
+                ),
               ),
-            ),
-            if (widget.onApple case final onApple?)
-              AppButton.secondary(
-                key: const Key('sign_in_apple'),
+              if (!signUp)
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: _LinkButton(
+                    key: const Key('sign_in_forgot'),
+                    label: l10n.authForgotPassword,
+                    onPressed: enabled
+                        ? () {
+                            if (_validEmail()) {
+                              widget.onForgotPassword(_email.text.trim());
+                            }
+                          }
+                        : null,
+                  ),
+                ),
+              if (widget.error case final error? when error.isNotEmpty) ...[
+                SizedBox(height: AppDimens.lg),
+                Text(
+                  error,
+                  key: const Key('sign_in_error'),
+                  style: AppTextStyles.body.copyWith(color: scheme.error),
+                ),
+              ],
+              if (widget.notice case final notice?) ...[
+                SizedBox(height: AppDimens.lg),
+                Text(notice, key: const Key('sign_in_notice')),
+              ],
+              SizedBox(height: AppDimens.xl),
+              AppButton.primary(
+                key: const Key('sign_in_submit'),
                 wrap: true,
-                label: l10n.authContinueWithApple,
-                icon: AdaptiveIcons.apple,
-                onPressed: enabled ? onApple : null,
+                label: signUp ? l10n.authSignUpButton : l10n.authSignInButton,
+                onPressed: enabled ? _submit : null,
+                busy: widget.busy,
               ),
-            if (widget.onGoogle case final onGoogle?) ...[
-              SizedBox(height: AppDimens.sm),
-              AppButton.secondary(
-                key: const Key('sign_in_google'),
-                wrap: true,
-                label: l10n.authContinueWithGoogle,
-                onPressed: enabled ? onGoogle : null,
+              if (!signUp) ...[
+                SizedBox(height: AppDimens.sm),
+                _FilledSecondary(
+                  child: AppButton.secondary(
+                    key: const Key('sign_in_send_link'),
+                    wrap: true,
+                    label: l10n.authSendLink,
+                    icon: AdaptiveIcons.mail(context),
+                    onPressed: enabled
+                        ? () {
+                            if (_validEmail()) {
+                              widget.onSendLink(_email.text.trim());
+                            }
+                          }
+                        : null,
+                  ),
+                ),
+              ],
+              Center(
+                child: _LinkButton(
+                  key: const Key('sign_in_switch_mode'),
+                  label: signUp
+                      ? l10n.authSwitchToSignIn
+                      : l10n.authSwitchToSignUp,
+                  onPressed: enabled
+                      ? () => setState(
+                          () => _mode = signUp
+                              ? SignInMode.signIn
+                              : SignInMode.signUp,
+                        )
+                      : null,
+                ),
               ),
+              if (widget.onApple != null || widget.onGoogle != null) ...[
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppDimens.lg),
+                  child: Row(
+                    children: [
+                      const Expanded(child: Divider()),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: AppDimens.sm),
+                        child: Text(l10n.authOr),
+                      ),
+                      const Expanded(child: Divider()),
+                    ],
+                  ),
+                ),
+                if (widget.onApple case final onApple?)
+                  _FilledSecondary(
+                    child: AppButton.secondary(
+                      key: const Key('sign_in_apple'),
+                      wrap: true,
+                      label: l10n.authContinueWithApple,
+                      icon: AdaptiveIcons.apple,
+                      onPressed: enabled ? onApple : null,
+                    ),
+                  ),
+                if (widget.onGoogle case final onGoogle?) ...[
+                  SizedBox(height: AppDimens.sm),
+                  _FilledSecondary(
+                    child: AppButton.secondary(
+                      key: const Key('sign_in_google'),
+                      wrap: true,
+                      label: l10n.authContinueWithGoogle,
+                      onPressed: enabled ? onGoogle : null,
+                    ),
+                  ),
+                ],
+              ],
             ],
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// Two always-visible language choices. Each name is written in its own
-/// language so it can be found without reading the current one.
-class _LanguageSwitch extends StatelessWidget {
-  const _LanguageSwitch({required this.onChanged});
-
-  final ValueChanged<Locale> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final current = Localizations.localeOf(context).languageCode;
-    return Row(
-      key: const Key('sign_in_language'),
-      children: [
-        for (final (i, (label, locale)) in [
-          (l10n.languageEnglish, const Locale('en')),
-          (l10n.languageArabic, const Locale('ar')),
-        ].indexed) ...[
-          if (i > 0) SizedBox(width: AppDimens.sm),
-          Expanded(
-            child: ChoiceChip(
-              label: SizedBox(
-                width: double.infinity,
-                child: Text(label, textAlign: TextAlign.center),
-              ),
-              selected: current == locale.languageCode,
-              onSelected: (_) => onChanged(locale),
-            ),
           ),
-        ],
-      ],
+        ),
+      ),
     );
   }
 }
@@ -299,6 +280,25 @@ class _LinkButton extends StatelessWidget {
         textAlign: TextAlign.center,
         style: AppTextStyles.label,
       ),
+    );
+  }
+}
+
+/// A secondary action on a soft filled surface (no outline), as in the
+/// approved auth direction.
+class _FilledSecondary extends StatelessWidget {
+  const _FilledSecondary({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AuthPalette.of(context).secondaryFill,
+        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+      ),
+      child: child,
     );
   }
 }
