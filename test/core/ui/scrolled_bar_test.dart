@@ -29,7 +29,7 @@ void main() {
               supportedLocales: AppLocalizations.supportedLocales,
               home: Navigator(
                 pages: [
-                  MaterialPage<void>(child: const SizedBox()),
+                  const MaterialPage<void>(child: SizedBox()),
                   MaterialPage<void>(
                     child: AppScaffold(
                       title: 'Save story',
