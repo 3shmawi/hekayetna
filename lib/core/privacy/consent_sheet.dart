@@ -77,7 +77,12 @@ class ConsentListener extends StatefulWidget {
 
   /// An analytics SDK is set up in this build's env file.
   static bool get isNeeded =>
-      Analytics.isConfigured || Env.clarityProjectId.isNotEmpty;
+      neededOverride ??
+      (Analytics.isConfigured || Env.clarityProjectId.isNotEmpty);
+
+  /// Test hook: forces [isNeeded]; null derives it from the env file.
+  @visibleForTesting
+  static bool? neededOverride;
 
   @override
   State<ConsentListener> createState() => _ConsentListenerState();

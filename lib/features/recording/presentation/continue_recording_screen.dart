@@ -29,7 +29,11 @@ List<StoryDraft> onlyInterrupted(List<StoryDraft> all) =>
 /// The "Continue a recording" screen (artboard RecordResume). Replaces the
 /// old "unfinished recording" dialog.
 class ContinueRecordingScreen extends ConsumerStatefulWidget {
-  const ContinueRecordingScreen({super.key});
+  const ContinueRecordingScreen({this.asSheet = false, super.key});
+
+  /// Shown as the launch bottom sheet (a modal route on the root navigator)
+  /// instead of a page: leaving closes the sheet, then navigates.
+  final bool asSheet;
 
   @override
   ConsumerState<ContinueRecordingScreen> createState() =>
@@ -57,6 +61,15 @@ class _ContinueRecordingScreenState
     super.dispose();
   }
 
+  /// Closes the sheet or pops the page.
+  void _leave() {
+    if (widget.asSheet) {
+      Navigator.of(context).pop();
+    } else {
+      context.pop();
+    }
+  }
+
   Future<void> _load() async {
     final drafts = await interruptedDrafts(ref);
     final names = <String, String>{};
@@ -73,7 +86,7 @@ class _ContinueRecordingScreenState
     }
     if (!mounted) return;
     if (drafts.isEmpty) {
-      context.pop();
+      _leave();
       return;
     }
     setState(() {
@@ -145,8 +158,10 @@ class _ContinueRecordingScreenState
       return;
     }
     // The live screen takes over; its timer carries on from the kept time.
-    // From the launch prompt the user may have been on another tab.
-    context.go(AppRoutes.record);
+    // From the launch sheet the user may have been on another tab.
+    final router = GoRouter.of(context);
+    _leave();
+    router.go(AppRoutes.record);
   }
 
   Future<void> _save(ResumeItem item) async {
@@ -168,7 +183,13 @@ class _ContinueRecordingScreenState
       );
     }
     if (!mounted) return;
-    context.pushReplacement('/record/preview/${item.id}');
+    final router = GoRouter.of(context);
+    if (widget.asSheet) {
+      _leave();
+      unawaited(router.push('/record/preview/${item.id}'));
+    } else {
+      context.pushReplacement('/record/preview/${item.id}');
+    }
   }
 
   Future<void> _delete(ResumeItem item) async {
@@ -214,7 +235,7 @@ class _ContinueRecordingScreenState
       onDelete: (i) => unawaited(_delete(i)),
       onClose: () {
         unawaited(_stopAudio());
-        context.pop();
+        _leave();
       },
     );
   }
