@@ -103,6 +103,7 @@ begin
 end $$;
 
 create temp table _state (key text primary key, val text);
+grant all on _state to authenticated, anon;
 
 -- 3 (before). Fingerprint of the old UUID join.
 insert into _state values ('join_md5',
