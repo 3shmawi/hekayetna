@@ -336,7 +336,11 @@ void main() {
     void collect() {
       for (final e in nodes.evaluate()) {
         final c = t.getCenter(find.byElementPredicate((x) => x == e));
-        if (view.contains(c)) seen.add((e.widget as dynamic).node.id as String);
+        if (!view.contains(c)) continue;
+        // The node widget is private to the canvas; read its id reflectively.
+        // ignore: avoid_dynamic_calls
+        final id = (e.widget as dynamic).node.id as String;
+        seen.add(id);
       }
     }
 
