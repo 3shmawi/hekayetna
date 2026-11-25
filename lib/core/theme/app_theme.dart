@@ -66,6 +66,41 @@ abstract final class AppTheme {
         ]
       : const [];
 
+  /// Filled, bordered fields with one set of states, used by every form.
+  static InputDecorationTheme _inputTheme(
+    ColorScheme scheme,
+    HekayetnaColors hk,
+    BorderRadius radius,
+  ) {
+    OutlineInputBorder border(Color color, [double width = 1]) =>
+        OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide(color: color, width: width),
+        );
+    return InputDecorationTheme(
+      filled: true,
+      fillColor: scheme.surface,
+      contentPadding: EdgeInsetsDirectional.fromSTEB(
+        AppDimens.lg,
+        AppDimens.lg,
+        AppDimens.lg,
+        AppDimens.lg,
+      ),
+      border: border(hk.line),
+      enabledBorder: border(hk.line),
+      focusedBorder: border(scheme.primary, 2),
+      errorBorder: border(scheme.error),
+      focusedErrorBorder: border(scheme.error, 2),
+      disabledBorder: border(hk.line.withValues(alpha: 0.5)),
+      labelStyle: AppTextStyles.body.copyWith(color: hk.inkSoft),
+      floatingLabelStyle: AppTextStyles.caption.copyWith(color: scheme.primary),
+      hintStyle: AppTextStyles.body.copyWith(color: hk.inkSoft),
+      helperStyle: AppTextStyles.caption.copyWith(color: hk.inkSoft),
+      errorStyle: AppTextStyles.caption.copyWith(color: scheme.error),
+      errorMaxLines: 3,
+    );
+  }
+
   static ThemeData _build(ColorScheme scheme, HekayetnaColors hk) {
     final radius = BorderRadius.circular(AppDimens.radiusMd);
     return ThemeData(
@@ -89,6 +124,7 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
       ),
+      inputDecorationTheme: _inputTheme(scheme, hk, radius),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: Size.fromHeight(AppDimens.buttonHeight),
