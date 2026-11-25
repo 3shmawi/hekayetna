@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
@@ -52,9 +54,19 @@ class PersonAvatar extends StatelessWidget {
         alignment: Alignment.center,
         child: photoUrl == null
             ? ExcludeSemantics(
+                // Scale the letter to the circle: the fixed title size clipped
+                // Arabic letters (tall, with marks) in the small avatars.
                 child: Text(
                   name.isEmpty ? '?' : name.characters.first,
-                  style: AppTextStyles.title.copyWith(color: foreground),
+                  maxLines: 1,
+                  style: AppTextStyles.title.copyWith(
+                    color: foreground,
+                    fontSize: math.min(
+                      AppTextStyles.title.fontSize ?? 20,
+                      diameter * 0.5,
+                    ),
+                    height: diameter < 40 ? 1 : null,
+                  ),
                 ),
               )
             : null,
