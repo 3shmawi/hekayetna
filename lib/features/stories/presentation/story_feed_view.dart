@@ -59,6 +59,8 @@ class StoryFeedView extends StatelessWidget {
       actions: [
         if (onAccount != null)
           AppIconButton(
+            // The integration tests open Settings through this key.
+            key: const Key('home_settings_button'),
             icon: AdaptiveIcons.account(context),
             tooltip: s.settingsAccount,
             onPressed: onAccount!,

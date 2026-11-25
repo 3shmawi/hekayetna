@@ -44,6 +44,25 @@ void main() {
       );
     });
 
+    test('demo mode opens signed-in-only paths and the sign-in screen', () {
+      expect(
+        authRedirect(
+          Uri.parse(AppRoutes.account),
+          signedIn: false,
+          demoBypass: true,
+        ),
+        isNull,
+      );
+      expect(
+        authRedirect(
+          Uri.parse(AppRoutes.signIn),
+          signedIn: false,
+          demoBypass: true,
+        ),
+        isNull,
+      );
+    });
+
     test('a password-reset link leads to the new-password screen', () {
       expect(
         authRedirect(

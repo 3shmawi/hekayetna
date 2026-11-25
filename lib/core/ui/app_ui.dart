@@ -69,13 +69,19 @@ class AppScaffold extends StatelessWidget {
                     ? null
                     : Row(mainAxisSize: MainAxisSize.min, children: actions),
               ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(child: body),
-              if (bottom != null)
-                Padding(padding: EdgeInsets.all(AppDimens.lg), child: bottom),
-            ],
+        // Cupertino's scaffold has no Material ancestor, and text fields,
+        // list tiles and ink wells inside the body need one (without it the
+        // sign-in screen threw "No Material widget found" on iOS).
+        child: Material(
+          type: MaterialType.transparency,
+          child: SafeArea(
+            child: Column(
+              children: [
+                Expanded(child: body),
+                if (bottom != null)
+                  Padding(padding: EdgeInsets.all(AppDimens.lg), child: bottom),
+              ],
+            ),
           ),
         ),
       );

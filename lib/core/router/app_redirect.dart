@@ -11,10 +11,12 @@ String? appRedirect(Uri uri) {
   if (onboarding != null) return onboarding;
   return authRedirect(
     uri,
+    signedIn: Auth.isSignedIn,
     // Demo mode (no backend configured) keeps every path reachable so the
-    // app stays explorable on its in-memory repositories.
-    signedIn:
-        Auth.isSignedIn || (demoModeSignedInOverride ?? !Backend.isConfigured),
+    // app stays explorable on its in-memory repositories. It does not count
+    // as signed in: /sign-in must still open (it used to bounce to home and
+    // left a duplicate page key in the navigator).
+    demoBypass: demoModeSignedInOverride ?? !Backend.isConfigured,
     passwordRecovery: Auth.passwordRecovery.value,
   );
 }
