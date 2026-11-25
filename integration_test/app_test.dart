@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:family_stories/features/settings/presentation/settings_view.dart';
 import 'package:family_stories/features/stories/presentation/story_screens.dart';
 import 'package:family_stories/main.dart' as app;
@@ -13,6 +15,15 @@ void main() {
   testWidgets('starts on home, opens settings and switches the language', (
     tester,
   ) async {
+    // The app's error monitoring replaces FlutterError.onError; put the
+    // test binding's handler back at the end so a failing test reports and
+    // finishes instead of leaving the harness waiting.
+    final originalOnError = FlutterError.onError;
+    final originalPlatformOnError = PlatformDispatcher.instance.onError;
+    addTearDown(() {
+      FlutterError.onError = originalOnError;
+      PlatformDispatcher.instance.onError = originalPlatformOnError;
+    });
     debugPrint('[it] before app.main');
     await app.main();
     debugPrint('[it] app.main returned');
