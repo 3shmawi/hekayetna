@@ -5,7 +5,7 @@
 -- 7 characters from an alphabet without 0, O, 1, I or L.
 create or replace function public.generate_short_code()
 returns text
-language plpgsql
+language plpgsql security definer
 volatile
 set search_path = public
 as $$
@@ -42,7 +42,7 @@ alter table public.family_spaces
 
 create or replace function public.set_invite_short_code()
 returns trigger
-language plpgsql
+language plpgsql security definer
 set search_path = public
 as $$
 begin

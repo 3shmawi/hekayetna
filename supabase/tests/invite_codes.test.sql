@@ -42,9 +42,9 @@ insert into auth.users (id, aud, role, email, encrypted_password, email_confirme
   ('a4444444-4444-4444-4444-444444444444', 'authenticated', 'authenticated', 'x@test.local', '', now(), now(), now());
 
 create temp table _ids (key text primary key, id uuid);
-grant all on _ids to authenticated;
+grant all on _ids to authenticated, anon;
 create temp table _codes (key text primary key, code text);
-grant all on _codes to authenticated;
+grant all on _codes to authenticated, anon;
 
 set local role authenticated;
 set local "request.jwt.claims" = '{"sub":"a1111111-1111-1111-1111-111111111111"}';
