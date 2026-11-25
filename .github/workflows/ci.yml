@@ -216,26 +216,45 @@ jobs:
           restore-keys: |
             ios-build-${{ runner.os }}-${{ steps.flutter.outputs.version }}-
 
-      # Diagnostic: this step once ran 63 min with no output after the Xcode
-      # build. The step cap ends a hang early so the annotations below run;
-      # -v prints the launch / VM-service lines. No test or lint is changed.
-      - name: Run integration tests
-        timeout-minutes: 25
+      # Diagnostic: the whole-suite run once stalled for 63 min and again for
+      # 25 min with no test output after the app connected. Each file runs on
+      # its own with its own cap, the reporter is expanded and BOOT_TRACE
+      # prints start-up markers, so the log shows which file and which step
+      # never finishes. No test or lint is changed.
+      - name: Boot the simulator
         run: |
           udid=$(xcrun simctl list devices available -j | jq -r \
             '[.devices | to_entries[] | select(.key | test("iOS")) | .value[] | select(.name | test("^iPhone [0-9]+( Pro)?$"))] | last | .udid')
           if [ -z "$udid" ] || [ "$udid" = null ]; then echo "::error::No iPhone simulator on this runner."; exit 1; fi
           xcrun simctl boot "$udid" 2>/dev/null || true
           xcrun simctl bootstatus "$udid" -b > /dev/null
+          echo "UDID=$udid" >> "$GITHUB_ENV"
+
+      - name: Integration test, app_test.dart
+        timeout-minutes: 10
+        run: |
           set -o pipefail
-          flutter test -v integration_test -d "$udid" --flavor dev --dart-define-from-file=env/example.json 2>&1 | tee integration.log
+          flutter test -v --reporter expanded integration_test/app_test.dart -d "$UDID" --flavor dev --dart-define-from-file=env/example.json --dart-define=BOOT_TRACE=true 2>&1 | tee integration-app.log
+
+      - name: Integration test, auth_test.dart
+        if: always()
+        timeout-minutes: 10
+        run: |
+          set -o pipefail
+          flutter test -v --reporter expanded integration_test/auth_test.dart -d "$UDID" --flavor dev --dart-define-from-file=env/example.json --dart-define=BOOT_TRACE=true 2>&1 | tee integration-auth.log
+
+      - name: Collect the integration logs
+        if: always()
+        run: cat integration-app.log integration-auth.log > integration.log 2>/dev/null || true
 
       - name: Upload the full integration log
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: integration-ios-log
-          path: integration.log
+          path: |
+            integration-app.log
+            integration-auth.log
           if-no-files-found: ignore
           retention-days: 7
 
