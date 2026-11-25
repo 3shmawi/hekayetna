@@ -69,7 +69,25 @@ class AppScaffold extends StatelessWidget {
                 !(ModalRoute.of(context)?.canPop ?? false)
             ? null
             : CupertinoNavigationBar(
-                middle: title == null ? null : Text(title!),
+                // Explicit, opaque colors: the default bar is a translucent
+                // light grey that turned white under scrolled content in the
+                // dark theme (title and back chevron became unreadable).
+                backgroundColor: background,
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                    width: 0.5,
+                  ),
+                ),
+                middle: title == null
+                    ? null
+                    : Text(
+                        title!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                 leading: leading,
                 trailing: actions.isEmpty
                     ? null
