@@ -95,18 +95,12 @@ class _ContinueRecordingScreenState
     );
   }
 
-  String _when(DateTime at) {
-    final s = context.l10n;
-    final locale = Localizations.localeOf(context).toString();
-    final time = DateFormat.jm(locale).format(at);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final day = DateTime(at.year, at.month, at.day);
-    final days = today.difference(day).inDays;
-    if (days == 0) return s.resumeWhenToday(time);
-    if (days == 1) return s.resumeWhenYesterday(time);
-    return s.resumeWhenOn(DateFormat.MMMd(locale).format(at), time);
-  }
+  String _when(DateTime at) => resumeWhenLabel(
+    context.l10n,
+    Localizations.localeOf(context).toString(),
+    at,
+    DateTime.now(),
+  );
 
   Future<void> _togglePlay(ResumeItem item) async {
     final player = _player ??= AudioPlayer();
@@ -222,4 +216,21 @@ class _ContinueRecordingScreenState
       },
     );
   }
+}
+
+/// "yesterday at 8:40 pm", localized: digits, am/pm and the date follow the
+/// locale (Arabic gets Arabic-Indic digits and the Arabic day period).
+String resumeWhenLabel(
+  AppLocalizations s,
+  String locale,
+  DateTime at,
+  DateTime now,
+) {
+  final time = DateFormat.jm(locale).format(at);
+  final today = DateTime(now.year, now.month, now.day);
+  final day = DateTime(at.year, at.month, at.day);
+  final days = today.difference(day).inDays;
+  if (days == 0) return s.resumeWhenToday(time);
+  if (days == 1) return s.resumeWhenYesterday(time);
+  return s.resumeWhenOn(DateFormat.MMMd(locale).format(at), time);
 }
