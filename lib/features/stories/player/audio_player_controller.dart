@@ -84,6 +84,7 @@ class AudioPlayerController extends Notifier<PlayerState> {
   DateTime? _urlFetchedAt;
   String? _audioPath;
   var _refreshing = false;
+  var _queue = <Story>[];
 
   AudioEngine get _engine => ref.read(audioEngineProvider);
 
@@ -103,6 +104,7 @@ class AudioPlayerController extends Notifier<PlayerState> {
             status: PlayerStatus.completed,
             position: state.duration,
           );
+          if (hasNext) unawaited(next());
         }),
       )
       ..add(engine.errors.listen((_) => unawaited(_recoverFromError())));
@@ -121,6 +123,7 @@ class AudioPlayerController extends Notifier<PlayerState> {
 
   /// Starts [story], or toggles it when it is already the loaded one.
   Future<void> playStory(Story story) async {
+    if (!_queue.any((q) => q.id == story.id)) _queue = [];
     if (state.storyId == story.id && state.status != PlayerStatus.error) {
       await toggle();
       return;
@@ -139,6 +142,36 @@ class AudioPlayerController extends Notifier<PlayerState> {
     await _engine.play();
     state = state.copyWith(status: PlayerStatus.playing);
     unawaited(Analytics.capture('story_played'));
+  }
+
+  /// The stories queued by [playQueue], in order.
+  List<Story> get queue => List.unmodifiable(_queue);
+
+  int get _queueIndex => _queue.indexWhere((s) => s.id == state.storyId);
+
+  bool get hasNext => _queueIndex >= 0 && _queueIndex < _queue.length - 1;
+
+  bool get hasPrevious => _queueIndex > 0;
+
+  /// Plays [stories] one after another, starting at the first.
+  Future<void> playQueue(List<Story> stories) async {
+    if (stories.isEmpty) return;
+    _queue = List.of(stories);
+    await _playFresh(stories.first);
+  }
+
+  Future<void> next() async {
+    if (hasNext) await _playFresh(_queue[_queueIndex + 1]);
+  }
+
+  Future<void> previous() async {
+    if (hasPrevious) await _playFresh(_queue[_queueIndex - 1]);
+  }
+
+  /// Starts [story] from the beginning even if it is the loaded one.
+  Future<void> _playFresh(Story story) async {
+    if (state.storyId == story.id) state = const PlayerState();
+    await playStory(story);
   }
 
   Future<void> toggle() async {
@@ -176,6 +209,7 @@ class AudioPlayerController extends Notifier<PlayerState> {
   }
 
   Future<void> stop() async {
+    _queue = [];
     if (state.storyId == null) return;
     state = PlayerState(speed: state.speed);
     _audioPath = null;
