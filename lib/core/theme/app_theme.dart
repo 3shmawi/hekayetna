@@ -110,7 +110,10 @@ abstract final class AppTheme {
       extensions: [hk],
       textTheme: TextTheme(
         displaySmall: AppTextStyles.display,
+        headlineLarge: AppTextStyles.display,
+        headlineMedium: AppTextStyles.headline,
         headlineSmall: AppTextStyles.headline,
+        titleLarge: AppTextStyles.title,
         titleMedium: AppTextStyles.title,
         bodyLarge: AppTextStyles.bodyLarge,
         bodyMedium: AppTextStyles.body,
@@ -122,6 +125,7 @@ abstract final class AppTheme {
         foregroundColor: scheme.onSurface,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
+        titleTextStyle: AppTextStyles.title.copyWith(color: scheme.onSurface),
       ),
       inputDecorationTheme: _inputTheme(scheme, hk, radius),
       filledButtonTheme: FilledButtonThemeData(

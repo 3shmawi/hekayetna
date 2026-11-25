@@ -18,6 +18,7 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
     required this.sand,
     required this.fill,
     required this.onFill,
+    required this.onGold,
   });
 
   /// Terracotta: recording only, so it always means "your voice is being
@@ -48,6 +49,10 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
   final Color fill;
   final Color onFill;
 
+  /// Text on [goldTint] (the demo band, "sample" tags): readable, unlike
+  /// [gold], which is for small accents only.
+  final Color onGold;
+
   static const light = HekayetnaColors(
     record: Color(0xFF9C4A21),
     onRecord: Color(0xFFFFFFFF),
@@ -59,6 +64,7 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
     sand: Color(0xFFF6FBF4),
     fill: Color(0xFF243828),
     onFill: Color(0xFFFFFFFF),
+    onGold: Color(0xFF5D4201),
   );
 
   static const dark = HekayetnaColors(
@@ -72,6 +78,7 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
     sand: Color(0xFF111A13),
     fill: Color(0xFF2F4A35),
     onFill: Color(0xFFF3F7F2),
+    onGold: Color(0xFFE9C176),
   );
 
   @override
@@ -86,6 +93,7 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
     Color? sand,
     Color? fill,
     Color? onFill,
+    Color? onGold,
   }) {
     return HekayetnaColors(
       record: record ?? this.record,
@@ -98,6 +106,7 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
       sand: sand ?? this.sand,
       fill: fill ?? this.fill,
       onFill: onFill ?? this.onFill,
+      onGold: onGold ?? this.onGold,
     );
   }
 
@@ -115,6 +124,7 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
       sand: Color.lerp(sand, other.sand, t)!,
       fill: Color.lerp(fill, other.fill, t)!,
       onFill: Color.lerp(onFill, other.onFill, t)!,
+      onGold: Color.lerp(onGold, other.onGold, t)!,
     );
   }
 }

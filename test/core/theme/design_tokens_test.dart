@@ -121,6 +121,7 @@ void main() {
       'sand': (h) => h.sand,
       'fill': (h) => h.fill,
       'onFill': (h) => h.onFill,
+      'onGold': (h) => h.onGold,
     };
     const lightExpected = {
       'record': Color(0xFF9C4A21),
@@ -133,6 +134,7 @@ void main() {
       'sand': Color(0xFFF6FBF4),
       'fill': Color(0xFF243828),
       'onFill': Color(0xFFFFFFFF),
+      'onGold': Color(0xFF5D4201),
     };
     const darkExpected = {
       'record': Color(0xFFE08A5C),
@@ -145,6 +147,7 @@ void main() {
       'sand': Color(0xFF111A13),
       'fill': Color(0xFF2F4A35),
       'onFill': Color(0xFFF3F7F2),
+      'onGold': Color(0xFFE9C176),
     };
 
     testWidgets('every field matches tokens, both brightnesses', (
