@@ -184,3 +184,17 @@ final storySaverProvider = Provider<StorySaver>(
     userId: ref.watch(currentUserIdProvider),
   ),
 );
+
+/// A person whose stories the feed should show next (set by the family
+/// tree's "See all"). The feed page reads it once and clears it.
+final feedNarratorRequestProvider =
+    NotifierProvider<FeedNarratorRequest, String?>(FeedNarratorRequest.new);
+
+class FeedNarratorRequest extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  // A setter-style method is the Notifier convention.
+  // ignore: use_setters_to_change_properties
+  void request(String? personId) => state = personId;
+}

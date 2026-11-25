@@ -162,7 +162,8 @@ Future<T?> showAppSheet<T>(
           sigmaX: AppDimens.glassBlur,
           sigmaY: AppDimens.glassBlur,
         ),
-        child: ColoredBox(
+        // Material (not ColoredBox) so ListTiles inside paint their ink.
+        child: Material(
           color: scheme.surface.withValues(alpha: AppDimens.sheetGlassOpacity),
           child: builder(sheetContext),
         ),

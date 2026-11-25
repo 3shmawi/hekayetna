@@ -447,5 +447,38 @@
   },
   "treeSearchHint": "Find a person",
   "treeSearchNone": "Nobody with that name",
-  "treeEmpty": "Add the first person: start with yourself, then your parents"
+  "treeEmpty": "Add the first person: start with yourself, then your parents",
+  "personVoicesSummary": "{count, plural, =1{1 voice} other{{count} voices}} · {minutes} min",
+  "@personVoicesSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "personPlayAll": "Play all",
+  "personRecordWith": "Record {name}",
+  "@personRecordWith": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "personTopics": "Topics",
+  "personVoices": "Voices",
+  "personSeeAll": "See all {count}",
+  "@personSeeAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "personNoStories": "No stories yet. Record the first one.",
+  "personAddRelative": "Add a relative",
+  "personPhotos": "Photos"
 }

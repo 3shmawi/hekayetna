@@ -360,5 +360,14 @@
   "treeSummary": "{people, plural, =1{شخص واحد} =2{شخصان} few{{people} أشخاص} many{{people} شخصًا} other{{people} شخص}} · {stories, plural, =0{لا حكايات} =1{حكاية واحدة} =2{حكايتان} few{{stories} حكايات} many{{stories} حكاية} other{{stories} حكاية}}",
   "treeSearchHint": "دوّر على شخص",
   "treeSearchNone": "مفيش حد بالاسم ده",
-  "treeEmpty": "ابدأ بإضافة نفسك، وبعدين أهلك"
+  "treeEmpty": "ابدأ بإضافة نفسك، وبعدين أهلك",
+  "personVoicesSummary": "{count, plural, =1{صوت واحد} =2{صوتان} few{{count} أصوات} many{{count} صوتًا} other{{count} صوت}} · {minutes} دقيقة",
+  "personPlayAll": "شغّل الكل",
+  "personRecordWith": "سجّل مع {name}",
+  "personTopics": "المواضيع",
+  "personVoices": "الأصوات",
+  "personSeeAll": "شوف الكل ({count})",
+  "personNoStories": "لسه مفيش حكايات. سجّل أول واحدة.",
+  "personAddRelative": "أضف قريب",
+  "personPhotos": "الصور"
 }

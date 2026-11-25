@@ -2,15 +2,20 @@ import 'dart:async';
 
 import 'package:family_stories/core/adaptive/adaptive.dart';
 import 'package:family_stories/core/analytics/analytics.dart';
+import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/family/domain/family_graph.dart';
 import 'package:family_stories/features/family/presentation/family_tree_canvas.dart';
 import 'package:family_stories/features/family/presentation/family_tree_providers.dart';
+import 'package:family_stories/features/family/presentation/person_sheet.dart';
+import 'package:family_stories/features/settings/presentation/settings_controller.dart';
+import 'package:family_stories/features/stories/presentation/story_providers.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// The interactive family tree (spec 05): header with counts and search,
 /// the pan/zoom canvas, and loading / empty / error states.
@@ -36,6 +41,7 @@ class FamilyTreePage extends ConsumerStatefulWidget {
 class _FamilyTreePageState extends ConsumerState<FamilyTreePage> {
   final _controller = FamilyTreeController();
   bool _searching = false;
+  String? _selected;
   final _query = TextEditingController();
 
   @override
@@ -48,6 +54,41 @@ class _FamilyTreePageState extends ConsumerState<FamilyTreePage> {
   void dispose() {
     _query.dispose();
     super.dispose();
+  }
+
+  Future<void> _openSheet(FamilyGraph graph, String id) async {
+    setState(() => _selected = id);
+    final action = await showPersonSheet(context, graph: graph, personId: id);
+    if (!mounted) return;
+    setState(() => _selected = null);
+    _run(action, id);
+  }
+
+  Future<void> _openMenu(FamilyGraph graph, String id) async {
+    final name = graph.persons[id]?.fullName ?? '';
+    final action = await showPersonQuickMenu(context, name: name);
+    if (!mounted) return;
+    unawaited(
+      Analytics.capture('person_long_press_action', {'action': ?action?.name}),
+    );
+    _run(action, id);
+  }
+
+  void _run(PersonAction? action, String id) {
+    switch (action) {
+      case null:
+        return;
+      case PersonAction.record:
+        unawaited(Analytics.capture('person_record_started'));
+        ref.read(settingsControllerProvider.notifier).setLastNarrator(id);
+        unawaited(context.push(AppRoutes.record));
+      case PersonAction.seeAll:
+        ref.read(feedNarratorRequestProvider.notifier).request(id);
+        context.go(AppRoutes.stories);
+      case PersonAction.addRelative || PersonAction.edit || PersonAction.photos:
+        // These use the existing person page flows.
+        widget.onOpenPerson(id);
+    }
   }
 
   @override
@@ -101,7 +142,9 @@ class _FamilyTreePageState extends ConsumerState<FamilyTreePage> {
               child: FamilyTreeCanvas(
                 graph: graph,
                 controller: _controller,
-                onTapPerson: widget.onOpenPerson,
+                selectedId: _selected,
+                onTapPerson: (id) => unawaited(_openSheet(graph, id)),
+                onLongPressPerson: (id) => unawaited(_openMenu(graph, id)),
                 onZoomed: (via) => unawaited(
                   Analytics.capture('family_tree_zoomed', {'via': via.name}),
                 ),
