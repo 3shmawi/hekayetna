@@ -39,6 +39,9 @@ Map<String, dynamic> _row({
   'story_recipients': recipients,
 };
 
+Map<String, dynamic> _bare({String id = 's9', String visibility = 'private'}) =>
+    _row(id: id, visibility: visibility)..['story_narrators'] = <Object>[];
+
 Story _story({
   String id = 's1',
   StoryVisibility visibility = StoryVisibility.private,
@@ -162,19 +165,22 @@ void main() {
     test('inserts the story, then its narrators, and reads it back', () async {
       world.responses['stories.insert'] = {'id': 's9'};
       world.responses['story_narrators.insert'] = null;
-      world.responses['stories.select'] = [_row(id: 's9')];
+      world.responses['stories.select'] = [_bare()];
       final r = await repo.createStory(_story(id: '', waveform: [1, 2, 3]));
-      expect((r as Success<Story>).value.id, 's9');
+      expect(r, isA<Success<Story>>());
       final insert = world.on('stories', 'insert').single;
       final values = insert.args.single! as Map;
+      final newId = values['id']! as String;
+      expect(newId, matches(RegExp(r'^[0-9a-f-]{36}$')));
+      // Inserted without `.select()`: the row is read back afterwards.
+      expect(insert.chain.join(' '), isNot(contains('select')));
       expect(values['created_by'], 'u1');
       expect(values['visibility'], 'private');
       expect(values['waveform'], [1, 2, 3]);
-      expect(values.containsKey('id'), isFalse);
       final narrators =
           world.on('story_narrators', 'insert').single.args.single! as List;
       expect(narrators.single, {
-        'story_id': 's9',
+        'story_id': newId,
         'person_id': 'p1',
         'position': 0,
       });
@@ -192,7 +198,7 @@ void main() {
         {'id': 's9'},
       ];
       world.responses['story_narrators.insert'] = null;
-      world.responses['stories.select'] = [_row(id: 's9')];
+      world.responses['stories.select'] = [_bare()];
       final r = await repo.createStory(_story(id: '', waveform: [1, 2, 3]));
       expect((r as Success<Story>).value.id, 's9');
       final inserts = world.on('stories', 'insert');
@@ -235,7 +241,7 @@ void main() {
           {'id': 's9'},
         ];
         world.responses['story_narrators.insert'] = null;
-        world.responses['stories.select'] = [_row(id: 's9')];
+        world.responses['stories.select'] = [_bare()];
         final r = await repo.createStory(_story(id: '', waveform: [1]));
         expect(r, isA<Success<Story>>());
         expect(world.on('stories', 'insert'), hasLength(2));
@@ -278,7 +284,7 @@ void main() {
     test('without a waveform the insert never carries the column', () async {
       world.responses['stories.insert'] = {'id': 's9'};
       world.responses['story_narrators.insert'] = null;
-      world.responses['stories.select'] = [_row(id: 's9')];
+      world.responses['stories.select'] = [_bare()];
       await repo.createStory(_story(id: ''));
       final values = world.on('stories', 'insert').single.args.single! as Map;
       expect(values.containsKey('waveform'), isFalse);
@@ -286,9 +292,7 @@ void main() {
 
     test('"selected" stories insert exactly the chosen recipients', () async {
       world.responses['stories.insert'] = {'id': 's9'};
-      world.responses['stories.select'] = [
-        _row(id: 's9', visibility: 'selected'),
-      ];
+      world.responses['stories.select'] = [_bare(visibility: 'selected')];
       await repo.createStory(
         _story(
           id: '',
@@ -298,15 +302,67 @@ void main() {
       );
       final grants =
           world.on('story_recipients', 'insert').single.args.single! as List;
+      final newId =
+          (world.on('stories', 'insert').single.args.single! as Map)['id'];
       expect(grants, [
-        {'story_id': 's9', 'grantee_user_id': 'u2', 'granted_by': 'u1'},
-        {'story_id': 's9', 'grantee_user_id': 'u3', 'granted_by': 'u1'},
+        {'story_id': newId, 'grantee_user_id': 'u2', 'granted_by': 'u1'},
+        {'story_id': newId, 'grantee_user_id': 'u3', 'granted_by': 'u1'},
       ]);
+    });
+
+    test(
+      'a duplicate id of the same pending story adds only missing joins',
+      () async {
+        world.sequences['stories.insert'] = [
+          const PostgrestException(message: 'duplicate', code: '23505'),
+        ];
+        world.responses['stories.select'] = [_row()];
+        world.responses['story_people.insert'] = null;
+        final r = await repo.createStory(
+          Story(
+            id: 's1',
+            spaceId: 'sp',
+            title: 'T',
+            visibility: StoryVisibility.private,
+            audioPath: 'sp/u1/s1/a.m4a',
+            durationSeconds: 9,
+            createdBy: 'u1',
+            createdAt: DateTime(2026),
+            narratorIds: const ['p1'],
+            peopleIds: const ['p7'],
+          ),
+        );
+        expect(r, isA<Success<Story>>());
+        // p1 already linked: not inserted again; p7 is new.
+        expect(world.on('story_narrators', 'insert'), isEmpty);
+        expect(world.on('story_people', 'insert').single.args.single, [
+          {'story_id': 's1', 'person_id': 'p7'},
+        ]);
+        expect(world.on('story_narrators', 'delete'), isEmpty);
+        expect(world.on('story_people', 'delete'), isEmpty);
+        expect(world.on('story_recipients', 'delete'), isEmpty);
+      },
+    );
+
+    test("a duplicate id of another member's story is an error", () async {
+      world.responses['stories.insert'] = const PostgrestException(
+        message: 'duplicate',
+        code: '23505',
+      );
+      world.responses['stories.select'] = [_row()..['created_by'] = 'u2'];
+      expect(await repo.createStory(_story()), isA<Failed<Story>>());
+      expect(world.on('story_narrators', 'insert'), isEmpty);
+    });
+
+    test('a story that cannot be read back is not reported as saved', () async {
+      world.responses['stories.insert'] = null;
+      world.responses['stories.select'] = <Map<String, dynamic>>[];
+      expect(await repo.createStory(_story(id: '')), isA<Failed<Story>>());
     });
 
     test('private and family stories insert no recipients', () async {
       world.responses['stories.insert'] = {'id': 's9'};
-      world.responses['stories.select'] = [_row(id: 's9')];
+      world.responses['stories.select'] = [_bare()];
       await repo.createStory(_story(id: '', recipients: const ['u2']));
       expect(world.on('story_recipients', 'insert'), isEmpty);
     });

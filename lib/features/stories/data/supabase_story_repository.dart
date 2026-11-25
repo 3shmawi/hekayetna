@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/stories/data/models.dart';
@@ -94,7 +95,7 @@ class SupabaseStoryRepository implements StoryRepository {
 
   Future<Story> _createStory(Story story) async {
     final values = <String, Object?>{
-      if (story.id.isNotEmpty) 'id': story.id,
+      'id': story.id.isNotEmpty ? story.id : _newId(),
       'space_id': story.spaceId,
       'title': story.title,
       'description': story.description,
@@ -107,26 +108,60 @@ class SupabaseStoryRepository implements StoryRepository {
       'created_by': _uid,
     };
     final waveform = story.waveform;
-    Future<Map<String, dynamic>> insert(Map<String, Object?> v) =>
-        _client.from('stories').insert(v).select().single();
-    Map<String, dynamic> row;
-    if (waveform == null) {
-      row = await insert(values);
-    } else {
-      try {
-        row = await insert({...values, 'waveform': waveform});
-      } on PostgrestException catch (e) {
-        // A backend that has not applied the waveform migration yet rejects
-        // the whole insert (no row is created), so one retry without the
-        // waveform cannot duplicate the story. The recording is kept; only
-        // the optional waveform is left out. Any other error is real.
-        if (!_isMissingWaveformColumn(e)) rethrow;
-        row = await insert(values);
+    // No `.select()`: returning the row would run the SELECT policy against
+    // a row the same statement is still inserting. The row is read back
+    // afterwards, in its own request.
+    Future<void> insert(Map<String, Object?> v) async {
+      await _client.from('stories').insert(v);
+    }
+
+    try {
+      if (waveform == null) {
+        await insert(values);
+      } else {
+        try {
+          await insert({...values, 'waveform': waveform});
+        } on PostgrestException catch (e) {
+          // A backend that has not applied the waveform migration yet
+          // rejects the whole insert (no row is created), so one retry
+          // without the waveform cannot duplicate the story. Any other error
+          // is real.
+          if (!_isMissingWaveformColumn(e)) rethrow;
+          await insert(values);
+        }
+      }
+    } on PostgrestException catch (e) {
+      // 23505: this id already exists (an earlier attempt created it). Only
+      // the caller's own story, in the same space and with the same audio,
+      // is completed; anything else is a real error.
+      if (e.code != '23505') rethrow;
+      final mine = await _getStory(values['id']! as String);
+      if (mine == null ||
+          mine.createdBy != _uid ||
+          mine.spaceId != story.spaceId ||
+          mine.audioPath != story.audioPath) {
+        rethrow;
       }
     }
-    final id = row['id'] as String;
-    await _syncJoins(id, story);
-    return (await _getStory(id))!;
+    final id = values['id']! as String;
+    // The row is read back in its own request; if it cannot be read, the
+    // save is not reported as done.
+    final current = await _getStory(id);
+    if (current == null) throw const PostgrestException(message: 'unreadable');
+    await _addMissingJoins(id, story, current);
+    final done = await _getStory(id);
+    if (done == null) throw const PostgrestException(message: 'unreadable');
+    return done;
+  }
+
+  static String _newId() {
+    final r = Random.secure();
+    final b = List<int>.generate(16, (_) => r.nextInt(256));
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    final h = b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
+    return '${h.substring(0, 8)}-${h.substring(8, 12)}-'
+        '${h.substring(12, 16)}-${h.substring(16, 20)}-${h.substring(20)}';
   }
 
   /// PostgREST says PGRST204 ("Could not find the 'waveform' column ...") for
@@ -165,6 +200,39 @@ class SupabaseStoryRepository implements StoryRepository {
     await _client.from('story_photos').delete().eq('story_id', story.id);
     await _syncJoins(story.id, story);
     return (await _getStory(story.id))!;
+  }
+
+  /// Adds only what the story does not have yet. Nothing is deleted, so an
+  /// interrupted create is completed without touching relations that exist.
+  Future<void> _addMissingJoins(String id, Story want, Story have) async {
+    final narrators = [
+      for (var i = 0; i < want.narratorIds.length; i++)
+        if (!have.narratorIds.contains(want.narratorIds[i]))
+          {'story_id': id, 'person_id': want.narratorIds[i], 'position': i},
+    ];
+    if (narrators.isNotEmpty) {
+      await _client.from('story_narrators').insert(narrators);
+    }
+    final people = [
+      for (final p in want.peopleIds)
+        if (!have.peopleIds.contains(p)) {'story_id': id, 'person_id': p},
+    ];
+    if (people.isNotEmpty) await _client.from('story_people').insert(people);
+    final photos = [
+      for (final p in want.photoIds)
+        if (!have.photoIds.contains(p)) {'story_id': id, 'photo_id': p},
+    ];
+    if (photos.isNotEmpty) await _client.from('story_photos').insert(photos);
+    if (want.visibility == StoryVisibility.selected) {
+      final grants = [
+        for (final u in want.recipientUserIds)
+          if (!have.recipientUserIds.contains(u))
+            {'story_id': id, 'grantee_user_id': u, 'granted_by': _uid},
+      ];
+      if (grants.isNotEmpty) {
+        await _client.from('story_recipients').insert(grants);
+      }
+    }
   }
 
   Future<void> _syncJoins(String storyId, Story story) async {
