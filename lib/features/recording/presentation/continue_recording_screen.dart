@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/adaptive/adaptive.dart';
+import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/ui/app_message.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
@@ -143,8 +144,9 @@ class _ContinueRecordingScreenState
       await _load();
       return;
     }
-    // The live screen is underneath; its timer carries on from the kept time.
-    context.pop();
+    // The live screen takes over; its timer carries on from the kept time.
+    // From the launch prompt the user may have been on another tab.
+    context.go(AppRoutes.record);
   }
 
   Future<void> _save(ResumeItem item) async {
