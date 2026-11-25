@@ -62,7 +62,7 @@ void main() {
 
   DraftSegment seg(String name, Uint8List bytes) {
     final f = File('${dir.path}/$name')..writeAsBytesSync(bytes);
-    return DraftSegment(path: f.path, durationMs: 1000);
+    return DraftSegment(path: f.path, durationMs: 1000, closed: true);
   }
 
   Future<void> expectJoined(
@@ -108,18 +108,57 @@ void main() {
     ], a);
   });
 
-  test('missing, empty and other-format segments are skipped', () async {
-    await expectJoined([
-      DraftSegment(path: '${dir.path}/gone.wav', durationMs: 1),
-      seg('empty.wav', wav(const [])),
-      seg('1.wav', wav(a)),
-      seg('other.wav', wav(b, sampleRate: 16000)),
-    ], a);
+  test(
+    'an empty trailing placeholder (length 0, not closed) is skipped',
+    () async {
+      await expectJoined([
+        seg('1.wav', wav(a)),
+        DraftSegment(path: '${dir.path}/open.wav', durationMs: 0),
+        seg('open2.wav', wav(const [])).copyWith(durationMs: 0, closed: false),
+      ], a);
+    },
+  );
+
+  test('a recorded segment that is missing fails, never truncates', () async {
+    final good = seg('1.wav', wav(a));
+    final before = File(good.path).readAsBytesSync();
+    expect(
+      SegmentJoiner.join([
+        good,
+        DraftSegment(path: '${dir.path}/gone.wav', durationMs: 2000),
+        seg('3.wav', wav(b)),
+      ], '${dir.path}/out.wav'),
+      throwsA(isA<FileSystemException>()),
+    );
+    expect(File('${dir.path}/out.wav').existsSync(), isFalse);
+    expect(File(good.path).readAsBytesSync(), before); // originals untouched
+  });
+
+  test('a recorded segment with no audio fails', () async {
+    expect(
+      SegmentJoiner.join([
+        seg('1.wav', wav(a)),
+        seg('empty.wav', wav(const [])).copyWith(durationMs: 1500),
+      ], '${dir.path}/out.wav'),
+      throwsA(isA<FileSystemException>()),
+    );
+  });
+
+  test('a segment of another format fails, never mixed in', () async {
+    expect(
+      SegmentJoiner.join([
+        seg('1.wav', wav(a)),
+        seg('o.wav', wav(b, sampleRate: 16000)).copyWith(durationMs: 1000),
+      ], '${dir.path}/out.wav'),
+      throwsA(isA<FileSystemException>()),
+    );
   });
 
   test('nothing playable throws', () async {
     expect(
-      SegmentJoiner.join([seg('e.wav', wav(const []))], '${dir.path}/o.wav'),
+      SegmentJoiner.join([
+        seg('e.wav', wav(const [])).copyWith(durationMs: 0, closed: false),
+      ], '${dir.path}/o.wav'),
       throwsA(isA<FileSystemException>()),
     );
   });

@@ -34,13 +34,30 @@ abstract final class SegmentJoiner {
         // on Android, longer on iOS where Core Audio adds a filler chunk), so
         // the layout is read from the chunks, never assumed.
         final layout = await WavRepair.layout(file);
-        if (layout == null) continue;
+        // A segment that was recorded (it has a measured length or was
+        // closed) must be in the take. Dropping it would publish a shortened
+        // story as if it were complete, so that is an error and the draft is
+        // left untouched. Only the trailing placeholder segment opened after
+        // a pause (length 0, never closed) may legitimately hold no audio.
+        final recorded = s.durationMs > 0 || s.closed;
+        if (layout == null) {
+          if (recorded) {
+            throw FileSystemException(
+              'A recorded segment is missing or unreadable',
+              s.path,
+            );
+          }
+          continue;
+        }
         if (format == null) {
           format = layout;
         } else if (layout.channels != format.channels ||
             layout.sampleRate != format.sampleRate ||
             layout.bitsPerSample != format.bitsPerSample) {
-          continue; // never splice audio of another format into the take
+          throw FileSystemException(
+            'Segments have different audio formats',
+            s.path,
+          );
         }
         await sink.addStream(
           file.openRead(layout.dataStart, layout.dataStart + layout.dataBytes),
