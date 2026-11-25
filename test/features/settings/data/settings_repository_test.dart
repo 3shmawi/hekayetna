@@ -30,6 +30,21 @@ void main() {
       expect(repository.load(), settings);
     });
 
+    test('remembers the last narrator and the prompts switch', () async {
+      final repository = await create();
+      expect(repository.load().lastNarratorId, isNull);
+      expect(repository.load().showPrompts, isTrue);
+
+      await repository.save(
+        const AppSettings(lastNarratorId: 'p7', showPrompts: false),
+      );
+      expect(repository.load().lastNarratorId, 'p7');
+      expect(repository.load().showPrompts, isFalse);
+
+      await repository.save(const AppSettings());
+      expect(repository.load().lastNarratorId, isNull);
+    });
+
     test('clears the locale when following the device language', () async {
       final repository = await create({'settings.locale': 'ar'});
 

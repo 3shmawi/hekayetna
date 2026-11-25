@@ -192,11 +192,12 @@ class _ContinueRecordingScreenState
     }
     if (!mounted) return;
     final router = GoRouter.of(context);
+    final target = AppRoutes.recordNewStory(item.id);
     if (widget.asSheet) {
       _leave();
-      unawaited(router.push('/record/preview/${item.id}'));
+      unawaited(router.push(target));
     } else {
-      context.pushReplacement('/record/preview/${item.id}');
+      context.pushReplacement(target);
     }
   }
 

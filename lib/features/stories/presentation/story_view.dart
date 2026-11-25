@@ -148,8 +148,10 @@ class StoryView extends StatelessWidget {
               Duration(milliseconds: (total.inMilliseconds * fraction).round()),
             ),
             onSpeed: onSpeed,
-            // No waveform data is stored yet: the card draws a plain track.
-            waveform: const [],
+            // Older stories have no waveform: the card draws a plain track.
+            waveform: [
+              for (final v in story.waveform ?? const <int>[]) v / 100,
+            ],
           ),
           if (_mine && player.status == PlayerStatus.error) ...[
             SizedBox(height: AppDimens.sm),
