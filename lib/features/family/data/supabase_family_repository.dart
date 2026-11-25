@@ -1,6 +1,8 @@
+import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/family/data/family_repository.dart';
 import 'package:family_stories/features/family/data/models.dart';
+import 'package:family_stories/features/family/domain/invite_code.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Live backend implementation. Requires the migrations in supabase/migrations
@@ -21,6 +23,14 @@ class SupabaseFamilyRepository implements FamilyRepository {
   @override
   Future<Result<FamilySpace>> joinSpace(String inviteCode) =>
       guard(() => _joinSpace(inviteCode));
+
+  @override
+  Future<Result<FamilyPreview>> previewFamily(String inviteCode) =>
+      guard(() => _previewFamily(inviteCode));
+
+  @override
+  Future<Result<String>> rotateInviteCode(String spaceId) =>
+      guard(() => _rotateInviteCode(spaceId));
 
   @override
   Future<Result<List<FamilyMember>>> listMembers(String spaceId) =>
@@ -66,7 +76,7 @@ class SupabaseFamilyRepository implements FamilyRepository {
   Future<FamilySpace?> _getMySpace() async {
     final rows = await _client
         .from('family_memberships')
-        .select('family_spaces(id, name, invite_code)')
+        .select('family_spaces(id, name, invite_code, invite_short_code)')
         .eq('user_id', _uid)
         .limit(1);
     if ((rows as List).isEmpty) return null;
@@ -92,10 +102,20 @@ class SupabaseFamilyRepository implements FamilyRepository {
   }
 
   Future<FamilySpace> _joinSpace(String inviteCode) async {
-    final id = await _client.rpc<String>(
-      'join_family_space',
-      params: {'p_invite_code': inviteCode},
-    );
+    final code = InviteCode.parse(inviteCode);
+    if (code == null) {
+      throw const FamilyFailure(FamilyFailureReason.invalidInviteCode);
+    }
+    final id = switch (code) {
+      UuidInviteCode() => await _client.rpc<String>(
+        'join_family_space',
+        params: {'p_invite_code': code.value},
+      ),
+      ShortInviteCode() => await _client.rpc<String>(
+        'join_family_space_by_code',
+        params: {'p_code': code.value},
+      ),
+    };
     final row = await _client
         .from('family_spaces')
         .select()
@@ -103,6 +123,28 @@ class SupabaseFamilyRepository implements FamilyRepository {
         .single();
     return FamilySpace.fromJson(row);
   }
+
+  Future<FamilyPreview> _previewFamily(String inviteCode) async {
+    final code = InviteCode.parse(inviteCode);
+    if (code is! ShortInviteCode) {
+      throw const FamilyFailure(FamilyFailureReason.invalidInviteCode);
+    }
+    final rows = await _client.rpc<List<dynamic>>(
+      'preview_family_by_code',
+      params: {'p_code': code.value},
+    );
+    if (rows.isEmpty) {
+      throw const FamilyFailure(FamilyFailureReason.invalidInviteCode);
+    }
+    final r = Map<String, dynamic>.from(rows.first as Map);
+    return FamilyPreview(
+      name: r['name'] as String,
+      memberCount: (r['member_count'] as num).toInt(),
+    );
+  }
+
+  Future<String> _rotateInviteCode(String spaceId) =>
+      _client.rpc<String>('rotate_invite_code', params: {'p_space': spaceId});
 
   Future<List<FamilyMember>> _listMembers(String spaceId) async {
     final rows = await _client
