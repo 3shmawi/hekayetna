@@ -1,3 +1,4 @@
+import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/family/data/family_repository.dart';
 import 'package:family_stories/features/family/data/models.dart';
@@ -108,18 +109,41 @@ void main() {
   });
 
   group('joinSpace', () {
-    test('calls the join RPC with the invite code', () async {
+    const uuid = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+    test('an old UUID code calls join_family_space', () async {
       world.responses['rpc:join_family_space.rpc'] = 'sp';
       world.responses['family_spaces.select'] = _space();
-      final r = await repo.joinSpace('abc');
+      final r = await repo.joinSpace(uuid);
       expect(r, isA<Success<FamilySpace>>());
       expect(world.on('rpc:join_family_space', 'rpc').single.args.single, {
-        'p_invite_code': 'abc',
+        'p_invite_code': uuid,
       });
     });
+    test('a short code is normalised and calls the by-code RPC', () async {
+      world.responses['rpc:join_family_space_by_code.rpc'] = 'sp';
+      world.responses['family_spaces.select'] = _space();
+      final r = await repo.joinSpace(' 7k4-qm9x ');
+      expect(r, isA<Success<FamilySpace>>());
+      expect(
+        world.on('rpc:join_family_space_by_code', 'rpc').single.args.single,
+        {'p_code': '7K4QM9X'},
+      );
+    });
+    test('junk never reaches the backend', () async {
+      for (final junk in ['abc', '../../x', 'x' * 10000, '']) {
+        final r = await repo.joinSpace(junk);
+        expect(r, isA<Failed<FamilySpace>>(), reason: junk);
+        expect(
+          ((r as Failed<FamilySpace>).failure as FamilyFailure).reason,
+          FamilyFailureReason.invalidInviteCode,
+        );
+      }
+      expect(world.on('rpc:join_family_space', 'rpc'), isEmpty);
+      expect(world.on('rpc:join_family_space_by_code', 'rpc'), isEmpty);
+    });
     test('a bad code or removed member becomes Failed', () async {
-      world.responses['rpc:join_family_space.rpc'] = _boom;
-      expect(await repo.joinSpace('nope'), isA<Failed<FamilySpace>>());
+      world.responses['rpc:join_family_space_by_code.rpc'] = _boom;
+      expect(await repo.joinSpace('7K4QM9X'), isA<Failed<FamilySpace>>());
     });
   });
 
