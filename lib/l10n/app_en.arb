@@ -338,5 +338,19 @@
   "recordNotificationPause": "Pause",
   "recordNotificationResume": "Resume",
   "recordNotificationStop": "Stop",
-  "recordNotificationHint": "Allow notifications to keep recording while the app is in the background."
+  "recordNotificationHint": "Allow notifications to keep recording while the app is in the background.",
+  "recordClose": "Close, the draft is kept",
+  "recordDraftSaved": "Draft saved on this phone",
+  "recordSpeaking": "Speaking",
+  "recordPickNarrator": "Who is speaking?",
+  "recordAddPerson": "Add a person",
+  "recordPersonName": "Name",
+  "recordAskLabel": "Ask her / him",
+  "recordDifferentQuestion": "Different question",
+  "recordTopic": "Topic",
+  "recordMeterLabel": "Sound level",
+  "recordPrompt1": "What is your earliest memory?",
+  "recordPrompt2": "Tell me about the house you grew up in.",
+  "recordPrompt3": "Who taught you the most, and what did they teach you?",
+  "recordPrompt4": "What is a day you will never forget?"
 }

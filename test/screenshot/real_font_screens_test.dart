@@ -7,12 +7,16 @@ import 'dart:io';
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
+import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_view.dart';
 import 'package:family_stories/features/family/presentation/family_screens.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
-import 'package:family_stories/features/recording/presentation/record_screen.dart';
+import 'package:family_stories/features/recording/presentation/record_page.dart';
+import 'package:family_stories/features/recording/presentation/record_view.dart';
+import 'package:family_stories/features/settings/data/settings_repository.dart';
+import 'package:family_stories/features/settings/presentation/settings_controller.dart';
 import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +24,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Visual-evidence screenshots with the app's REAL fonts (Inter + Cairo),
 /// unlike the layout goldens which use Flutter's box test font. These
@@ -34,9 +39,28 @@ final Map<String, Widget Function()> scenes = {
     onSendLink: (_) {},
   ),
   'family': () => const _DemoScope(child: FamilyHomeScreen()),
-  'record': () => const _DemoScope(child: RecordScreen()),
+  'record': () => const _DemoScope(child: RecordPage()),
+  'record_recording': () => _recordView(RecordButtonState.recording),
+  'record_paused': () => _recordView(RecordButtonState.paused),
   'onboarding': () => const OnboardingPage(),
 };
+
+Widget _recordView(RecordButtonState state) => RecordView(
+  buttonState: state,
+  elapsed: const Duration(minutes: 2, seconds: 14),
+  levels: [for (var i = 0; i < 20; i++) (i % 7) / 7],
+  narratorName: 'Sitto Amina',
+  draftSaved: true,
+  canFinish: true,
+  topicLabel: 'Childhood & first home',
+  promptText: 'What is your earliest memory?',
+  onDifferentQuestion: () {},
+  onClose: () {},
+  onToggle: () {},
+  onPickNarrator: () {},
+  onPickTopic: () {},
+  onDone: () {},
+);
 
 Future<void> loadRealFonts() async {
   final fonts = {
@@ -65,6 +89,8 @@ Future<void> loadRealFonts() async {
   await icons.load();
 }
 
+late SharedPreferences _prefs;
+
 class _DemoScope extends StatelessWidget {
   const _DemoScope({required this.child});
 
@@ -75,6 +101,7 @@ class _DemoScope extends StatelessWidget {
     overrides: [
       draftStoreProvider.overrideWithValue(MemoryDraftStore()),
       recorderServiceProvider.overrideWithValue(_FakeRecorderService()),
+      settingsRepositoryProvider.overrideWithValue(SettingsRepository(_prefs)),
     ],
     child: child,
   );
@@ -124,7 +151,11 @@ class _FakeRecorderService implements RecorderService {
 }
 
 void main() {
-  setUp(loadRealFonts);
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    _prefs = await SharedPreferences.getInstance();
+    await loadRealFonts();
+  });
 
   for (final MapEntry(key: name, value: build) in scenes.entries) {
     for (final locale in const ['en', 'ar']) {
@@ -146,7 +177,13 @@ void main() {
             ),
           ),
         );
-        await tester.pumpAndSettle();
+        if (name == 'record_recording') {
+          // The halo breathes forever; it never settles.
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 800));
+        } else {
+          await tester.pumpAndSettle();
+        }
         await expectLater(
           find.byType(MaterialApp),
           matchesGoldenFile('shots/${name}_$locale.png'),

@@ -298,5 +298,19 @@
   "recordNotificationPause": "إيقاف مؤقت",
   "recordNotificationResume": "كمّل",
   "recordNotificationStop": "إنهاء",
-  "recordNotificationHint": "اسمح بالإشعارات عشان التسجيل يكمّل والتطبيق في الخلفية."
+  "recordNotificationHint": "اسمح بالإشعارات عشان التسجيل يكمّل والتطبيق في الخلفية.",
+  "recordClose": "إغلاق، المسودة محفوظة",
+  "recordDraftSaved": "المسودة محفوظة على هذا الهاتف",
+  "recordSpeaking": "بيحكي",
+  "recordPickNarrator": "مين بيحكي؟",
+  "recordAddPerson": "أضف شخصًا",
+  "recordPersonName": "الاسم",
+  "recordAskLabel": "اسألها / اسأله",
+  "recordDifferentQuestion": "سؤال تاني",
+  "recordTopic": "الموضوع",
+  "recordMeterLabel": "مستوى الصوت",
+  "recordPrompt1": "إيه أول ذكرى فاكرها؟",
+  "recordPrompt2": "احكيلي عن البيت اللي اتربيت فيه.",
+  "recordPrompt3": "مين أكتر واحد علّمك، وعلّمك إيه؟",
+  "recordPrompt4": "إيه اليوم اللي عمرك ما هتنساه؟"
 }

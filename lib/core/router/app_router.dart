@@ -12,7 +12,7 @@ import 'package:family_stories/features/auth/presentation/sign_in_page.dart';
 import 'package:family_stories/features/family/presentation/family_screens.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
 import 'package:family_stories/features/recording/presentation/preview_screen.dart';
-import 'package:family_stories/features/recording/presentation/record_screen.dart';
+import 'package:family_stories/features/recording/presentation/record_page.dart';
 import 'package:family_stories/features/settings/presentation/settings_page.dart';
 import 'package:family_stories/features/stories/player/audio_player_controller.dart';
 import 'package:family_stories/features/stories/presentation/mini_player.dart';
@@ -75,7 +75,7 @@ final appRouter = GoRouter(
             GoRoute(
               path: AppRoutes.record,
               name: 'record',
-              builder: (context, state) => const RecordScreen(),
+              builder: (context, state) => const RecordPage(),
               routes: [
                 GoRoute(
                   path: 'preview/:draftId',
