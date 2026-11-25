@@ -83,6 +83,12 @@ abstract final class AppTheme {
         labelLarge: AppTextStyles.label,
         bodySmall: AppTextStyles.caption,
       ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: hk.sand,
+        foregroundColor: scheme.onSurface,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: Size.fromHeight(AppDimens.buttonHeight),
