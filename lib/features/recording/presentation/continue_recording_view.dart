@@ -280,29 +280,25 @@ class _ResumeCard extends StatelessWidget {
           SizedBox(height: AppDimens.md),
           _SegmentBar(segmentMs: item.segmentMs),
           SizedBox(height: AppDimens.sm),
-          Row(
+          // A Wrap, not a Row: on a narrow screen or at large text the link
+          // drops under "Kept" instead of being cut off.
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Expanded(
-                child: Text(
-                  s.resumeKept(formatKept(item.keptMs)),
-                  style: AppTextStyles.caption.copyWith(color: hk.inkSoft),
-                ),
+              Text(
+                s.resumeKept(formatKept(item.keptMs)),
+                style: AppTextStyles.caption.copyWith(color: hk.inkSoft),
               ),
-              Flexible(
-                child: TextButton(
-                  key: Key('resume_from_here_${item.id}'),
-                  style: TextButton.styleFrom(
-                    minimumSize: Size(0, AppDimens.targetMin),
-                    foregroundColor: hk.record,
-                    padding: EdgeInsets.symmetric(horizontal: AppDimens.sm),
-                  ),
-                  onPressed: onContinue,
-                  child: Text(
-                    s.resumeContinueFromHere,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+              TextButton(
+                key: Key('resume_from_here_${item.id}'),
+                style: TextButton.styleFrom(
+                  minimumSize: Size(0, AppDimens.targetMin),
+                  foregroundColor: hk.record,
+                  padding: EdgeInsets.symmetric(horizontal: AppDimens.sm),
                 ),
+                onPressed: onContinue,
+                child: Text(s.resumeContinueFromHere),
               ),
             ],
           ),
@@ -346,9 +342,10 @@ class _SegmentBar extends StatelessWidget {
             Expanded(
               flex: (segmentMs.length * 1000 ~/ 4).clamp(120, 400),
               child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(3),
-                  border: Border.all(color: hk.record),
+                decoration: const BoxDecoration(),
+                child: CustomPaint(
+                  key: const Key('resume_dashed_segment'),
+                  painter: _DashedPillPainter(color: hk.record),
                 ),
               ),
             ),
@@ -357,6 +354,36 @@ class _SegmentBar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The unfinished segment: a dashed outline, as in the artboard.
+class _DashedPillPainter extends CustomPainter {
+  const _DashedPillPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    final rrect = RRect.fromRectAndRadius(
+      (Offset.zero & size).deflate(0.5),
+      Radius.circular(size.height / 2),
+    );
+    final path = Path()..addRRect(rrect);
+    for (final metric in path.computeMetrics()) {
+      var d = 0.0;
+      while (d < metric.length) {
+        canvas.drawPath(metric.extractPath(d, d + 3), paint);
+        d += 5;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedPillPainter old) => old.color != color;
 }
 
 class _PrivacyNote extends StatelessWidget {
