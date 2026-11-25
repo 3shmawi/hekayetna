@@ -39,6 +39,7 @@ class AppScaffold extends StatelessWidget {
     this.leading,
     this.bottom,
     this.background,
+    this.liftBottomOverKeyboard = false,
     super.key,
   });
 
@@ -53,6 +54,10 @@ class AppScaffold extends StatelessWidget {
 
   /// Defaults to the sand scaffold background.
   final Color? background;
+
+  /// Material only: keep [bottom] above the on-screen keyboard instead of
+  /// letting the keyboard cover it (Cupertino already resizes).
+  final bool liftBottomOverKeyboard;
 
   @override
   Widget build(BuildContext context) {
@@ -126,10 +131,17 @@ class AppScaffold extends StatelessWidget {
       body: body,
       bottomNavigationBar: bottom == null
           ? null
-          : SafeArea(
-              child: Padding(
-                padding: EdgeInsets.all(AppDimens.lg),
-                child: bottom,
+          : Padding(
+              padding: EdgeInsets.only(
+                bottom: liftBottomOverKeyboard
+                    ? MediaQuery.viewInsetsOf(context).bottom
+                    : 0,
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.all(AppDimens.lg),
+                  child: bottom,
+                ),
               ),
             ),
     );

@@ -303,6 +303,7 @@ class _SaveStoryPageState extends ConsumerState<SaveStoryPage> {
       child: Builder(
         builder: (context) => AppScaffold(
           background: AuthPalette.of(context).background,
+          liftBottomOverKeyboard: true,
           title: s.saveStoryTitle,
           leading: AppIconButton(
             icon: AdaptiveIcons.back(context),
