@@ -53,6 +53,13 @@ void main() {
         'not-an-email',
       );
       await beat(tester);
+      // The form is a lazy list: with the keyboard up the button can be
+      // below the built area, so scroll to it before tapping.
+      await tester.dragUntilVisible(
+        find.byKey(const Key('sign_in_submit')),
+        find.byType(ListView).first,
+        const Offset(0, -120),
+      );
       await tester.tap(find.byKey(const Key('sign_in_submit')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('sign_in_email')), findsOneWidget);
