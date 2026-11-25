@@ -20,11 +20,20 @@ class AudioPlayerCard extends StatelessWidget {
     required this.onSpeed,
     required this.waveform,
     this.title,
+    this.eyebrow,
+    this.name,
     super.key,
   });
 
   final String? title;
   final String subtitle;
+
+  /// With [name], the story page layout: a small [eyebrow] ("Told by") over
+  /// the bold narrator [name] beside the play button, the scrubber under
+  /// them, and the times with the speed between them. [subtitle] is unused
+  /// then.
+  final String? eyebrow;
+  final String? name;
 
   /// Already formatted ("1:12").
   final String position;
@@ -61,6 +70,9 @@ class AudioPlayerCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final s = context.l10n;
     final progress = _progress;
+    if (eyebrow != null && name != null) {
+      return _narratorLayout(context, scheme, s, progress);
+    }
     return Semantics(
       container: true,
       child: Container(
@@ -143,16 +155,120 @@ class AudioPlayerCard extends StatelessWidget {
   }
 }
 
+extension on AudioPlayerCard {
+  Widget _narratorLayout(
+    BuildContext context,
+    ColorScheme scheme,
+    AppLocalizations s,
+    double progress,
+  ) {
+    return Semantics(
+      container: true,
+      child: Container(
+        padding: EdgeInsets.all(AppDimens.lg),
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+          border: Border.all(color: scheme.outlineVariant),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                IconButton.filled(
+                  onPressed: onToggle,
+                  tooltip: isPlaying ? s.storyPause : s.storyPlay,
+                  iconSize: AppDimens.playButton / 2,
+                  constraints: BoxConstraints.tightFor(
+                    width: AppDimens.playButton,
+                    height: AppDimens.playButton,
+                  ),
+                  icon: Icon(
+                    isPlaying
+                        ? AdaptiveIcons.pause(context)
+                        : AdaptiveIcons.play(context),
+                  ),
+                ),
+                SizedBox(width: AppDimens.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        eyebrow!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.caption.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        name!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.title,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: AppDimens.lg),
+            _WaveformScrubber(
+              waveform: waveform,
+              progress: progress,
+              onSeek: onSeek,
+              // Bars need the room; the plain track does not.
+              height: waveform.isEmpty ? AppDimens.targetMin : null,
+            ),
+            SizedBox(height: AppDimens.xs),
+            Row(
+              children: [
+                Text(
+                  position,
+                  style: AppTextStyles.caption.copyWith(
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: TextButton(
+                      onPressed: onSpeed,
+                      child: Text(speed, style: AppTextStyles.label),
+                    ),
+                  ),
+                ),
+                Text(
+                  duration,
+                  style: AppTextStyles.caption.copyWith(
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _WaveformScrubber extends StatelessWidget {
   const _WaveformScrubber({
     required this.waveform,
     required this.progress,
     required this.onSeek,
+    this.height,
   });
 
   final List<double> waveform;
   final double progress;
   final ValueChanged<double> onSeek;
+
+  /// Defaults to the play button's height.
+  final double? height;
 
   void _seekAt(Offset local, double width, TextDirection direction) {
     // The bars are drawn with Directionality, so the widget's own layout is
@@ -182,10 +298,13 @@ class _WaveformScrubber extends StatelessWidget {
             onHorizontalDragUpdate: (d) =>
                 _seekAt(d.localPosition, constraints.maxWidth, direction),
             child: SizedBox(
-              height: AppDimens.playButton,
+              height: height ?? AppDimens.playButton,
               child: CustomPaint(
                 key: const Key('waveform-scrubber'),
-                size: Size(constraints.maxWidth, AppDimens.playButton),
+                size: Size(
+                  constraints.maxWidth,
+                  height ?? AppDimens.playButton,
+                ),
                 painter: _WaveformPainter(
                   waveform: waveform,
                   progress: progress,
