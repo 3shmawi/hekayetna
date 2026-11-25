@@ -44,15 +44,18 @@ class VisibilityPicker extends StatelessWidget {
             label: label,
             selected: value == option,
             fill: filled,
+            detail: value == option ? consequenceText : null,
             onTap: () => onChanged(option),
           ),
           SizedBox(height: AppDimens.sm),
         ],
-        SizedBox(height: AppDimens.sm),
-        Text(
-          consequenceText,
-          style: AppTextStyles.body.copyWith(color: hk.inkSoft),
-        ),
+        if (filled == null) ...[
+          SizedBox(height: AppDimens.sm),
+          Text(
+            consequenceText,
+            style: AppTextStyles.body.copyWith(color: hk.inkSoft),
+          ),
+        ],
       ],
     );
   }
@@ -82,9 +85,13 @@ class _VisibilityOption extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.fill,
+    this.detail,
   });
 
   final VisibilityFill? fill;
+
+  /// Filled look only: the real consequence sentence, inside the selected card.
+  final String? detail;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -96,6 +103,7 @@ class _VisibilityOption extends StatelessWidget {
       button: true,
       selected: selected,
       label: label,
+      hint: selected ? detail : null,
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
@@ -121,19 +129,53 @@ class _VisibilityOption extends StatelessWidget {
             ),
             alignment: AlignmentDirectional.centerStart,
             child: ExcludeSemantics(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: fill == null
-                    ? AppTextStyles.label
-                    : AppTextStyles.label.copyWith(
-                        color: selected ? fill!.onSelected : fill!.onIdle,
-                        fontFamily: selected ? fill!.serif : null,
-                        fontFamilyFallback: const ['Cairo'],
-                        fontWeight: selected ? FontWeight.w600 : null,
-                      ),
-              ),
+              child: fill == null
+                  ? Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.label,
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                label,
+                                style: AppTextStyles.label.copyWith(
+                                  color: selected
+                                      ? fill!.onSelected
+                                      : fill!.onIdle,
+                                  fontFamily: selected ? fill!.serif : null,
+                                  fontFamilyFallback: const ['Cairo'],
+                                  fontWeight: selected ? FontWeight.w600 : null,
+                                ),
+                              ),
+                              if (selected && detail != null) ...[
+                                SizedBox(height: AppDimens.xs),
+                                Text(
+                                  detail!,
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: fill!.onSelected,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: AppDimens.sm),
+                        Icon(
+                          selected
+                              ? Icons.check_circle
+                              : Icons.radio_button_unchecked,
+                          size: AppDimens.iconMd,
+                          color: selected ? fill!.onSelected : fill!.onIdle,
+                        ),
+                      ],
+                    ),
             ),
           ),
         ),
