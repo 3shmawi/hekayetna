@@ -20,6 +20,7 @@ class SignInView extends StatefulWidget {
     required this.onSendLink,
     this.onApple,
     this.onGoogle,
+    this.onLocaleChanged,
     this.busy = false,
     this.error,
     this.notice,
@@ -36,6 +37,10 @@ class SignInView extends StatefulWidget {
   /// Each social button is hidden while its callback is null.
   final VoidCallback? onApple;
   final VoidCallback? onGoogle;
+
+  /// Language switch shown above the form, before anyone is signed in.
+  /// Hidden while null.
+  final ValueChanged<Locale>? onLocaleChanged;
 
   /// An action is running: buttons are disabled and a spinner shows.
   final bool busy;
@@ -93,6 +98,10 @@ class _SignInViewState extends State<SignInView> {
       body: ListView(
         padding: EdgeInsets.all(AppDimens.xl),
         children: [
+          if (widget.onLocaleChanged case final onLocale?) ...[
+            _LanguageSwitch(onChanged: onLocale),
+            SizedBox(height: AppDimens.lg),
+          ],
           TextField(
             key: const Key('sign_in_email'),
             controller: _email,
@@ -219,6 +228,36 @@ class _SignInViewState extends State<SignInView> {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Two always-visible language choices. Each name is written in its own
+/// language so it can be found without reading the current one.
+class _LanguageSwitch extends StatelessWidget {
+  const _LanguageSwitch({required this.onChanged});
+
+  final ValueChanged<Locale> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final current = Localizations.localeOf(context).languageCode;
+    return Wrap(
+      key: const Key('sign_in_language'),
+      spacing: AppDimens.sm,
+      runSpacing: AppDimens.sm,
+      children: [
+        for (final (label, locale) in [
+          (l10n.languageEnglish, const Locale('en')),
+          (l10n.languageArabic, const Locale('ar')),
+        ])
+          ChoiceChip(
+            label: Text(label),
+            selected: current == locale.languageCode,
+            onSelected: (_) => onChanged(locale),
+          ),
+      ],
     );
   }
 }
