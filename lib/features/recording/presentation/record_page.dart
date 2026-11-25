@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/adaptive/adaptive.dart';
+import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
@@ -144,6 +145,7 @@ class _RecordPageState extends ConsumerState<RecordPage> {
       id = created.id;
     }
     ref.read(settingsControllerProvider.notifier).setLastNarrator(id);
+    unawaited(Analytics.capture('recording_narrator_changed'));
   }
 
   Future<Person?> _addPerson(String spaceId) async {

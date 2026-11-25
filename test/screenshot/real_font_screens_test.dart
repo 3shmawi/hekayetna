@@ -161,36 +161,40 @@ void main() {
 
   for (final MapEntry(key: name, value: build) in scenes.entries) {
     for (final locale in const ['en', 'ar']) {
-      testWidgets('$name · $locale', (tester) async {
-        tester.view
-          ..physicalSize = const Size(375, 812) * 2
-          ..devicePixelRatio = 2;
-        addTearDown(tester.view.reset);
-        await tester.pumpWidget(
-          ScreenUtilInit(
-            designSize: AppDimens.designSize,
-            builder: (context, _) => MaterialApp(
-              debugShowCheckedModeBanner: false,
-              locale: Locale(locale),
-              theme: AppTheme.light,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              home: build(),
+      for (final dark in const [false, true]) {
+        if (dark && !name.startsWith('record')) continue;
+        final tag = dark ? '${locale}_dark' : locale;
+        testWidgets('$name · $tag', (tester) async {
+          tester.view
+            ..physicalSize = const Size(375, 812) * 2
+            ..devicePixelRatio = 2;
+          addTearDown(tester.view.reset);
+          await tester.pumpWidget(
+            ScreenUtilInit(
+              designSize: AppDimens.designSize,
+              builder: (context, _) => MaterialApp(
+                debugShowCheckedModeBanner: false,
+                locale: Locale(locale),
+                theme: dark ? AppTheme.dark : AppTheme.light,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                home: build(),
+              ),
             ),
-          ),
-        );
-        if (name == 'record_recording') {
-          // The halo breathes forever; it never settles.
-          await tester.pump();
-          await tester.pump(const Duration(milliseconds: 800));
-        } else {
-          await tester.pumpAndSettle();
-        }
-        await expectLater(
-          find.byType(MaterialApp),
-          matchesGoldenFile('shots/${name}_$locale.png'),
-        );
-      });
+          );
+          if (name == 'record_recording') {
+            // The halo breathes forever; it never settles.
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 800));
+          } else {
+            await tester.pumpAndSettle();
+          }
+          await expectLater(
+            find.byType(MaterialApp),
+            matchesGoldenFile('shots/${name}_$tag.png'),
+          );
+        });
+      }
     }
   }
 }
