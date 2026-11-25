@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:family_stories/core/auth/auth.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_view.dart';
 import 'package:family_stories/main.dart' as app;
 import 'package:flutter/material.dart';
@@ -43,6 +44,17 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('settings_account')));
     await tester.pumpAndSettle();
+    // Diagnostic (kept small): what is on screen if the sign-in view is missing.
+    if (find.byType(SignInView).evaluate().isEmpty) {
+      final texts = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((t) => t.data ?? t.textSpan?.toPlainText() ?? '')
+          .where((t) => t.isNotEmpty)
+          .take(25)
+          .toList();
+      final user = Auth.user.value;
+      debugPrint('[it] no SignInView; user=$user; texts=$texts');
+    }
     expect(find.byType(SignInView), findsOneWidget);
     await beat(tester);
 
