@@ -180,6 +180,59 @@ void main() {
       });
     });
 
+    test('a backend without the waveform column still saves the story, once, '
+        'without the waveform', () async {
+      world.sequences['stories.insert'] = [
+        const PostgrestException(
+          message:
+              "Could not find the 'waveform' column of 'stories' in the "
+              'schema cache',
+          code: 'PGRST204',
+        ),
+        {'id': 's9'},
+      ];
+      world.responses['story_narrators.insert'] = null;
+      world.responses['stories.select'] = [_row(id: 's9')];
+      final r = await repo.createStory(_story(id: '', waveform: [1, 2, 3]));
+      expect((r as Success<Story>).value.id, 's9');
+      final inserts = world.on('stories', 'insert');
+      expect(inserts, hasLength(2));
+      expect((inserts[0].args.single! as Map)['waveform'], [1, 2, 3]);
+      expect((inserts[1].args.single! as Map).containsKey('waveform'), isFalse);
+      // The joins are written once, for the one story that exists.
+      expect(world.on('story_narrators', 'insert'), hasLength(1));
+    });
+
+    test('other insert errors are not retried and are reported', () async {
+      world.responses['stories.insert'] = const PostgrestException(
+        message: 'new row violates row-level security policy',
+        code: '42501',
+      );
+      final r = await repo.createStory(_story(id: '', waveform: [1, 2, 3]));
+      expect(r, isA<Failed<Story>>());
+      expect(world.on('stories', 'insert'), hasLength(1));
+      expect(world.on('story_narrators', 'insert'), isEmpty);
+    });
+
+    test('a permission error that mentions waveform is not retried', () async {
+      world.responses['stories.insert'] = const PostgrestException(
+        message: 'permission denied for column waveform',
+        code: '42501',
+      );
+      final r = await repo.createStory(_story(id: '', waveform: [1, 2, 3]));
+      expect(r, isA<Failed<Story>>());
+      expect(world.on('stories', 'insert'), hasLength(1));
+    });
+
+    test('without a waveform the insert never carries the column', () async {
+      world.responses['stories.insert'] = {'id': 's9'};
+      world.responses['story_narrators.insert'] = null;
+      world.responses['stories.select'] = [_row(id: 's9')];
+      await repo.createStory(_story(id: ''));
+      final values = world.on('stories', 'insert').single.args.single! as Map;
+      expect(values.containsKey('waveform'), isFalse);
+    });
+
     test('"selected" stories insert exactly the chosen recipients', () async {
       world.responses['stories.insert'] = {'id': 's9'};
       world.responses['stories.select'] = [
