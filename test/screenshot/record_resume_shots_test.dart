@@ -117,13 +117,7 @@ void main() {
           id: 'd1',
           // Yesterday at 8:40 pm of whatever day the test runs: the label
           // ("yesterday at 8:40 PM") is the same on every run.
-          updatedAt: DateTime(
-            DateTime.now().year,
-            DateTime.now().month,
-            DateTime.now().day - 1,
-            20,
-            40,
-          ),
+          updatedAt: DateTime(2026, 11, 24, 20, 40),
           status: DraftStatus.interrupted,
           topic: locale == 'ar'
               ? 'رمضان في البيت القديم'
@@ -151,8 +145,10 @@ void main() {
                     (_) => unawaited(
                       showAppSheet<void>(
                         context,
-                        builder: (_) =>
-                            const ContinueRecordingScreen(asSheet: true),
+                        builder: (_) => ContinueRecordingScreen(
+                          asSheet: true,
+                          now: () => DateTime(2026, 11, 25, 10),
+                        ),
                       ),
                     ),
                   );
