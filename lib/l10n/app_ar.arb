@@ -356,5 +356,9 @@
   "treeLegendNone": "لسه من غير حكايات",
   "treeLegendPending": "لم يتأكد بعد",
   "treeNotConnected": "لسه مش مربوطين",
-  "treeNotConnectedHint": "أضف صلة القرابة"
+  "treeNotConnectedHint": "أضف صلة القرابة",
+  "treeSummary": "{people, plural, =1{شخص واحد} =2{شخصان} few{{people} أشخاص} many{{people} شخصًا} other{{people} شخص}} · {stories, plural, =0{لا حكايات} =1{حكاية واحدة} =2{حكايتان} few{{stories} حكايات} many{{stories} حكاية} other{{stories} حكاية}}",
+  "treeSearchHint": "دوّر على شخص",
+  "treeSearchNone": "مفيش حد بالاسم ده",
+  "treeEmpty": "ابدأ بإضافة نفسك، وبعدين أهلك"
 }

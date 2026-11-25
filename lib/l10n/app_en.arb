@@ -433,5 +433,19 @@
   "treeLegendNone": "No stories yet",
   "treeLegendPending": "Not confirmed",
   "treeNotConnected": "Not connected yet",
-  "treeNotConnectedHint": "Add how they're related"
+  "treeNotConnectedHint": "Add how they're related",
+  "treeSummary": "{people, plural, =1{1 person} other{{people} people}} · {stories, plural, =1{1 story} other{{stories} stories}}",
+  "@treeSummary": {
+    "placeholders": {
+      "people": {
+        "type": "int"
+      },
+      "stories": {
+        "type": "int"
+      }
+    }
+  },
+  "treeSearchHint": "Find a person",
+  "treeSearchNone": "Nobody with that name",
+  "treeEmpty": "Add the first person: start with yourself, then your parents"
 }

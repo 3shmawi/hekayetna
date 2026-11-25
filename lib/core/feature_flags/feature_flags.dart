@@ -24,4 +24,8 @@ abstract final class Flags {
   /// Ask for a store rating (core/review/review_prompt.dart). Off until you
   /// create the flag in PostHog and turn it on.
   static const reviewPrompt = 'review_prompt';
+
+  /// The interactive family tree (spec 05). On in dev and staging; the
+  /// owner turns it on in production from the PostHog dashboard.
+  static const familyTreeGraph = 'family_tree_graph';
 }
