@@ -388,6 +388,7 @@
   "inviteMore": "المزيد",
   "joinConfirmTitle": "تنضم للعيلة دي؟",
   "joinConfirmBody": "{name} · {count, plural, =1{عضو واحد} other{{count} أعضاء}}",
+  "joinInvalidTitle": "دعوة العيلة",
   "joinMemberCount": "{count, plural, =1{عضو واحد} =2{عضوين} few{{count} أعضاء} other{{count} عضو}}",
   "joinConfirmButton": "انضم",
   "joinInvalid": "الدعوة دي مش صالحة. اطلب دعوة جديدة.",

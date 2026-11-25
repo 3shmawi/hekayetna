@@ -5,12 +5,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:family_stories/app/app_providers.dart';
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_ui.dart' hide StoryVisibility;
 import 'package:family_stories/features/auth/presentation/sign_in_view.dart';
+import 'package:family_stories/features/family/data/demo_family_repository.dart';
+import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/family/domain/family_graph.dart';
 import 'package:family_stories/features/family/domain/invite_code.dart';
+import 'package:family_stories/features/family/presentation/display_name_dialog.dart';
 import 'package:family_stories/features/family/presentation/family_screens.dart';
 import 'package:family_stories/features/family/presentation/family_tree_page.dart';
 import 'package:family_stories/features/family/presentation/family_tree_providers.dart';
@@ -61,6 +65,23 @@ final Map<String, Widget Function()> scenes = {
   'join_screen': () => const _DemoScope(child: JoinScreen(rawCode: '7K4QM9X')),
   'join_invalid': () =>
       const _DemoScope(child: JoinScreen(rawCode: '../../etc/passwd')),
+  'join_arname_plural': () => ProviderScope(
+    overrides: [
+      familyRepositoryProvider.overrideWithValue(
+        _PreviewRepo('عيلة أشماوي', 12),
+      ),
+    ],
+    child: const _DemoScope(child: JoinScreen(rawCode: '7K4QM9X')),
+  ),
+  'join_mixed_name': () => ProviderScope(
+    overrides: [
+      familyRepositoryProvider.overrideWithValue(
+        _PreviewRepo('عيلة Ashmawy', 2),
+      ),
+    ],
+    child: const _DemoScope(child: JoinScreen(rawCode: '7K4QM9X')),
+  ),
+  'name_prompt': () => const _DemoScope(child: _NamePromptHost()),
   'record': () => const _DemoScope(child: RecordPage()),
   'record_recording': () => _recordView(RecordButtonState.recording),
   'record_paused': () => _recordView(RecordButtonState.paused),
@@ -174,6 +195,35 @@ Future<void> loadRealFonts() async {
 }
 
 late SharedPreferences _prefs;
+
+class _PreviewRepo extends DemoFamilyRepository {
+  _PreviewRepo(this.name, this.count);
+  final String name;
+  final int count;
+  @override
+  Future<Result<FamilyPreview>> previewFamily(String inviteCode) async =>
+      Success(FamilyPreview(name: name, memberCount: count));
+}
+
+/// Opens the display-name dialog over an empty screen on first frame.
+class _NamePromptHost extends ConsumerStatefulWidget {
+  const _NamePromptHost();
+  @override
+  ConsumerState<_NamePromptHost> createState() => _NamePromptHostState();
+}
+
+class _NamePromptHostState extends ConsumerState<_NamePromptHost> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(showDisplayNameDialog(context, ref, current: ''));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const Scaffold();
+}
 
 class _DemoScope extends StatelessWidget {
   const _DemoScope({required this.child});

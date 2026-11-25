@@ -39,6 +39,14 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
           .read(familyRepositoryProvider)
           .previewFamily(_code.value)
           .unwrap();
+      unawaited(
+        _preview!.then<void>(
+          (_) {},
+          onError: (Object _) {
+            if (mounted) setState(() => _failed = true);
+          },
+        ),
+      );
       unawaited(Analytics.capture('join_previewed'));
     } else {
       unawaited(Analytics.capture('join_failed', {'reason': 'invalid'}));
@@ -68,7 +76,13 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.joinConfirmTitle)),
+      appBar: AppBar(
+        title: Text(
+          _code == null || _failed
+              ? l10n.joinInvalidTitle
+              : l10n.joinConfirmTitle,
+        ),
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),

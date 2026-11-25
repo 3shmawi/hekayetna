@@ -516,6 +516,7 @@
   "inviteMore": "More",
   "joinConfirmTitle": "Join this family?",
   "joinConfirmBody": "{name} · {count, plural, =1{1 member} other{{count} members}}",
+  "joinInvalidTitle": "Family invitation",
   "joinMemberCount": "{count, plural, =1{1 member} other{{count} members}}",
   "@joinMemberCount": {"placeholders": {"count": {"type": "int"}}},
   "@joinConfirmBody": {

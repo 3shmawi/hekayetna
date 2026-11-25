@@ -5,6 +5,7 @@ import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/family/data/demo_family_repository.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/family/presentation/join_screen.dart';
+import 'package:family_stories/l10n/gen/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -38,7 +39,7 @@ class _Preview extends DemoFamilyRepository {
 void main() {
   for (final locale in ['en', 'ar']) {
     for (final name in ['Ashmawy family', 'عيلة أشماوي', 'عيلة Ashmawy']) {
-      for (final count in [1, 2, 5, 12]) {
+      for (final count in [0, 1, 2, 5, 12, 120]) {
         testWidgets(
           'preview $locale "$name" x$count: name and count on own lines',
           (t) async {
@@ -54,14 +55,17 @@ void main() {
               locale: Locale(locale),
             );
             await t.pumpAndSettle();
-            final nameBox = t.getRect(find.text(name));
-            final countFinder = find.textContaining(
-              RegExp(r'\d|واحد|عضوين|^1 '),
-            );
+            final l10n = lookupAppLocalizations(Locale(locale));
             expect(find.text(name), findsOneWidget);
-            expect(countFinder, findsWidgets);
+            expect(find.text(l10n.joinMemberCount(count)), findsOneWidget);
             expect(t.takeException(), isNull);
-            expect(nameBox.height, lessThan(60));
+            // Name sits above the count, on its own line.
+            expect(
+              t.getRect(find.text(name)).bottom,
+              lessThanOrEqualTo(
+                t.getRect(find.text(l10n.joinMemberCount(count))).top,
+              ),
+            );
           },
         );
       }
