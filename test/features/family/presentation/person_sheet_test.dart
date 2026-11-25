@@ -80,15 +80,58 @@ void main() {
     ),
   );
 
-  Widget sheet() => ProviderScope(
+  Widget sheet({double scale = 1}) => ProviderScope(
     overrides: [
       storyFeedProvider.overrideWith2(_Feed.new),
       audioPlayerControllerProvider.overrideWith(_Player.new),
     ],
     child: Scaffold(
-      body: PersonSheet(graph: graph, personId: 'sitto'),
+      body: Builder(
+        builder: (context) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(scale)),
+          child: PersonSheet(graph: graph, personId: 'sitto'),
+        ),
+      ),
     ),
   );
+
+  testWidgets(
+    'Play all and Record share a row when both labels fit (short name)',
+    (t) async {
+      final fam = bigFamily();
+      graph = FamilyGraph.build(
+        persons: [
+          for (final p in fam.persons)
+            if (p.id == 'sitto') person('sitto', null, 'Ali') else p,
+        ],
+        relationships: fam.rels,
+        meId: 'me',
+        storiesByNarrator: {
+          'sitto': [120, 120, 120, 120],
+        },
+      );
+      // The test font (Ahem) is far wider than the app's real one, so
+      // shrink the text to the room the labels have on a phone.
+      await t.pumpApp(sheet(scale: 0.5));
+      await t.pumpAndSettle();
+      final play = t.getTopLeft(find.text('Play all'));
+      final record = t.getTopLeft(find.textContaining('Record '));
+      expect(play.dy, record.dy);
+      expect(find.textContaining('…'), findsNothing);
+    },
+  );
+
+  testWidgets('they stack, full labels, when half the width is too small', (
+    t,
+  ) async {
+    await t.pumpApp(sheet());
+    await t.pumpAndSettle();
+    final play = t.getTopLeft(find.text('Play all'));
+    final record = t.getTopLeft(find.textContaining('Record '));
+    expect(record.dy, greaterThan(play.dy + 40));
+  });
 
   testWidgets('Play all queues the right stories', (t) async {
     await t.pumpApp(sheet());
