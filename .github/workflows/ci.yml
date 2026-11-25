@@ -216,11 +216,11 @@ jobs:
           restore-keys: |
             ios-build-${{ runner.os }}-${{ steps.flutter.outputs.version }}-
 
-      # Diagnostic: the whole-suite run once stalled for 63 min and again for
-      # 25 min with no test output after the app connected. Each file runs on
-      # its own with its own cap, the reporter is expanded and BOOT_TRACE
-      # prints start-up markers, so the log shows which file and which step
-      # never finishes. No test or lint is changed.
+      # Each file runs on its own with its own cap, the reporter is expanded
+      # and BOOT_TRACE (opt-in, off outside CI) prints start-up markers, so a
+      # stall shows which file and which step never finishes. The whole-suite
+      # run once stalled 63 min and again 25 min before the cause was found
+      # (a missing widget key, a demo-mode redirect, a missing Material).
       - name: Boot the simulator
         run: |
           udid=$(xcrun simctl list devices available -j | jq -r \
@@ -230,8 +230,11 @@ jobs:
           xcrun simctl bootstatus "$udid" -b > /dev/null
           echo "UDID=$udid" >> "$GITHUB_ENV"
 
+      # The first file includes the Xcode build (4 to 9 min on this runner,
+      # "flutter test" took 536 s once and the old 10 min cap killed a run
+      # whose tests had passed), so it gets more room than the second.
       - name: Integration test, app_test.dart
-        timeout-minutes: 10
+        timeout-minutes: 20
         run: |
           set -o pipefail
           flutter test -v --reporter expanded integration_test/app_test.dart -d "$UDID" --flavor dev --dart-define-from-file=env/example.json --dart-define=BOOT_TRACE=true 2>&1 | tee integration-app.log
