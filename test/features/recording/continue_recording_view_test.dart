@@ -1,7 +1,10 @@
+import 'package:family_stories/features/recording/presentation/continue_recording_screen.dart';
 import 'package:family_stories/features/recording/presentation/continue_recording_view.dart';
+import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import '../../helpers/pump_app.dart';
 
@@ -160,4 +163,46 @@ void main() {
       },
     );
   }
+
+  testWidgets('160% text on a small phone: scrolling exposes the whole card, '
+      'the privacy note, and the pinned actions stay reachable', (t) async {
+    await t.pumpApp(_view([_a]));
+    t.view
+      ..physicalSize = const Size(640, 1100)
+      ..devicePixelRatio = 2;
+    t.platformDispatcher.textScaleFactorTestValue = 1.6;
+    addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
+    await t.pump();
+    final list = find.byType(Scrollable).first;
+    final privacy = find.text('Only on this phone until you save it.');
+    await t.scrollUntilVisible(privacy, 200, scrollable: list);
+    await t.drag(list, const Offset(0, -2000));
+    await t.pump();
+    final footerTop = t
+        .getTopLeft(find.byKey(const Key('resume_continue_a')))
+        .dy;
+    final bottoms = [
+      t.getBottomLeft(privacy).dy,
+      t.getBottomLeft(find.byKey(const Key('resume_from_here_a'))).dy,
+    ];
+    for (final b in bottoms) {
+      expect(b, lessThanOrEqualTo(footerTop));
+    }
+    for (final k in ['resume_continue_a', 'resume_save_a', 'resume_delete_a']) {
+      final r = t.getRect(find.byKey(Key(k)));
+      expect(r.bottom, lessThanOrEqualTo(550));
+    }
+  });
+
+  test('timestamps keep 0-9 digits in Arabic too', () async {
+    await initializeDateFormatting('ar');
+    final ar = lookupAppLocalizations(const Locale('ar'));
+    final label = resumeWhenLabel(
+      ar,
+      'ar',
+      DateTime(2026, 11, 24, 20, 40),
+      DateTime(2026, 11, 25, 10),
+    );
+    expect(label, 'إمبارح الساعة 8:40 م');
+  });
 }

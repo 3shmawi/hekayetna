@@ -219,19 +219,25 @@ class _ContinueRecordingScreenState
   }
 }
 
-/// "yesterday at 8:40 pm", localized: digits, am/pm and the date follow the
-/// locale (Arabic gets Arabic-Indic digits and the Arabic day period).
+/// "yesterday at 8:40 pm", localized: am/pm and the month follow the locale.
+/// Digits stay 0-9 in every language, like every other duration and time in
+/// the app (the kept time next to it is 7:45, never ٧:٤٥).
 String resumeWhenLabel(
   AppLocalizations s,
   String locale,
   DateTime at,
   DateTime now,
 ) {
-  final time = DateFormat.jm(locale).format(at);
+  final time = _latinDigits(DateFormat.jm(locale).format(at));
   final today = DateTime(now.year, now.month, now.day);
   final day = DateTime(at.year, at.month, at.day);
   final days = today.difference(day).inDays;
   if (days == 0) return s.resumeWhenToday(time);
   if (days == 1) return s.resumeWhenYesterday(time);
-  return s.resumeWhenOn(DateFormat.MMMd(locale).format(at), time);
+  return s.resumeWhenOn(_latinDigits(DateFormat.MMMd(locale).format(at)), time);
 }
+
+String _latinDigits(String v) => v.replaceAllMapped(
+  RegExp('[\u0660-\u0669\u06F0-\u06F9]'),
+  (m) => ((m[0]!.codeUnitAt(0) - 0x660) % 16).toString(),
+);
