@@ -131,7 +131,11 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen> {
                               leading: const Icon(
                                 Icons.account_circle_outlined,
                               ),
-                              title: Text(m.displayName),
+                              title: Text(
+                                m.displayName.trim().isEmpty
+                                    ? s.memberNoName
+                                    : m.displayName,
+                              ),
                               subtitle: m.isOwner ? Text(s.ownerRole) : null,
                               trailing: iAmOwner && !m.isOwner
                                   ? IconButton(

@@ -391,5 +391,12 @@
   "joinConfirmButton": "انضم",
   "joinInvalid": "لينك أو كود الدعوة ده مش صحيح. اطلب واحد جديد.",
   "joinAlreadyMember": "إنت أصلاً في العيلة دي.",
-  "joinOpenFamily": "افتح العيلة"
+  "joinOpenFamily": "افتح العيلة",
+  "displayNameTitle": "العيلة بتناديك إيه؟",
+  "displayNameLabel": "اسمك",
+  "displayNameSave": "احفظ",
+  "displayNameInvalid": "من حرف لـ 40 حرف.",
+  "displayNameSaved": "الاسم اتحفظ",
+  "memberNoName": "فرد من العيلة",
+  "accountYourName": "اسمك"
 }

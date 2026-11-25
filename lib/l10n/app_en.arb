@@ -529,5 +529,12 @@
   "joinConfirmButton": "Join",
   "joinInvalid": "This invite link or code isn't valid. Ask for a new one.",
   "joinAlreadyMember": "You're already in this family.",
-  "joinOpenFamily": "Open the family"
+  "joinOpenFamily": "Open the family",
+  "displayNameTitle": "What does the family call you?",
+  "displayNameLabel": "Your name",
+  "displayNameSave": "Save",
+  "displayNameInvalid": "Use 1 to 40 characters.",
+  "displayNameSaved": "Name saved",
+  "memberNoName": "Family member",
+  "accountYourName": "Your name"
 }

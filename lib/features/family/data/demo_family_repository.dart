@@ -95,6 +95,20 @@ class DemoFamilyRepository implements FamilyRepository {
         return FamilyPreview(name: _space.name, memberCount: 1);
       });
 
+  String _myName = '';
+
+  @override
+  Future<Result<String>> getMyDisplayName() => guard(() async => _myName);
+
+  @override
+  Future<Result<String>> setMyDisplayName(String name) => guard(() async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty || trimmed.length > 40) {
+      throw const FamilyException('invalid_display_name');
+    }
+    return _myName = trimmed;
+  });
+
   @override
   Future<Result<String>> rotateInviteCode(String spaceId) => guard(() async {
     const alphabet = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';

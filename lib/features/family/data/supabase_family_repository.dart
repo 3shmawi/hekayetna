@@ -37,6 +37,28 @@ class SupabaseFamilyRepository implements FamilyRepository {
       guard(() => _listMembers(spaceId));
 
   @override
+  Future<Result<String>> getMyDisplayName() => guard(() async {
+    final row = await _client
+        .from('profiles')
+        .select('display_name')
+        .eq('id', _uid)
+        .maybeSingle();
+    return (row?['display_name'] as String?) ?? '';
+  });
+
+  @override
+  Future<Result<String>> setMyDisplayName(String name) => guard(() async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty || trimmed.length > 40) {
+      throw const FamilyException('invalid_display_name');
+    }
+    return await _client.rpc<String>(
+      'set_my_display_name',
+      params: {'p_name': trimmed},
+    );
+  });
+
+  @override
   Future<Result<void>> removeMember(String membershipId) =>
       guard(() => _removeMember(membershipId));
 

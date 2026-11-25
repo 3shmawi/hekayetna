@@ -16,6 +16,14 @@ abstract class FamilyRepository {
   Future<Result<String>> rotateInviteCode(String spaceId);
   Future<Result<List<FamilyMember>>> listMembers(String spaceId);
 
+  /// What the family calls the signed-in user; empty when never set. Never
+  /// the email address.
+  Future<Result<String>> getMyDisplayName();
+
+  /// Saves the name (1 to 40 characters after trimming) and returns it.
+  /// Anything else is rejected before it reaches the backend.
+  Future<Result<String>> setMyDisplayName(String name);
+
   /// Owner removes a member (or a member leaves). The revoke trigger deletes
   /// their story/photo grants in the same transaction; rejoining restores
   /// nothing.
