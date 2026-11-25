@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/family/data/family_repository.dart';
@@ -9,7 +11,6 @@ import 'package:family_stories/features/recording/data/draft_store.dart';
 import 'package:family_stories/features/recording/data/segment_joiner.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/features/stories/data/story_repository.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show StorageException;
 
 /// What the save form collected. Text is stored as typed (ends trimmed).
 class StorySaveRequest {
@@ -71,29 +72,58 @@ class StorySaver {
   /// the attempt that is still running instead of starting a second one.
   final Duration attemptTimeout;
 
-  final _inFlight = <String, Future<Result<Story>>>{};
+  final _inFlight = <String, _Attempt>{};
 
   /// Saves the take. One attempt per draft runs at a time: a second call
-  /// (a retry after a timeout, a double tap) joins the running attempt, so
-  /// two writes of the same take never race. After [attemptTimeout] this
-  /// returns [TimeoutFailure] while the attempt keeps running; calling again
-  /// waits for it, and if it already finished returns its real result.
+  /// (a double tap) joins the running attempt. After [attemptTimeout] this
+  /// returns [TimeoutFailure] and the attempt keeps running (a timeout does
+  /// not cancel a write). The next call first asks the backend whether the
+  /// story already exists (the attempt may have landed remotely while its
+  /// future never resolves) and returns it if so. If not, and the old attempt
+  /// is still hung, a new attempt starts: every step is idempotent for the
+  /// same owner and audio (id from owner + draft + audio digest, existing
+  /// story reused, an existing object reused only if its size matches), so
+  /// the two cannot create two stories.
   Future<Result<Story>> save(
     StoryDraft draft,
     StorySaveRequest request, {
     void Function(SavePhase phase)? onPhase,
   }) async {
     var attempt = _inFlight[draft.id];
+    if (attempt != null && attempt.timedOut) {
+      final id = attempt.storyId;
+      if (id != null) {
+        final remote = await stories.getStory(id);
+        if (remote case Success<Story?>(:final value?)) {
+          _inFlight.remove(draft.id);
+          await drafts.delete(draft.id);
+          return Success(value);
+        }
+      }
+      attempt = null; // superseded: the hung one may still finish later
+    }
     if (attempt == null) {
-      attempt = _save(draft, request, onPhase);
-      _inFlight[draft.id] = attempt;
+      final fresh = _Attempt();
+      attempt = fresh;
+      _inFlight[draft.id] = fresh;
+      fresh.result = _save(draft, request, onPhase, fresh);
       unawaited(
-        attempt.whenComplete(() => _inFlight.remove(draft.id)).then((_) {}),
+        fresh.result
+            .whenComplete(() {
+              if (identical(_inFlight[draft.id], fresh)) {
+                _inFlight.remove(draft.id);
+              }
+            })
+            .then((_) {}),
       );
     }
-    final result = await attempt.timeout(
+    final current = attempt;
+    final result = await current.result.timeout(
       attemptTimeout,
-      onTimeout: () => const Failed(TimeoutFailure()),
+      onTimeout: () {
+        current.timedOut = true;
+        return const Failed(TimeoutFailure());
+      },
     );
     return result;
   }
@@ -102,33 +132,22 @@ class StorySaver {
   /// the user may be told it is still going).
   bool isSaving(String draftId) => _inFlight.containsKey(draftId);
 
-  /// Same draft and same audio always give the same story id and path, also
-  /// after the app restarts, so a retry finds what an earlier attempt
-  /// already stored instead of writing a second copy.
-  static String stableStoryId(String draftId, int audioBytes) {
-    int fnv(String text, int seed) {
-      var h = seed;
-      for (final c in text.codeUnits) {
-        h = ((h ^ c) * 16777619) & 0xffffffff;
-      }
-      return h;
-    }
-
-    final key = '$draftId:$audioBytes';
-    final h = [
-      for (final seed in [0x811c9dc5, 0x9747b28c, 0x3c6ef372, 0xa54ff53a])
-        fnv(key, seed).toRadixString(16).padLeft(8, '0'),
-    ].join();
-    final variant = (int.parse(h[16], radix: 16) & 0x3) | 0x8;
-    return '${h.substring(0, 8)}-${h.substring(8, 12)}-4${h.substring(13, 16)}-'
-        '${variant.toRadixString(16)}${h.substring(17, 20)}-${h.substring(20)}';
-  }
-
-  static bool _duplicateObject(AppFailure f) {
-    final cause = f.cause;
-    return cause is StorageException &&
-        (cause.statusCode == '409' || cause.statusCode == '400') &&
-        cause.message.toLowerCase().contains('exist');
+  /// The operation identity: the same owner, draft and audio CONTENT always
+  /// give the same story id and path, also after an app restart (nothing to
+  /// persist), and any change to the audio gives a different one, so an old
+  /// upload can never be bound to a new recording.
+  static String stableStoryId(
+    String ownerId,
+    String draftId,
+    String audioSha256,
+  ) {
+    final d = sha256.convert(utf8.encode('$ownerId:$draftId:$audioSha256'));
+    final b = d.bytes.sublist(0, 16);
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    final h = b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
+    return '${h.substring(0, 8)}-${h.substring(8, 12)}-'
+        '${h.substring(12, 16)}-${h.substring(16, 20)}-${h.substring(20)}';
   }
 
   /// A failure after which the write may still land (late completion).
@@ -139,6 +158,7 @@ class StorySaver {
     StoryDraft draft,
     StorySaveRequest request,
     void Function(SavePhase phase)? onPhase,
+    _Attempt attempt,
   ) async {
     final uid = userId;
     if (uid == null) return const Failed(UnauthorizedFailure());
@@ -158,13 +178,17 @@ class StorySaver {
     } on Exception catch (e) {
       return Failed(AppFailure.from(e));
     }
-    var bytes = 0;
+    final int bytes;
+    final String digest;
     try {
-      bytes = File(joined).lengthSync();
-    } on FileSystemException {
-      // unreadable size: the id then depends on the draft alone
+      final file = File(joined);
+      bytes = await file.length();
+      digest = (await sha256.bind(file.openRead()).first).toString();
+    } on Exception catch (e) {
+      return Failed(AppFailure.from(e));
     }
-    final storyId = _fixedId?.call() ?? stableStoryId(draft.id, bytes);
+    final storyId = _fixedId?.call() ?? stableStoryId(uid, draft.id, digest);
+    attempt.storyId = storyId;
 
     // An earlier attempt (before a restart, or one that timed out and then
     // finished) may already have created this story: use it, change nothing.
@@ -182,11 +206,13 @@ class StorySaver {
     onPhase?.call(SavePhase.uploading);
     switch (await stories.uploadAudio(joined, storagePath)) {
       case Failed(:final failure):
-        // The object already there is this draft's own earlier upload (path
-        // = space/uploader/story id, which only this draft's audio maps to).
-        // Storage writes appear whole, so it is kept and used, never
-        // deleted or overwritten.
-        if (!_duplicateObject(failure)) return Failed(failure);
+        // The failure may be a duplicate (an earlier attempt stored it) or a
+        // real error. Reuse an existing object only when it is verifiably
+        // this audio: same content-derived path, same size. Otherwise fail
+        // and bind nothing.
+        final stored = await stories.audioSize(storagePath);
+        final same = stored is Success<int?> && stored.value == bytes;
+        if (!same) return Failed(failure);
       case Success():
         break;
     }
@@ -248,4 +274,10 @@ Future<String> _joinTake(StoryDraft draft) {
     draft.segments,
     '${File(first).parent.path}/story.wav',
   );
+}
+
+class _Attempt {
+  late Future<Result<Story>> result;
+  String? storyId;
+  bool timedOut = false;
 }
