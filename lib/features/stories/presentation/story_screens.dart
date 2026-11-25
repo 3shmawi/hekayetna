@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:family_stories/app/app_providers.dart';
+import 'package:family_stories/core/adaptive/adaptive.dart';
 import 'package:family_stories/core/ids.dart';
 import 'package:family_stories/core/theme/app_colors.dart';
 import 'package:family_stories/features/family/data/models.dart';
@@ -46,7 +47,9 @@ class _StoryFeedScreenState extends ConsumerState<StoryFeedScreen> {
         title: Text(s.stories),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined),
+            key: const Key('home_settings_button'),
+            tooltip: s.settingsTitle,
+            icon: Icon(AdaptiveIcons.settings(context)),
             onPressed: () => context.push('/settings'),
           ),
         ],

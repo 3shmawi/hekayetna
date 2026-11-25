@@ -1,5 +1,6 @@
 import 'dart:ui' show Tristate;
 
+import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:flutter/material.dart';
@@ -482,6 +483,57 @@ void main() {
         ),
       );
       await tester.expectAccessible();
+    });
+  });
+
+  group('AppScaffold on iOS', () {
+    testWidgets('gives its body a Material ancestor (text fields work)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light.copyWith(platform: TargetPlatform.iOS),
+          home: AppScaffold(
+            title: 'Sign in',
+            body: ListView(children: const [TextField(key: Key('field'))]),
+          ),
+        ),
+      );
+      await tester.enterText(find.byKey(const Key('field')), 'a@b.co');
+      expect(tester.takeException(), isNull);
+      expect(find.text('a@b.co'), findsOneWidget);
+    });
+
+    testWidgets('list tiles, ink wells and buttons work in the body', (
+      tester,
+    ) async {
+      var taps = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light.copyWith(platform: TargetPlatform.iOS),
+          home: AppScaffold(
+            title: 'Settings',
+            body: ListView(
+              children: [
+                ListTile(title: const Text('Row'), onTap: () => taps++),
+                InkWell(onTap: () => taps++, child: const Text('Ink')),
+                TextButton(onPressed: () => taps++, child: const Text('Btn')),
+                SwitchListTile(
+                  title: const Text('Switch'),
+                  value: false,
+                  onChanged: (_) => taps++,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      for (final label in ['Row', 'Ink', 'Btn', 'Switch']) {
+        await tester.tap(find.text(label));
+        await tester.pump();
+      }
+      expect(tester.takeException(), isNull);
+      expect(taps, 4);
     });
   });
 }

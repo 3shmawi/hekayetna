@@ -5,17 +5,20 @@ import 'package:family_stories/core/router/app_routes.dart';
 ///   where the user was going (`?from=`);
 /// - signed in on the sign-in screen → back to `from` (inside the app only);
 /// - after a password-reset link → the new-password screen.
+/// [demoBypass] (no backend configured) keeps signed-in-only paths open, but
+/// it is not a sign-in: the sign-in screen stays reachable.
 /// Returns `null` to stay.
 String? authRedirect(
   Uri uri, {
   required bool signedIn,
   bool passwordRecovery = false,
+  bool demoBypass = false,
 }) {
   final path = uri.path;
   if (signedIn && passwordRecovery && path != AppRoutes.newPassword) {
     return AppRoutes.newPassword;
   }
-  if (!signedIn && isSignedInOnly(path)) {
+  if (!signedIn && !demoBypass && isSignedInOnly(path)) {
     return Uri(
       path: AppRoutes.signIn,
       queryParameters: {'from': uri.toString()},
