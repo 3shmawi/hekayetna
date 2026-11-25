@@ -183,7 +183,12 @@ class _PromptCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.l10n;
     final hk = context.hk;
-    return AppCard(
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+        border: Border.all(color: hk.line),
+        borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+      ),
       child: Padding(
         padding: EdgeInsets.all(AppDimens.lg),
         child: Column(
@@ -244,7 +249,9 @@ class _LevelMeter extends StatelessWidget {
                       minHeight + (maxHeight - minHeight) * v.clamp(0.0, 1.0),
                   margin: EdgeInsets.symmetric(horizontal: 2.w),
                   decoration: BoxDecoration(
-                    color: active ? hk.record : hk.line,
+                    color: active
+                        ? Theme.of(context).colorScheme.primary
+                        : hk.line,
                     borderRadius: BorderRadius.circular(3.r),
                   ),
                 ),
