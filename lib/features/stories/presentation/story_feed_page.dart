@@ -31,6 +31,11 @@ class _StoryFeedPageState extends ConsumerState<StoryFeedPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(feedNarratorRequestProvider, (_, id) {
+      if (id == null) return;
+      setState(() => _selection = FeedSelection(narratorId: id));
+      ref.read(feedNarratorRequestProvider.notifier).request(null);
+    });
     final space = ref.watch(currentSpaceProvider);
     final notifier = ref.read(currentSpaceProvider.notifier);
     return switch (space) {

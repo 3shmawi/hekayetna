@@ -7,10 +7,14 @@ import 'dart:io';
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
-import 'package:family_stories/core/ui/app_ui.dart';
+import 'package:family_stories/core/ui/app_ui.dart' hide StoryVisibility;
 import 'package:family_stories/features/auth/presentation/sign_in_view.dart';
 import 'package:family_stories/features/family/data/models.dart' show Person;
+import 'package:family_stories/features/family/domain/family_graph.dart';
 import 'package:family_stories/features/family/presentation/family_screens.dart';
+import 'package:family_stories/features/family/presentation/family_tree_page.dart';
+import 'package:family_stories/features/family/presentation/family_tree_providers.dart';
+import 'package:family_stories/features/family/presentation/person_sheet.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
@@ -18,9 +22,11 @@ import 'package:family_stories/features/recording/presentation/record_page.dart'
 import 'package:family_stories/features/recording/presentation/record_view.dart';
 import 'package:family_stories/features/settings/data/settings_repository.dart';
 import 'package:family_stories/features/settings/presentation/settings_controller.dart';
+import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/features/stories/data/models.dart' as stories;
 import 'package:family_stories/features/stories/player/audio_player_controller.dart';
 import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
+import 'package:family_stories/features/stories/presentation/story_providers.dart';
 import 'package:family_stories/features/stories/presentation/story_view.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +35,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../features/family/domain/family_fixtures.dart';
 
 /// Visual-evidence screenshots with the app's REAL fonts (Inter + Cairo),
 /// unlike the layout goldens which use Flutter's box test font. These
@@ -133,7 +141,67 @@ final Map<String, Widget Function()> scenes = {
   'record_recording': () => _recordView(RecordButtonState.recording),
   'record_paused': () => _recordView(RecordButtonState.paused),
   'onboarding': () => const OnboardingPage(),
+  'tree_page': () => ProviderScope(
+    overrides: [
+      familyGraphProvider.overrideWith((ref, _) async => _treeGraph()),
+      familyTreeGraphEnabledProvider.overrideWith((ref) async => true),
+    ],
+    child: Scaffold(
+      body: SafeArea(
+        child: FamilyTreePage(
+          spaceId: 's',
+          spaceName: 'Ashmawy family',
+          onOpenPerson: (_) {},
+        ),
+      ),
+    ),
+  ),
+  'person_sheet': () => ProviderScope(
+    overrides: [storyFeedProvider.overrideWith2(_TreeFeed.new)],
+    child: Scaffold(
+      body: SingleChildScrollView(
+        child: PersonSheet(graph: _treeGraph(), personId: 'sitto'),
+      ),
+    ),
+  ),
 };
+
+FamilyGraph _treeGraph() {
+  final fam = bigFamily();
+  return FamilyGraph.build(
+    persons: fam.persons,
+    relationships: fam.rels,
+    meId: 'me',
+    storiesByNarrator: {
+      'sitto': [600, 300, 120],
+      'mama': [60],
+    },
+  );
+}
+
+Story _treeStory(String id, String who, String? topic, String title) => Story(
+  id: id,
+  spaceId: 's',
+  title: title,
+  visibility: StoryVisibility.family,
+  audioPath: 'p/$id.wav',
+  durationSeconds: 300,
+  createdBy: 'u',
+  createdAt: DateTime(2026),
+  narratorIds: [who],
+  topic: topic,
+);
+
+class _TreeFeed extends StoryFeedNotifier {
+  _TreeFeed(super.filter);
+  @override
+  Future<List<Story>> build() async => [
+    _treeStory('a', 'sitto', 'childhood_first_home', 'The house by the canal'),
+    _treeStory('b', 'sitto', 'how_parents_met', 'How I met your grandfather'),
+    _treeStory('c', 'sitto', 'funny_memories', 'The goat at the wedding'),
+    _treeStory('d', 'sitto', 'funny_memories', 'The lost shoe'),
+  ];
+}
 
 Widget _recordView(RecordButtonState state) => Builder(
   builder: (context) => RecordView(
@@ -255,7 +323,12 @@ void main() {
   for (final MapEntry(key: name, value: build) in scenes.entries) {
     for (final locale in const ['en', 'ar']) {
       for (final dark in const [false, true]) {
-        if (dark && !name.startsWith('record')) continue;
+        if (dark &&
+            !(name.startsWith('record') ||
+                name.startsWith('tree') ||
+                name.startsWith('person'))) {
+          continue;
+        }
         final tag = dark ? '${locale}_dark' : locale;
         testWidgets('$name · $tag', (tester) async {
           tester.view

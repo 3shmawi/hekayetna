@@ -201,4 +201,29 @@ void main() {
     expect(state().storyId, isNull);
     expect(engine.log.last, 'stop');
   });
+
+  test('a queue plays in order, auto-advances and steps back', () async {
+    await ctl().playQueue([_story('a'), _story('b'), _story('c')]);
+    expect(state().storyId, 'a');
+    expect(ctl().hasPrevious, isFalse);
+    engine.emitCompleted();
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(state().storyId, 'b');
+    expect(state().status, PlayerStatus.playing);
+    await ctl().next();
+    expect(state().storyId, 'c');
+    expect(ctl().hasNext, isFalse);
+    engine.emitCompleted();
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(state().status, PlayerStatus.completed);
+    await ctl().previous();
+    expect(state().storyId, 'b');
+  });
+
+  test('playing a story outside the queue drops the queue', () async {
+    await ctl().playQueue([_story('a'), _story('b')]);
+    await ctl().playStory(_story('z'));
+    expect(ctl().queue, isEmpty);
+    expect(ctl().hasNext, isFalse);
+  });
 }

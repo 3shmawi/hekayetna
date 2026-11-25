@@ -34,6 +34,9 @@ class FamilyMember {
   bool get isOwner => role == 'owner';
 }
 
+/// Optional, only used to say grandmother or grandfather.
+enum PersonGender { female, male }
+
 class Person {
   const Person({
     required this.id,
@@ -45,6 +48,7 @@ class Person {
     this.approxDeathDate,
     this.bio,
     this.linkedUserId,
+    this.gender,
   });
 
   factory Person.fromJson(Map<String, dynamic> j) => Person(
@@ -57,6 +61,11 @@ class Person {
     bio: j['bio'] as String?,
     linkedUserId: j['linked_user_id'] as String?,
     createdBy: j['created_by'] as String,
+    gender: switch (j['gender']) {
+      'female' => PersonGender.female,
+      'male' => PersonGender.male,
+      _ => null,
+    },
   );
   final String id;
   final String spaceId;
@@ -67,6 +76,7 @@ class Person {
   final String? bio;
   final String? linkedUserId;
   final String createdBy;
+  final PersonGender? gender;
 }
 
 enum RelationshipType { parent, child, spouse, sibling }

@@ -15,8 +15,11 @@ void main() {
     };
   }
 
-  Set<String> placeholders(String text) =>
-      RegExp(r'\{(\w+)\}').allMatches(text).map((m) => m.group(1)!).toSet();
+  // A `{name}` directly after a word is an ICU select/plural case, not a
+  // placeholder.
+  Set<String> placeholders(String text) => RegExp(
+    r'(?<!\w)\{(\w+)\}',
+  ).allMatches(text).map((m) => m.group(1)!).toSet();
 
   final en = strings('lib/l10n/app_en.arb');
   final ar = strings('lib/l10n/app_ar.arb');
