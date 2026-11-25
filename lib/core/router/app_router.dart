@@ -10,6 +10,7 @@ import 'package:family_stories/features/auth/presentation/account_page.dart';
 import 'package:family_stories/features/auth/presentation/new_password_page.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart';
 import 'package:family_stories/features/family/presentation/family_screens.dart';
+import 'package:family_stories/features/family/presentation/invite_screen.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
 import 'package:family_stories/features/recording/presentation/record_page.dart';
 import 'package:family_stories/features/recording/presentation/save_story_page.dart';
@@ -93,6 +94,13 @@ final appRouter = GoRouter(
               name: 'family',
               builder: (context, state) => const FamilyHomeScreen(),
               routes: [
+                GoRoute(
+                  path: 'invite',
+                  name: 'invite',
+                  builder: (context, state) => InviteScreen(
+                    from: state.uri.queryParameters['from'] ?? 'unknown',
+                  ),
+                ),
                 GoRoute(
                   path: 'people/:id',
                   name: 'person_detail',

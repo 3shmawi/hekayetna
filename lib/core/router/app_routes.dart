@@ -13,6 +13,7 @@ abstract final class AppRoutes {
   static const account = '/account';
   static const newPassword = '/new-password';
   static const welcome = '/welcome';
+  static const invite = '/family/invite';
 
   /// Nested paths (used with `context.push`, never as branch roots).
   static String storyDetail(String id) => '/stories/$id';

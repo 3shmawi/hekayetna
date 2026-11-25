@@ -480,5 +480,38 @@
   },
   "personNoStories": "No stories yet. Record the first one.",
   "personAddRelative": "Add a relative",
-  "personPhotos": "Photos"
+  "personPhotos": "Photos",
+  "inviteTitle": "Invite family",
+  "inviteScanHint": "At the dinner table? Let them scan this with their camera. They'll join the {family} family after signing in.",
+  "@inviteScanHint": {
+    "placeholders": {
+      "family": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteSendWhatsApp": "Send on WhatsApp",
+  "inviteShareOther": "Share another way",
+  "inviteCopy": "Copy",
+  "inviteCodeCopied": "Code copied",
+  "inviteChangeCode": "Change the code",
+  "inviteChangeConfirmTitle": "Change the invite code?",
+  "inviteChangeConfirmBody": "Old links and codes will stop working.",
+  "inviteChangeConfirm": "Change code",
+  "inviteCodeChanged": "New code ready",
+  "inviteFooter": "New members only hear stories shared after they join.",
+  "inviteMessage": "Join our family on Hekayetna to hear our stories: {link} (code {code})",
+  "@inviteMessage": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteQrSemantics": "QR code to join the family",
+  "inviteCodeLabel": "Invite code",
+  "inviteMore": "More"
 }

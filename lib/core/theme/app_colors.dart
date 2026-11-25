@@ -19,6 +19,11 @@ abstract final class AppColors {
   static const oliveDeep = Color(0xFF2F5246);
   static const onOlive = Color(0xFFFFFFFF);
   static const oliveTint = Color(0xFFE3ECE6);
+
+  /// WhatsApp's brand green, the one allowed brand colour (the Send on
+  /// WhatsApp button). The darker brand tone is used so the white label
+  /// passes contrast; the bright #25D366 does not with white text.
+  static const whatsapp = Color(0xFF075E54);
   static const terracotta = Color(0xFF9C4A21);
   static const onTerracotta = Color(0xFFFFFFFF);
   static const terracottaTint = Color(0xFFF3E1D6);

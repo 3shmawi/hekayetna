@@ -130,6 +130,7 @@ class _FamilyTreePageState extends ConsumerState<FamilyTreePage> {
                 _searching = !_searching;
                 if (!_searching) _query.clear();
               }),
+              onInvite: () => unawaited(context.push(AppRoutes.invite)),
               onPick: (id) {
                 setState(() {
                   _searching = false;
@@ -164,6 +165,7 @@ class _Header extends StatelessWidget {
     required this.searching,
     required this.query,
     required this.onToggleSearch,
+    required this.onInvite,
     required this.onPick,
   });
 
@@ -172,6 +174,7 @@ class _Header extends StatelessWidget {
   final bool searching;
   final TextEditingController query;
   final VoidCallback onToggleSearch;
+  final VoidCallback onInvite;
   final ValueChanged<String> onPick;
 
   @override
@@ -204,6 +207,11 @@ class _Header extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                tooltip: l10n.inviteTitle,
+                onPressed: onInvite,
+                icon: Icon(AdaptiveIcons.invite(context)),
               ),
               IconButton(
                 tooltip: l10n.treeSearchHint,

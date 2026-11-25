@@ -369,5 +369,21 @@
   "personSeeAll": "شوف الكل ({count})",
   "personNoStories": "لسه مفيش حكايات. سجّل أول واحدة.",
   "personAddRelative": "أضف قريب",
-  "personPhotos": "الصور"
+  "personPhotos": "الصور",
+  "inviteTitle": "ادعُ أهلك",
+  "inviteScanHint": "قاعدين على السفرة؟ خليهم يصوّروا الكود ده بكاميرا موبايلهم. هيدخلوا عيلة {family} بعد ما يسجّلوا دخولهم.",
+  "inviteSendWhatsApp": "ابعت على واتساب",
+  "inviteShareOther": "شارك بطريقة تانية",
+  "inviteCopy": "انسخ",
+  "inviteCodeCopied": "الكود اتنسخ",
+  "inviteChangeCode": "غيّر الكود",
+  "inviteChangeConfirmTitle": "تغيّر كود الدعوة؟",
+  "inviteChangeConfirmBody": "اللينكات والأكواد القديمة هتبطّل تشتغل.",
+  "inviteChangeConfirm": "غيّر الكود",
+  "inviteCodeChanged": "الكود الجديد جاهز",
+  "inviteFooter": "الأعضاء الجدد بيسمعوا بس الحكايات اللي اتشاركت بعد ما دخلوا.",
+  "inviteMessage": "انضم لعيلتنا على حكايتنا عشان تسمع حكاياتنا: {link} (الكود {code})",
+  "inviteQrSemantics": "كود QR للانضمام للعيلة",
+  "inviteCodeLabel": "كود الدعوة",
+  "inviteMore": "المزيد"
 }
