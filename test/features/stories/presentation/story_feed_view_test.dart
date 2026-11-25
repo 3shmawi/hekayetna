@@ -104,6 +104,8 @@ void main() {
     ) async {
       var opened = 0;
       await t.pumpApp(_view(AsyncData(_stories), onAccount: () => opened++));
+      // It opens Settings, so the label says Settings (not Account).
+      expect(find.byTooltip('Settings'), findsOneWidget);
       await t.tap(find.byKey(const Key('home_settings_button')));
       expect(opened, 1);
     });
