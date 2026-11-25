@@ -14,8 +14,11 @@ void main() {
   testWidgets('opens sign-in from settings and checks the email', (
     tester,
   ) async {
+    debugPrint('[it] before app.main');
     await app.main();
+    debugPrint('[it] app.main returned');
     await tester.pumpAndSettle();
+    debugPrint('[it] first pumpAndSettle done');
     await skipFirstLaunch(tester);
     await beat(tester);
 
