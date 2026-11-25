@@ -131,6 +131,8 @@ class _PersonSheetState extends ConsumerState<PersonSheet> {
             child: Text(l10n.personNoStories),
           ),
         _ActionButtons(
+          recordLabel: l10n.personRecordWith(person.fullName),
+          playAllLabel: l10n.personPlayAll,
           playAll: mine.isEmpty
               ? null
               : AppButton.primary(
@@ -147,11 +149,6 @@ class _PersonSheetState extends ConsumerState<PersonSheet> {
             icon: AdaptiveIcons.record(context),
             onPressed: () => Navigator.of(context).pop(PersonAction.record),
           ),
-          // Side by side only while both labels fit; long names or large
-          // text stack them instead of truncating the name.
-          sideBySide:
-              l10n.personRecordWith(person.fullName).length <= 10 &&
-              MediaQuery.textScalerOf(context).scale(1) <= 1.15,
         ),
         if (topics.isNotEmpty) ...[
           SizedBox(height: AppDimens.lg),
@@ -266,31 +263,57 @@ class _ActionButtons extends StatelessWidget {
   const _ActionButtons({
     required this.playAll,
     required this.record,
-    required this.sideBySide,
+    required this.recordLabel,
+    required this.playAllLabel,
   });
 
   final Widget? playAll;
   final Widget record;
-  final bool sideBySide;
+  final String recordLabel;
+  final String playAllLabel;
+
+  /// Width one button needs to show [label] on a single line, with its icon
+  /// and padding (the same numbers AppButton uses).
+  double _needed(BuildContext context, String label) {
+    final painter = TextPainter(
+      text: TextSpan(text: label, style: AppTextStyles.label),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    return painter.width +
+        AppDimens.iconMd +
+        AppDimens.sm +
+        2 * AppDimens.xl +
+        2;
+  }
 
   @override
   Widget build(BuildContext context) {
     if (playAll == null) return record;
-    if (sideBySide) {
-      return Row(
-        children: [
-          Expanded(child: playAll!),
-          SizedBox(width: AppDimens.sm),
-          Expanded(child: record),
-        ],
-      );
-    }
-    return Column(
-      children: [
-        playAll!,
-        SizedBox(height: AppDimens.sm),
-        record,
-      ],
+    return LayoutBuilder(
+      builder: (context, box) {
+        final half = (box.maxWidth - AppDimens.sm) / 2;
+        final fits =
+            _needed(context, recordLabel) <= half &&
+            _needed(context, playAllLabel) <= half;
+        if (fits) {
+          return Row(
+            children: [
+              Expanded(child: playAll!),
+              SizedBox(width: AppDimens.sm),
+              Expanded(child: record),
+            ],
+          );
+        }
+        return Column(
+          children: [
+            playAll!,
+            SizedBox(height: AppDimens.sm),
+            record,
+          ],
+        );
+      },
     );
   }
 }
