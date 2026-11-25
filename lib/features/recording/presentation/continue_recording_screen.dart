@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/adaptive/adaptive.dart';
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/ui/app_message.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
@@ -61,9 +62,9 @@ class _ContinueRecordingScreenState
     final names = <String, String>{};
     try {
       final repo = ref.read(familyRepositoryProvider);
-      final space = await repo.getMySpace();
+      final space = await repo.getMySpace().unwrap();
       if (space != null) {
-        for (final p in await repo.listPersons(space.id)) {
+        for (final p in await repo.listPersons(space.id).unwrap()) {
           names[p.id] = p.fullName;
         }
       }
