@@ -28,6 +28,7 @@ Future<PersonAction?> showPersonSheet(
   unawaited(Analytics.capture('person_sheet_opened'));
   return showAppSheet<PersonAction>(
     context,
+    handleInside: true,
     builder: (_) => PersonSheet(graph: graph, personId: personId),
   );
 }
@@ -90,6 +91,7 @@ class _PersonSheetState extends ConsumerState<PersonSheet> {
       ),
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
               radius: 44,
@@ -121,6 +123,12 @@ class _PersonSheetState extends ConsumerState<PersonSheet> {
                     ),
                 ],
               ),
+            ),
+            // Artboard PersonSheet: an X at the end of the header row.
+            IconButton(
+              icon: const Icon(Icons.close),
+              tooltip: MaterialLocalizations.of(context).closeButtonLabel,
+              onPressed: () => Navigator.of(context).maybePop(),
             ),
           ],
         ),

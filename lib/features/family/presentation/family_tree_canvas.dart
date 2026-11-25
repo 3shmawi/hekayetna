@@ -514,28 +514,33 @@ class _TreeNode extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: TreeMetrics.labelGap),
-              SizedBox(
-                height: TreeMetrics.labelHeight,
-                child: Column(
-                  children: [
-                    Text(
-                      person.fullName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.label,
-                    ),
-                    if (showRelation && relation != null)
+              // The tree is fixed geometry that the user zooms: a node's label
+              // keeps its drawn size instead of growing with the system text
+              // scale and overflowing its reserved height.
+              MediaQuery.withNoTextScaling(
+                child: SizedBox(
+                  height: TreeMetrics.labelHeight,
+                  child: Column(
+                    children: [
                       Text(
-                        relation,
+                        person.fullName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
-                        style: AppTextStyles.caption.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
+                        style: AppTextStyles.label,
                       ),
-                  ],
+                      if (showRelation && relation != null)
+                        Text(
+                          relation,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.caption.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ],
