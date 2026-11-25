@@ -42,7 +42,7 @@
   "authSwitchToSignUp": "New here? Create an account",
   "authSwitchToSignIn": "Already have an account? Sign in",
   "authForgotPassword": "Forgot password?",
-  "authSendLink": "Email me a sign-in link instead",
+  "authSendLink": "Email sign-in link",
   "authLinkSent": "Check your email and tap the link we sent. No password needed.",
   "authResetSent": "If an account exists for that email, we've sent a link to reset the password.",
   "authConfirmEmailSent": "Check your email to confirm your account, then sign in.",

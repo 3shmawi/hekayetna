@@ -136,6 +136,21 @@ class _SignInViewState extends State<SignInView> {
               counterText: '',
             ),
           ),
+          if (!signUp)
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: _LinkButton(
+                key: const Key('sign_in_forgot'),
+                label: l10n.authForgotPassword,
+                onPressed: enabled
+                    ? () {
+                        if (_validEmail()) {
+                          widget.onForgotPassword(_email.text.trim());
+                        }
+                      }
+                    : null,
+              ),
+            ),
           if (widget.error case final error? when error.isNotEmpty) ...[
             SizedBox(height: AppDimens.lg),
             Text(
@@ -172,20 +187,6 @@ class _SignInViewState extends State<SignInView> {
                   : null,
             ),
           ],
-          if (!signUp)
-            Center(
-              child: _LinkButton(
-                key: const Key('sign_in_forgot'),
-                label: l10n.authForgotPassword,
-                onPressed: enabled
-                    ? () {
-                        if (_validEmail()) {
-                          widget.onForgotPassword(_email.text.trim());
-                        }
-                      }
-                    : null,
-              ),
-            ),
           Center(
             child: _LinkButton(
               key: const Key('sign_in_switch_mode'),
@@ -248,20 +249,25 @@ class _LanguageSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final current = Localizations.localeOf(context).languageCode;
-    return Wrap(
+    return Row(
       key: const Key('sign_in_language'),
-      spacing: AppDimens.sm,
-      runSpacing: AppDimens.sm,
       children: [
-        for (final (label, locale) in [
+        for (final (i, (label, locale)) in [
           (l10n.languageEnglish, const Locale('en')),
           (l10n.languageArabic, const Locale('ar')),
-        ])
-          ChoiceChip(
-            label: Text(label),
-            selected: current == locale.languageCode,
-            onSelected: (_) => onChanged(locale),
+        ].indexed) ...[
+          if (i > 0) SizedBox(width: AppDimens.sm),
+          Expanded(
+            child: ChoiceChip(
+              label: SizedBox(
+                width: double.infinity,
+                child: Text(label, textAlign: TextAlign.center),
+              ),
+              selected: current == locale.languageCode,
+              onSelected: (_) => onChanged(locale),
+            ),
           ),
+        ],
       ],
     );
   }
