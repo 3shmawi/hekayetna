@@ -24,6 +24,8 @@
   "authSignUpTitle": "إنشاء حساب",
   "authEmail": "الإيميل",
   "authPassword": "كلمة المرور",
+  "authShowPassword": "إظهار كلمة المرور",
+  "authHidePassword": "إخفاء كلمة المرور",
   "authSignInButton": "تسجيل الدخول",
   "authSignUpButton": "إنشاء حساب",
   "authSwitchToSignUp": "جديد هنا؟ أنشئ حسابًا",

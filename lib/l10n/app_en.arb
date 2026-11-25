@@ -37,6 +37,8 @@
   "authSignUpTitle": "Create account",
   "authEmail": "Email",
   "authPassword": "Password",
+  "authShowPassword": "Show password",
+  "authHidePassword": "Hide password",
   "authSignInButton": "Sign in",
   "authSignUpButton": "Create account",
   "authSwitchToSignUp": "New here? Create an account",

@@ -12,6 +12,7 @@ class AuthPalette {
   const AuthPalette._({
     required this.background,
     required this.field,
+    required this.fieldRaised,
     required this.track,
     required this.selected,
     required this.onSelected,
@@ -26,6 +27,7 @@ class AuthPalette {
 
   final Color background;
   final Color field;
+  final Color fieldRaised;
   final Color track;
   final Color selected;
   final Color onSelected;
@@ -40,6 +42,7 @@ class AuthPalette {
   static const light = AuthPalette._(
     background: Color(0xFFF6FBF4),
     field: Color(0xFFEBEFE8),
+    fieldRaised: Color(0xFFFFFFFF),
     track: Color(0xFFEBEFE8),
     selected: Color(0xFFFFFFFF),
     onSelected: Color(0xFF181D19),
@@ -55,6 +58,7 @@ class AuthPalette {
   static const dark = AuthPalette._(
     background: Color(0xFF131A15),
     field: Color(0xFF222A24),
+    fieldRaised: Color(0xFF2A332C),
     track: Color(0xFF222A24),
     selected: Color(0xFF3A483C),
     onSelected: Color(0xFFEDF2EB),
@@ -94,9 +98,15 @@ class AuthTheme extends StatelessWidget {
       onPrimary: p.onPrimary,
       outlineVariant: Colors.transparent,
     );
+    const family = AppFonts.authBody;
+    const fallback = [AppFonts.arabic];
     return Theme(
       data: base.copyWith(
         colorScheme: scheme,
+        textTheme: base.textTheme.apply(
+          fontFamily: family,
+          fontFamilyFallback: fallback,
+        ),
         scaffoldBackgroundColor: p.background,
         appBarTheme: base.appBarTheme.copyWith(backgroundColor: p.background),
         inputDecorationTheme: base.inputDecorationTheme.copyWith(
@@ -112,7 +122,13 @@ class AuthTheme extends StatelessWidget {
           hintStyle: AppTextStyles.body.copyWith(color: p.placeholder),
         ),
       ),
-      child: child,
+      child: DefaultTextStyle.merge(
+        style: const TextStyle(
+          fontFamily: family,
+          fontFamilyFallback: fallback,
+        ),
+        child: child,
+      ),
     );
   }
 }
@@ -174,8 +190,9 @@ class AuthEmblem extends StatelessWidget {
             'HEKAYETNA',
             style: AppTextStyles.caption.copyWith(
               color: p.accent,
+              fontFamily: AppFonts.authDisplay,
               letterSpacing: 3,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -283,6 +300,146 @@ class _Segment extends StatelessWidget {
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A form field in the approved auth direction: a persistent label above, a
+/// white (dark: raised) rounded field with a soft shadow, a leading icon and
+/// an optional trailing widget. The [TextField] keeps [fieldKey] so tests
+/// and automation find it.
+class AuthField extends StatelessWidget {
+  const AuthField({
+    required this.label,
+    required this.controller,
+    required this.icon,
+    this.fieldKey,
+    this.enabled = true,
+    this.obscureText = false,
+    this.keyboardType,
+    this.textInputAction,
+    this.autofillHints,
+    this.maxLength,
+    this.onSubmitted,
+    this.errorText,
+    this.trailing,
+    super.key,
+  });
+
+  final String label;
+  final TextEditingController controller;
+  final IconData icon;
+  final Key? fieldKey;
+  final bool enabled;
+  final bool obscureText;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final Iterable<String>? autofillHints;
+  final int? maxLength;
+  final ValueChanged<String>? onSubmitted;
+  final String? errorText;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = AuthPalette.of(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsetsDirectional.only(
+            start: AppDimens.xs,
+            bottom: AppDimens.sm,
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.label.copyWith(color: p.text),
+          ),
+        ),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+            boxShadow: [
+              BoxShadow(
+                color: Color(dark ? 0x33000000 : 0x14000000),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: TextField(
+            key: fieldKey,
+            controller: controller,
+            enabled: enabled,
+            obscureText: obscureText,
+            keyboardType: keyboardType,
+            textInputAction: textInputAction,
+            autofillHints: autofillHints,
+            maxLength: maxLength,
+            onSubmitted: onSubmitted,
+            style: AppTextStyles.bodyLarge.copyWith(color: p.text),
+            decoration: InputDecoration(
+              fillColor: p.fieldRaised,
+              errorText: errorText,
+              counterText: '',
+              prefixIcon: Icon(icon, color: p.placeholder),
+              suffixIcon: trailing,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The show/hide toggle for a password [AuthField].
+class AuthVisibilityToggle extends StatelessWidget {
+  const AuthVisibilityToggle({
+    required this.visible,
+    required this.onChanged,
+    super.key,
+  });
+
+  final bool visible;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = AuthPalette.of(context);
+    final l10n = context.l10n;
+    return IconButton(
+      tooltip: visible ? l10n.authHidePassword : l10n.authShowPassword,
+      onPressed: () => onChanged(!visible),
+      icon: Icon(
+        visible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+        color: p.textSoft,
+      ),
+    );
+  }
+}
+
+/// The serif screen heading (one per auth screen, in the body, not the bar).
+class AuthHeading extends StatelessWidget {
+  const AuthHeading(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = AuthPalette.of(context);
+    return Semantics(
+      header: true,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: AppTextStyles.headline.copyWith(
+          color: p.text,
+          fontFamily: AppFonts.authDisplay,
+          fontFamilyFallback: const [AppFonts.arabic],
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

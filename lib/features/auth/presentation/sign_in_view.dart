@@ -60,6 +60,7 @@ class _SignInViewState extends State<SignInView> {
   SignInMode _mode = SignInMode.signIn;
   String? _emailError;
   String? _passwordError;
+  bool _showPassword = false;
 
   @override
   void dispose() {
@@ -98,7 +99,6 @@ class _SignInViewState extends State<SignInView> {
       child: Builder(
         builder: (context) => AppScaffold(
           background: AuthPalette.of(context).background,
-          title: signUp ? l10n.authSignUpTitle : l10n.authSignInTitle,
           body: ListView(
             padding: EdgeInsets.all(AppDimens.xl),
             children: [
@@ -108,26 +108,30 @@ class _SignInViewState extends State<SignInView> {
                 AuthLanguageSwitch(onChanged: onLocale),
                 SizedBox(height: AppDimens.lg),
               ],
-              TextField(
-                key: const Key('sign_in_email'),
+              if (signUp) ...[
+                AuthHeading(l10n.authSignUpTitle),
+                SizedBox(height: AppDimens.lg),
+              ],
+              AuthField(
+                fieldKey: const Key('sign_in_email'),
+                label: l10n.authEmail,
+                icon: Icons.mail_outline_rounded,
                 controller: _email,
                 enabled: enabled,
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
                 textInputAction: TextInputAction.next,
                 maxLength: AuthInput.emailMaxLength,
-                decoration: InputDecoration(
-                  labelText: l10n.authEmail,
-                  errorText: _emailError,
-                  counterText: '',
-                ),
+                errorText: _emailError,
               ),
               SizedBox(height: AppDimens.lg),
-              TextField(
-                key: const Key('sign_in_password'),
+              AuthField(
+                fieldKey: const Key('sign_in_password'),
+                label: l10n.authPassword,
+                icon: Icons.lock_outline_rounded,
                 controller: _password,
                 enabled: enabled,
-                obscureText: true,
+                obscureText: !_showPassword,
                 autofillHints: [
                   if (signUp)
                     AutofillHints.newPassword
@@ -136,15 +140,15 @@ class _SignInViewState extends State<SignInView> {
                 ],
                 maxLength: AuthInput.passwordMaxLength,
                 onSubmitted: (_) => _submit(),
-                decoration: InputDecoration(
-                  labelText: l10n.authPassword,
-                  errorText: _passwordError,
-                  counterText: '',
+                errorText: _passwordError,
+                trailing: AuthVisibilityToggle(
+                  visible: _showPassword,
+                  onChanged: (v) => setState(() => _showPassword = v),
                 ),
               ),
               if (!signUp)
                 Align(
-                  alignment: AlignmentDirectional.centerEnd,
+                  alignment: AlignmentDirectional.centerStart,
                   child: _LinkButton(
                     key: const Key('sign_in_forgot'),
                     label: l10n.authForgotPassword,

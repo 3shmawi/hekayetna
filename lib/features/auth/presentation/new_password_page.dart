@@ -10,22 +10,25 @@ import 'package:family_stories/core/ui/app_message.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/core/ui/auth_chrome.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
+import 'package:family_stories/features/settings/presentation/settings_controller.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// Shown after the user opens a password-reset link (Supabase; Firebase
 /// sets the password on its own web page).
-class NewPasswordPage extends StatefulWidget {
+class NewPasswordPage extends ConsumerStatefulWidget {
   const NewPasswordPage({super.key});
 
   @override
-  State<NewPasswordPage> createState() => _NewPasswordPageState();
+  ConsumerState<NewPasswordPage> createState() => _NewPasswordPageState();
 }
 
-class _NewPasswordPageState extends State<NewPasswordPage> {
+class _NewPasswordPageState extends ConsumerState<NewPasswordPage> {
   final _password = TextEditingController();
   bool _busy = false;
+  bool _show = false;
   String? _error;
 
   @override
@@ -68,23 +71,32 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       child: Builder(
         builder: (context) => AppScaffold(
           background: AuthPalette.of(context).background,
-          title: l10n.newPasswordTitle,
           body: ListView(
             padding: EdgeInsets.all(AppDimens.xl),
             children: [
               const AuthEmblem(),
               SizedBox(height: AppDimens.xl),
-              TextField(
-                key: const Key('new_password_field'),
+              AuthLanguageSwitch(
+                onChanged: ref
+                    .read(settingsControllerProvider.notifier)
+                    .setLocale,
+              ),
+              SizedBox(height: AppDimens.xl),
+              AuthHeading(l10n.newPasswordTitle),
+              SizedBox(height: AppDimens.lg),
+              AuthField(
+                fieldKey: const Key('new_password_field'),
+                label: l10n.authPassword,
+                icon: Icons.lock_outline_rounded,
                 controller: _password,
                 enabled: !_busy,
-                obscureText: true,
+                obscureText: !_show,
                 autofillHints: const [AutofillHints.newPassword],
                 maxLength: AuthInput.passwordMaxLength,
                 onSubmitted: (_) => unawaited(_save()),
-                decoration: InputDecoration(
-                  labelText: l10n.authPassword,
-                  counterText: '',
+                trailing: AuthVisibilityToggle(
+                  visible: _show,
+                  onChanged: (v) => setState(() => _show = v),
                 ),
               ),
               if (_error case final error?) ...[
