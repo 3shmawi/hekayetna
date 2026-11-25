@@ -106,6 +106,44 @@ void main() {
     },
   );
 
+  test('create failure leaves the local recording file untouched', () async {
+    final dir = Directory.systemTemp.createTempSync('saver_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final take = File('${dir.path}/take.wav')..writeAsBytesSync([1, 2, 3, 4]);
+    final local = StoryDraft(
+      id: 'd1',
+      filePath: take.path,
+      durationSeconds: 95,
+      updatedAt: DateTime(2026),
+      topic: 'war',
+    );
+    await drafts.save(local);
+    when(
+      () => stories.createStory(any()),
+    ).thenAnswer((_) async => const Failed(ServerFailure()));
+    final r =
+        await StorySaver(
+          stories: stories,
+          family: family,
+          drafts: drafts,
+          userId: 'u1',
+          joinTake: (_) async => take.path,
+          newId: () => 'story-1',
+        ).save(
+          local,
+          const StorySaveRequest(
+            title: 't',
+            visibility: StoryVisibility.private,
+          ),
+        );
+    expect(r, isA<Failed<Story>>());
+    // Only the remote copy is removed; the phone keeps the real audio.
+    verify(() => stories.deleteAudio('sp1/u1/story-1/a.wav')).called(1);
+    expect(take.existsSync(), isTrue);
+    expect(take.readAsBytesSync(), [1, 2, 3, 4]);
+    expect(await drafts.get('d1'), isNotNull);
+  });
+
   test('only me and whole family never send recipients', () async {
     for (final v in [StoryVisibility.private, StoryVisibility.family]) {
       final r = await saver().save(
