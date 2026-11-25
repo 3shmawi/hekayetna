@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:family_stories/features/recording/data/wav_repair.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 
 /// Joins the WAV segments of a take into one playable file (spec 02, Upload).
@@ -24,48 +25,66 @@ abstract final class SegmentJoiner {
     final tmp = File('$outPath.tmp');
     final sink = tmp.openWrite();
     var pcmBytes = 0;
-    Uint8List? format;
+    WavLayout? format;
     try {
       sink.add(Uint8List(_header)); // placeholder header, rewritten below
       for (final s in segments) {
         final file = File(s.path);
-        if (!file.existsSync()) continue;
-        final length = await file.length();
-        if (length <= _header) continue;
-        final raf = await file.open();
-        try {
-          format ??= await _readHeader(raf);
-        } finally {
-          await raf.close();
+        // The audio starts after whatever header the platform wrote (44 bytes
+        // on Android, longer on iOS where Core Audio adds a filler chunk), so
+        // the layout is read from the chunks, never assumed.
+        final layout = await WavRepair.layout(file);
+        if (layout == null) continue;
+        if (format == null) {
+          format = layout;
+        } else if (layout.channels != format.channels ||
+            layout.sampleRate != format.sampleRate ||
+            layout.bitsPerSample != format.bitsPerSample) {
+          continue; // never splice audio of another format into the take
         }
-        await sink.addStream(file.openRead(_header));
-        pcmBytes += length - _header;
+        await sink.addStream(
+          file.openRead(layout.dataStart, layout.dataStart + layout.dataBytes),
+        );
+        pcmBytes += layout.dataBytes;
       }
     } finally {
       await sink.close();
     }
-    if (pcmBytes == 0 || format == null) {
+    final fmt = format;
+    if (pcmBytes == 0 || fmt == null) {
       if (tmp.existsSync()) await tmp.delete();
       throw FileSystemException('No audio to join', outPath);
     }
-    final header = Uint8List.fromList(format);
-    ByteData.sublistView(header)
-      ..setUint32(4, 36 + pcmBytes, Endian.little)
-      ..setUint32(40, pcmBytes, Endian.little);
+    final blockAlign = fmt.channels * fmt.bitsPerSample ~/ 8;
+    final header = ByteData(_header);
+    void tag(int offset, String text) {
+      for (var i = 0; i < 4; i++) {
+        header.setUint8(offset + i, text.codeUnitAt(i));
+      }
+    }
+
+    tag(0, 'RIFF');
+    header.setUint32(4, 36 + pcmBytes, Endian.little);
+    tag(8, 'WAVE');
+    tag(12, 'fmt ');
+    header
+      ..setUint32(16, 16, Endian.little)
+      ..setUint16(20, 1, Endian.little) // PCM
+      ..setUint16(22, fmt.channels, Endian.little)
+      ..setUint32(24, fmt.sampleRate, Endian.little)
+      ..setUint32(28, fmt.sampleRate * blockAlign, Endian.little)
+      ..setUint16(32, blockAlign, Endian.little)
+      ..setUint16(34, fmt.bitsPerSample, Endian.little);
+    tag(36, 'data');
+    header.setUint32(40, pcmBytes, Endian.little);
     final raf = await tmp.open(mode: FileMode.append);
     try {
       await raf.setPosition(0);
-      await raf.writeFrom(header);
+      await raf.writeFrom(header.buffer.asUint8List());
     } finally {
       await raf.close();
     }
     await tmp.rename(outPath);
     return outPath;
-  }
-
-  static Future<Uint8List> _readHeader(RandomAccessFile raf) async {
-    await raf.setPosition(0);
-    final bytes = await raf.read(_header);
-    return bytes;
   }
 }
