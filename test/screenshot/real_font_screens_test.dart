@@ -299,6 +299,7 @@ void main() {
       for (final dark in const [false, true]) {
         if (dark &&
             !(name.startsWith('record') ||
+                name.startsWith('name_prompt') ||
                 name.startsWith('tree') ||
                 name.startsWith('invite') ||
                 name.startsWith('join') ||

@@ -3,6 +3,7 @@ import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/auth/presentation/account_page.dart';
 import 'package:family_stories/features/family/data/demo_family_repository.dart';
 import 'package:family_stories/features/family/presentation/display_name_dialog.dart';
+import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -57,4 +58,36 @@ void main() {
     expect((await repo.getMyDisplayName()).val, 'Mohamed');
     expect(find.textContaining('Mohamed'), findsOneWidget);
   });
+
+  for (final locale in const ['en', 'ar']) {
+    testWidgets('blank and whitespace names stay on the dialog '
+        'with the error ($locale)', (t) async {
+      final repo = DemoFamilyRepository();
+      final l = locale == 'en'
+          ? l10nEn
+          : lookupAppLocalizations(Locale(locale));
+      await t.pumpApp(
+        ProviderScope(
+          overrides: [familyRepositoryProvider.overrideWithValue(repo)],
+          child: const AccountPage(),
+        ),
+        locale: Locale(locale),
+      );
+      await t.pumpAndSettle();
+      await t.tap(find.byKey(const Key('account_your_name')));
+      await t.pumpAndSettle();
+      for (final bad in ['', '   ']) {
+        await t.enterText(find.byType(TextField), bad);
+        await t.tap(find.text(l.displayNameSave));
+        await t.pumpAndSettle();
+        expect(find.text(l.displayNameInvalid), findsOneWidget, reason: bad);
+        expect(find.text(l.displayNameTitle), findsOneWidget);
+        expect((await repo.getMyDisplayName()).val, '');
+      }
+      // The field itself caps at 40, so a 41st character cannot be typed.
+      await t.enterText(find.byType(TextField), 'x' * 41);
+      final field = t.widget<TextField>(find.byType(TextField));
+      expect(field.controller!.text.length, 40);
+    });
+  }
 }
