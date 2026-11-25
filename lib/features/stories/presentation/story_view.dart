@@ -118,11 +118,16 @@ class StoryView extends StatelessWidget {
               ),
             ),
           SizedBox(height: AppDimens.sm),
-          Text(story.title, style: AppTextStyles.display),
+          Text(
+            story.title,
+            textDirection: contentDirection(story.title),
+            style: AppTextStyles.display,
+          ),
           if (meta.isNotEmpty) ...[
             SizedBox(height: AppDimens.xs),
             Text(
               meta,
+              textDirection: contentDirection(meta),
               style: AppTextStyles.caption.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
@@ -133,6 +138,7 @@ class StoryView extends StatelessWidget {
             subtitle: s.storyTold(narratorName),
             eyebrow: s.storyToldLabel,
             name: narratorName,
+            nameDirection: contentDirection(narratorName),
             position: formatClock(position),
             duration: formatClock(total),
             isPlaying: _mine && player.isPlaying,
@@ -156,7 +162,11 @@ class StoryView extends StatelessWidget {
           ],
           if (story.description != null && story.description!.isNotEmpty) ...[
             SizedBox(height: AppDimens.lg),
-            Text(story.description!, style: AppTextStyles.bodyLarge),
+            Text(
+              story.description!,
+              textDirection: contentDirection(story.description!),
+              style: AppTextStyles.bodyLarge,
+            ),
           ],
           if (people.isNotEmpty) ...[
             SizedBox(height: AppDimens.lg),
@@ -269,4 +279,24 @@ class StoryStateView extends StatelessWidget {
             ),
     );
   }
+}
+
+/// The direction of user-written text (a title, a name, a story): the first
+/// strong letter decides, so an English title on an Arabic screen reads and
+/// punctuates as English, and the other way round. App strings keep the
+/// screen's own direction.
+TextDirection contentDirection(String text) {
+  for (final rune in text.runes) {
+    if ((rune >= 0x0590 && rune <= 0x08FF) ||
+        (rune >= 0xFB1D && rune <= 0xFDFF) ||
+        (rune >= 0xFE70 && rune <= 0xFEFF)) {
+      return TextDirection.rtl;
+    }
+    if ((rune >= 0x41 && rune <= 0x5A) ||
+        (rune >= 0x61 && rune <= 0x7A) ||
+        (rune >= 0xC0 && rune <= 0x24F)) {
+      return TextDirection.ltr;
+    }
+  }
+  return TextDirection.ltr;
 }
