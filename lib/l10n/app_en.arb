@@ -513,5 +513,21 @@
   },
   "inviteQrSemantics": "QR code to join the family",
   "inviteCodeLabel": "Invite code",
-  "inviteMore": "More"
+  "inviteMore": "More",
+  "joinConfirmTitle": "Join this family?",
+  "joinConfirmBody": "{name} · {count, plural, =1{1 member} other{{count} members}}",
+  "@joinConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "joinConfirmButton": "Join",
+  "joinInvalid": "This invite link or code isn't valid. Ask for a new one.",
+  "joinAlreadyMember": "You're already in this family.",
+  "joinOpenFamily": "Open the family"
 }

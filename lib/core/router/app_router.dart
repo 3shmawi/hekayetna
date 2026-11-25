@@ -11,6 +11,7 @@ import 'package:family_stories/features/auth/presentation/new_password_page.dart
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart';
 import 'package:family_stories/features/family/presentation/family_screens.dart';
 import 'package:family_stories/features/family/presentation/invite_screen.dart';
+import 'package:family_stories/features/family/presentation/join_screen.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
 import 'package:family_stories/features/recording/presentation/record_page.dart';
 import 'package:family_stories/features/recording/presentation/save_story_page.dart';
@@ -112,6 +113,12 @@ final appRouter = GoRouter(
           ],
         ),
       ],
+    ),
+    GoRoute(
+      path: '${AppRoutes.join}/:code',
+      name: 'join_family',
+      builder: (context, state) =>
+          JoinScreen(rawCode: state.pathParameters['code'] ?? ''),
     ),
     GoRoute(
       path: AppRoutes.settings,

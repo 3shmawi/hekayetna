@@ -385,5 +385,11 @@
   "inviteMessage": "انضم لعيلتنا على حكايتنا عشان تسمع حكاياتنا: {link} (الكود {code})",
   "inviteQrSemantics": "كود QR للانضمام للعيلة",
   "inviteCodeLabel": "كود الدعوة",
-  "inviteMore": "المزيد"
+  "inviteMore": "المزيد",
+  "joinConfirmTitle": "تنضم للعيلة دي؟",
+  "joinConfirmBody": "{name} · {count, plural, =1{عضو واحد} other{{count} أعضاء}}",
+  "joinConfirmButton": "انضم",
+  "joinInvalid": "لينك أو كود الدعوة ده مش صحيح. اطلب واحد جديد.",
+  "joinAlreadyMember": "إنت أصلاً في العيلة دي.",
+  "joinOpenFamily": "افتح العيلة"
 }
