@@ -6,19 +6,21 @@ import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_view.dart';
+import 'package:family_stories/features/settings/presentation/settings_controller.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Wires [SignInView] to [Auth.service]. After a successful sign-in the
 /// router's redirect leaves this screen by itself (core/auth/auth_redirect.dart).
-class SignInPage extends StatefulWidget {
+class SignInPage extends ConsumerStatefulWidget {
   const SignInPage({super.key});
 
   @override
-  State<SignInPage> createState() => _SignInPageState();
+  ConsumerState<SignInPage> createState() => _SignInPageState();
 }
 
-class _SignInPageState extends State<SignInPage> {
+class _SignInPageState extends ConsumerState<SignInPage> {
   bool _busy = false;
   String? _error;
   String? _notice;
@@ -62,6 +64,7 @@ class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
     return SignInView(
+      onLocaleChanged: ref.read(settingsControllerProvider.notifier).setLocale,
       busy: _busy,
       error: _error,
       notice: _notice,
