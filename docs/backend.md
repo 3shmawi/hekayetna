@@ -38,6 +38,23 @@ store review of the new version is pending.
 it). GitHub pauses scheduled workflows in repos with no commits for 60 days —
 re-enable it from the Actions tab if that happens.
 
+## Before inviting family: profile names (migration 0011)
+Since migration 0003, every new profile took the part of the email address
+before the `@` as its name, and the family member list shows names to the
+whole family. Migration `0011_profile_names.sql` stops that for **new**
+profiles (they get a name only when the person chooses one; the list shows
+"Family member" until then). It deliberately does **not** rewrite existing
+profile rows, and the pgTAP tests passing does not mean old rows are clean.
+
+Conditional release check, for the project owner only:
+- If this Supabase project has had sign-ups since migration 0003 was applied,
+  look at the displayed names privately (Supabase dashboard, `profiles`
+  table) and decide whether each one is intended before inviting family.
+  Change any you do not want shown with the owner's own authority.
+- If no one has signed up since 0003, there is nothing to fix.
+No live profile was inspected and no name was cleared while building this
+change; whether any real account is affected is unknown.
+
 ## Rules
 - Every table has RLS enabled; schema changes go in a new file in
   `supabase/migrations/` (never edit an applied migration).
