@@ -133,7 +133,23 @@ void main() {
         'hunter2hunter2',
       );
       await tester.pump(const Duration(milliseconds: 300));
+      // Like the real keyboard does for the focused field: bring it above
+      // the keyboard; the submit button must be reachable by scrolling.
+      await tester.ensureVisible(find.byKey(const Key('sign_in_password')));
+      await tester.pump(const Duration(milliseconds: 300));
+      final scrollable = find.byType(Scrollable).first;
+      final box = tester.getRect(scrollable);
+      final field = tester.getRect(find.byKey(const Key('sign_in_password')));
+      expect(field.bottom, lessThanOrEqualTo(box.bottom));
+      await tester.ensureVisible(find.byKey(const Key('sign_in_submit')));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+        tester.getRect(find.byKey(const Key('sign_in_submit'))).bottom,
+        lessThanOrEqualTo(tester.getRect(find.byType(Scrollable).first).bottom),
+      );
     }
+    if (state == 'loading')
+      await tester.pump(const Duration(milliseconds: 700));
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile('evidence/auth_routed_$name.png'),

@@ -82,44 +82,48 @@ class AppButton extends StatelessWidget {
           : BoxConstraints.tightFor(height: AppDimens.buttonHeight),
       child: Center(
         widthFactor: expand ? null : 1,
-        child: busy
-            ? SizedBox.square(
-                dimension: AppDimens.iconMd,
-                child: CircularProgressIndicator.adaptive(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation(foreground),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: wrap ? AppDimens.sm : 0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Busy: a clear spinner next to the (still readable) label.
+              if (busy) ...[
+                SizedBox.square(
+                  dimension: AppDimens.iconMd,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation(foreground),
+                  ),
                 ),
-              )
-            : Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: wrap ? AppDimens.sm : 0,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (icon != null) ...[
-                      Icon(icon, size: AppDimens.iconMd),
-                      SizedBox(width: AppDimens.sm),
-                    ],
-                    Flexible(
-                      child: Text(
-                        label,
-                        textAlign: wrap ? TextAlign.center : null,
-                        maxLines: wrap ? null : 1,
-                        overflow: wrap ? null : TextOverflow.ellipsis,
-                        style: AppTextStyles.label,
-                      ),
-                    ),
-                  ],
+                SizedBox(width: AppDimens.sm),
+              ] else if (icon != null) ...[
+                Icon(icon, size: AppDimens.iconMd),
+                SizedBox(width: AppDimens.sm),
+              ],
+              Flexible(
+                child: Text(
+                  label,
+                  textAlign: wrap ? TextAlign.center : null,
+                  maxLines: wrap ? null : 1,
+                  overflow: wrap ? null : TextOverflow.ellipsis,
+                  style: AppTextStyles.label,
                 ),
               ),
+            ],
+          ),
+        ),
       ),
     );
     final style = TextButton.styleFrom(
       backgroundColor: background,
       foregroundColor: foreground,
-      disabledBackgroundColor: background.withValues(alpha: 0.5),
-      disabledForegroundColor: foreground.withValues(alpha: 0.6),
+      disabledBackgroundColor: busy
+          ? background.withValues(alpha: 0.85)
+          : background.withValues(alpha: 0.5),
+      disabledForegroundColor: busy
+          ? foreground
+          : foreground.withValues(alpha: 0.6),
       padding: EdgeInsets.symmetric(horizontal: AppDimens.xl),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
