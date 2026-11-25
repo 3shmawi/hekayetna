@@ -90,6 +90,7 @@ class StorySaver {
     void Function(SavePhase phase)? onPhase,
   }) async {
     var attempt = _inFlight[draft.id];
+    var replaced = false;
     if (attempt != null && attempt.timedOut) {
       final id = attempt.storyId;
       if (id != null) {
@@ -100,10 +101,12 @@ class StorySaver {
           return Success(value);
         }
       }
-      attempt = null; // superseded: the hung one may still finish later
+      attempt.superseded = true; // the hung one may still finish later
+      attempt = null;
+      replaced = true;
     }
     if (attempt == null) {
-      final fresh = _Attempt();
+      final fresh = _Attempt()..supersededOther = replaced;
       attempt = fresh;
       _inFlight[draft.id] = fresh;
       fresh.result = _save(draft, request, onPhase, fresh);
@@ -160,9 +163,13 @@ class StorySaver {
     void Function(SavePhase phase)? onPhase,
     _Attempt attempt,
   ) async {
+    void phase(SavePhase p) {
+      if (!attempt.superseded) onPhase?.call(p);
+    }
+
     final uid = userId;
     if (uid == null) return const Failed(UnauthorizedFailure());
-    onPhase?.call(SavePhase.preparing);
+    phase(SavePhase.preparing);
     final FamilySpace? space;
     switch (await family.getMySpace()) {
       case Success(:final value):
@@ -194,7 +201,7 @@ class StorySaver {
     // finished) may already have created this story: use it, change nothing.
     final already = await stories.getStory(storyId);
     if (already case Success<Story?>(:final value?)) {
-      await drafts.delete(draft.id);
+      if (!attempt.superseded) await drafts.delete(draft.id);
       return Success(value);
     }
 
@@ -203,7 +210,7 @@ class StorySaver {
     // outside your own prefix.
     final storagePath = '${space.id}/$uid/$storyId/a.$ext';
 
-    onPhase?.call(SavePhase.uploading);
+    phase(SavePhase.uploading);
     switch (await stories.uploadAudio(joined, storagePath)) {
       case Failed(:final failure):
         // The failure may be a duplicate (an earlier attempt stored it) or a
@@ -217,7 +224,7 @@ class StorySaver {
         break;
     }
 
-    onPhase?.call(SavePhase.creating);
+    phase(SavePhase.creating);
     final story = Story(
       id: storyId,
       spaceId: space.id,
@@ -249,18 +256,23 @@ class StorySaver {
       // duplicate id from an earlier attempt): look before concluding.
       final existing = await stories.getStory(storyId);
       if (existing case Success<Story?>(:final value?)) {
-        await drafts.delete(draft.id);
+        if (!attempt.superseded) await drafts.delete(draft.id);
         return Success(value);
       }
       // Remove the upload only when the failure is a definite rejection and
       // the story does not exist. After an uncertain failure the audio stays
       // so a retry reuses it and a late-created story keeps its audio.
-      if (!_uncertain(created.failure) && existing is Success<Story?>) {
+      // Never while this attempt was replaced or replaced another: a second
+      // attempt may be using the same object.
+      if (!_uncertain(created.failure) &&
+          existing is Success<Story?> &&
+          !attempt.superseded &&
+          !attempt.supersededOther) {
         await stories.deleteAudio(storagePath);
       }
       return created;
     }
-    await drafts.delete(draft.id);
+    if (!attempt.superseded) await drafts.delete(draft.id);
     return created;
   }
 }
@@ -280,4 +292,11 @@ class _Attempt {
   late Future<Result<Story>> result;
   String? storyId;
   bool timedOut = false;
+
+  /// A newer attempt replaced this one: it must not touch the draft, the
+  /// shared audio or the UI.
+  bool superseded = false;
+
+  /// This attempt replaced a hung one that may still be writing.
+  bool supersededOther = false;
 }
