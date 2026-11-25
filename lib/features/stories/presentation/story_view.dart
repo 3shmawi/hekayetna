@@ -2,6 +2,7 @@ import 'package:family_stories/core/adaptive/adaptive.dart';
 import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
+import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_ui.dart' hide StoryVisibility;
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:family_stories/features/family/data/models.dart';
@@ -97,7 +98,24 @@ class StoryView extends StatelessWidget {
           if (story.topic != null)
             Align(
               alignment: AlignmentDirectional.centerStart,
-              child: Chip(label: Text(topicLabel(s, story.topic!))),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border.all(color: context.hk.line),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusPill),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppDimens.md,
+                    vertical: AppDimens.xs,
+                  ),
+                  child: Text(
+                    topicLabel(s, story.topic!),
+                    style: AppTextStyles.caption.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
             ),
           SizedBox(height: AppDimens.sm),
           Text(story.title, style: AppTextStyles.display),
@@ -162,23 +180,32 @@ class StoryView extends StatelessWidget {
             photos!,
           ],
           SizedBox(height: AppDimens.lg),
-          Row(
-            children: [
-              Icon(
-                AdaptiveIcons.family(context),
-                size: AppDimens.iconMd,
-                color: scheme.onSurfaceVariant,
-              ),
-              SizedBox(width: AppDimens.sm),
-              Expanded(
-                child: Text(
-                  visibilityNote,
-                  style: AppTextStyles.caption.copyWith(
-                    color: scheme.onSurfaceVariant,
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(AppDimens.md),
+              child: Row(
+                children: [
+                  Icon(
+                    AdaptiveIcons.lock(context),
+                    size: AppDimens.iconMd,
+                    color: scheme.onPrimaryContainer,
                   ),
-                ),
+                  SizedBox(width: AppDimens.sm),
+                  Expanded(
+                    child: Text(
+                      visibilityNote,
+                      style: AppTextStyles.caption.copyWith(
+                        color: scheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ],
       ),

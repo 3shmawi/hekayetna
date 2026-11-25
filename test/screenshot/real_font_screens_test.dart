@@ -8,12 +8,16 @@ import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_view.dart';
+import 'package:family_stories/features/family/data/models.dart' show Person;
 import 'package:family_stories/features/family/presentation/family_screens.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
 import 'package:family_stories/features/recording/presentation/record_screen.dart';
+import 'package:family_stories/features/stories/data/models.dart';
+import 'package:family_stories/features/stories/player/audio_player_controller.dart';
 import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
+import 'package:family_stories/features/stories/presentation/story_view.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,6 +32,42 @@ import 'package:flutter_test/flutter_test.dart';
 /// inspected by a human/agent. Output: test/screenshot/shots/*.png.
 final Map<String, Widget Function()> scenes = {
   'stories_feed': () => const _DemoScope(child: StoryFeedPage()),
+  'story_detail': () => StoryView(
+    story: Story(
+      id: 's1',
+      spaceId: 'sp',
+      title: 'The first Om Ali',
+      description:
+          'How Sitto learned to make Om Ali from her mother in the house '
+          'in Sayeda Zeinab, and why she still breaks the bread by hand.',
+      topic: 'ramadan_eid_traditions',
+      approxDateLabel: 'Ramadan, late 1950s',
+      visibility: StoryVisibility.family,
+      audioPath: 'a/b.wav',
+      durationSeconds: 154,
+      createdBy: 'me',
+      createdAt: DateTime(2026),
+    ),
+    player: const PlayerState(
+      storyId: 's1',
+      status: PlayerStatus.playing,
+      position: Duration(seconds: 72),
+      duration: Duration(seconds: 154),
+    ),
+    narratorName: 'Sitto Fatma',
+    recordedBy: 'Recorded by Omar',
+    people: const [
+      Person(id: 'p1', spaceId: 'sp', fullName: 'Sitto Fatma', createdBy: 'me'),
+      Person(id: 'p2', spaceId: 'sp', fullName: 'Nena Zeinab', createdBy: 'me'),
+    ],
+    onPersonTap: (_) {},
+    isCreator: true,
+    visibilityNote: 'The whole family can hear this (8 people).',
+    onToggle: () {},
+    onSeek: (_) {},
+    onSpeed: () {},
+    onMenu: (_) {},
+  ),
   'sign_in': () => SignInView(
     onSubmit: (_, _, _) {},
     onForgotPassword: (_) {},
