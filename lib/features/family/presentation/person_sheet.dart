@@ -125,26 +125,33 @@ class _PersonSheetState extends ConsumerState<PersonSheet> {
           ],
         ),
         SizedBox(height: AppDimens.md),
-        if (mine.isNotEmpty) ...[
-          AppButton.primary(
-            label: l10n.personPlayAll,
-            icon: AdaptiveIcons.play(context),
-            onPressed: () {
-              unawaited(Analytics.capture('person_play_all'));
-              unawaited(player.playQueue(mine));
-              Navigator.of(context).pop();
-            },
-          ),
-          SizedBox(height: AppDimens.sm),
-        ] else
+        if (mine.isEmpty)
           Padding(
             padding: EdgeInsets.symmetric(vertical: AppDimens.md),
             child: Text(l10n.personNoStories),
           ),
-        AppButton.secondary(
-          label: l10n.personRecordWith(person.fullName),
-          icon: AdaptiveIcons.record(context),
-          onPressed: () => Navigator.of(context).pop(PersonAction.record),
+        _ActionButtons(
+          playAll: mine.isEmpty
+              ? null
+              : AppButton.primary(
+                  label: l10n.personPlayAll,
+                  icon: AdaptiveIcons.play(context),
+                  onPressed: () {
+                    unawaited(Analytics.capture('person_play_all'));
+                    unawaited(player.playQueue(mine));
+                    Navigator.of(context).pop();
+                  },
+                ),
+          record: AppButton.secondary(
+            label: l10n.personRecordWith(person.fullName),
+            icon: AdaptiveIcons.record(context),
+            onPressed: () => Navigator.of(context).pop(PersonAction.record),
+          ),
+          // Side by side only while both labels fit; long names or large
+          // text stack them instead of truncating the name.
+          sideBySide:
+              l10n.personRecordWith(person.fullName).length <= 10 &&
+              MediaQuery.textScalerOf(context).scale(1) <= 1.15,
         ),
         if (topics.isNotEmpty) ...[
           SizedBox(height: AppDimens.lg),
@@ -168,8 +175,23 @@ class _PersonSheetState extends ConsumerState<PersonSheet> {
           for (final s in shown.take(3))
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: Icon(AdaptiveIcons.play(context)),
+              leading: CircleAvatar(
+                radius: 18,
+                backgroundColor: scheme.primaryContainer,
+                foregroundColor: scheme.onPrimaryContainer,
+                child: Icon(AdaptiveIcons.play(context), size: 20),
+              ),
               title: Text(s.title),
+              subtitle: s.topic == null
+                  ? null
+                  : Text(topicLabel(l10n, s.topic!)),
+              trailing: Text(
+                _mmss(s.durationSeconds),
+                textDirection: TextDirection.ltr,
+                style: AppTextStyles.caption.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
               onTap: () => unawaited(player.playStory(s)),
             ),
           if (shown.length > 3)
@@ -234,4 +256,41 @@ Future<PersonAction?> showPersonQuickMenu(
       ),
     ),
   );
+}
+
+String _mmss(int seconds) =>
+    '${(seconds ~/ 60).toString().padLeft(2, '0')}:'
+    '${(seconds % 60).toString().padLeft(2, '0')}';
+
+class _ActionButtons extends StatelessWidget {
+  const _ActionButtons({
+    required this.playAll,
+    required this.record,
+    required this.sideBySide,
+  });
+
+  final Widget? playAll;
+  final Widget record;
+  final bool sideBySide;
+
+  @override
+  Widget build(BuildContext context) {
+    if (playAll == null) return record;
+    if (sideBySide) {
+      return Row(
+        children: [
+          Expanded(child: playAll!),
+          SizedBox(width: AppDimens.sm),
+          Expanded(child: record),
+        ],
+      );
+    }
+    return Column(
+      children: [
+        playAll!,
+        SizedBox(height: AppDimens.sm),
+        record,
+      ],
+    );
+  }
 }

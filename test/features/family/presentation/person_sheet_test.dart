@@ -105,7 +105,7 @@ void main() {
     await t.pumpApp(sheet());
     await t.pumpAndSettle();
     expect(find.text('See all 4'), findsOneWidget);
-    await t.tap(find.textContaining('Important life events'));
+    await t.tap(find.textContaining('Important life events '));
     await t.pumpAndSettle();
     expect(find.text('Story b'), findsOneWidget);
     expect(find.text('Story a'), findsNothing);
