@@ -314,8 +314,11 @@ class AuthField extends StatelessWidget {
   const AuthField({
     required this.label,
     required this.controller,
-    required this.icon,
+    this.icon,
     this.fieldKey,
+    this.maxLines = 1,
+    this.textCapitalization = TextCapitalization.none,
+    this.onChanged,
     this.enabled = true,
     this.obscureText = false,
     this.keyboardType,
@@ -330,8 +333,11 @@ class AuthField extends StatelessWidget {
 
   final String label;
   final TextEditingController controller;
-  final IconData icon;
+  final IconData? icon;
   final Key? fieldKey;
+  final int maxLines;
+  final TextCapitalization textCapitalization;
+  final ValueChanged<String>? onChanged;
   final bool enabled;
   final bool obscureText;
   final TextInputType? keyboardType;
@@ -380,12 +386,17 @@ class AuthField extends StatelessWidget {
             autofillHints: autofillHints,
             maxLength: maxLength,
             onSubmitted: onSubmitted,
+            onChanged: onChanged,
+            maxLines: maxLines,
+            textCapitalization: textCapitalization,
             style: AppTextStyles.bodyLarge.copyWith(color: p.text),
             decoration: InputDecoration(
               fillColor: p.fieldRaised,
               errorText: errorText,
               counterText: '',
-              prefixIcon: Icon(icon, color: p.placeholder),
+              prefixIcon: icon == null
+                  ? null
+                  : Icon(icon, color: p.placeholder),
               suffixIcon: trailing,
             ),
           ),

@@ -1,3 +1,5 @@
+// Reformatting by the new wrapper pushed two existing lines past 80 chars.
+// ignore_for_file: lines_longer_than_80_chars
 import 'dart:async';
 import 'dart:io';
 
@@ -13,6 +15,7 @@ import 'package:family_stories/core/theme/app_text_styles.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_message.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
+import 'package:family_stories/core/ui/auth_chrome.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/photos/data/models.dart';
@@ -295,233 +298,222 @@ class _SaveStoryPageState extends ConsumerState<SaveStoryPage> {
     ];
     final hk = context.hk;
 
-    return AppScaffold(
-      title: s.saveStoryTitle,
-      leading: AppIconButton(
-        icon: AdaptiveIcons.back(context),
-        tooltip: s.saveStoryBack,
-        onPressed: () =>
-            context.canPop() ? context.pop() : context.go(AppRoutes.record),
-      ),
-      bottom: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (!online)
-            Padding(
-              padding: EdgeInsets.only(bottom: AppDimens.sm),
-              child: Text(
-                s.saveStoryOffline,
-                style: AppTextStyles.caption.copyWith(color: hk.inkSoft),
-              ),
-            ),
-          if (_busy && _phase != null)
-            Padding(
-              padding: EdgeInsets.only(bottom: AppDimens.sm),
-              child: Text(switch (_phase!) {
-                SavePhase.preparing => s.saveStoryPreparing,
-                SavePhase.uploading => s.saveStoryUploading,
-                SavePhase.creating => s.saveStoryCreating,
-              }, style: AppTextStyles.caption.copyWith(color: hk.inkSoft)),
-            ),
-          if (_failure != null)
-            Padding(
-              padding: EdgeInsets.only(bottom: AppDimens.sm),
-              child: Text(
-                _failure is TimeoutFailure
-                    ? s.saveStoryStillSending
-                    : '${switch (_failedPhase) {
-                        SavePhase.preparing || null => s.saveStoryFailedPrepare,
-                        SavePhase.uploading => s.saveStoryFailedUpload,
-                        SavePhase.creating => s.saveStoryFailedCreate,
-                      }} ${s.saveStoryFailed} ${_failure!.message(s)}',
-                style: AppTextStyles.caption.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                ),
-              ),
-            ),
-          AppButton.primary(
-            label: _failure != null ? s.retry : s.saveStoryButton,
-            busy: _busy,
-            onPressed: online && _draft != null && !_busy ? _save : null,
+    return AuthTheme(
+      child: Builder(
+        builder: (context) => AppScaffold(
+          background: AuthPalette.of(context).background,
+          title: s.saveStoryTitle,
+          leading: AppIconButton(
+            icon: AdaptiveIcons.back(context),
+            tooltip: s.saveStoryBack,
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go(AppRoutes.record),
           ),
-        ],
-      ),
-      body: _missing
-          ? Center(child: Text(s.saveStoryMissing))
-          : _draft == null
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: EdgeInsetsDirectional.fromSTEB(
-                AppDimens.lg,
-                AppDimens.sm,
-                AppDimens.lg,
-                AppDimens.xl,
+          bottom: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!online)
+                Padding(
+                  padding: EdgeInsets.only(bottom: AppDimens.sm),
+                  child: Text(
+                    s.saveStoryOffline,
+                    style: AppTextStyles.caption.copyWith(color: hk.inkSoft),
+                  ),
+                ),
+              if (_busy && _phase != null)
+                Padding(
+                  padding: EdgeInsets.only(bottom: AppDimens.sm),
+                  child: Text(switch (_phase!) {
+                    SavePhase.preparing => s.saveStoryPreparing,
+                    SavePhase.uploading => s.saveStoryUploading,
+                    SavePhase.creating => s.saveStoryCreating,
+                  }, style: AppTextStyles.caption.copyWith(color: hk.inkSoft)),
+                ),
+              if (_failure != null)
+                Padding(
+                  padding: EdgeInsets.only(bottom: AppDimens.sm),
+                  child: Text(
+                    _failure is TimeoutFailure
+                        ? s.saveStoryStillSending
+                        : '${switch (_failedPhase) {
+                            SavePhase.preparing || null => s.saveStoryFailedPrepare,
+                            SavePhase.uploading => s.saveStoryFailedUpload,
+                            SavePhase.creating => s.saveStoryFailedCreate,
+                          }} ${s.saveStoryFailed} ${_failure!.message(s)}',
+                    style: AppTextStyles.caption.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+              AppButton.primary(
+                label: _failure != null ? s.retry : s.saveStoryButton,
+                busy: _busy,
+                onPressed: online && _draft != null && !_busy ? _save : null,
               ),
-              children: [
-                _TakeCard(
-                  duration: Duration(seconds: _draft!.durationSeconds),
-                  playing: _player?.playing ?? false,
-                  onToggle: _togglePlay,
-                  onRecordAgain: () => _discardTake(recordAgain: true),
-                  onDelete: () => _discardTake(recordAgain: false),
-                ),
-                SizedBox(height: AppDimens.lg),
-                TextField(
-                  controller: _title,
-                  textCapitalization: TextCapitalization.sentences,
-                  decoration: InputDecoration(
-                    labelText: s.storyTitle,
-                    errorText: err({
-                      StoryFormError.titleEmpty,
-                      StoryFormError.titleTooLong,
-                    }),
+            ],
+          ),
+          body: _missing
+              ? Center(child: Text(s.saveStoryMissing))
+              : _draft == null
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  padding: EdgeInsetsDirectional.fromSTEB(
+                    AppDimens.lg,
+                    AppDimens.sm,
+                    AppDimens.lg,
+                    AppDimens.xl,
                   ),
-                  onChanged: (_) => setState(() {}),
-                ),
-                SizedBox(height: AppDimens.md),
-                TextField(
-                  controller: _description,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    labelText: s.description,
-                    errorText: err({StoryFormError.descriptionTooLong}),
-                  ),
-                  onChanged: (_) => setState(() {}),
-                ),
-                SizedBox(height: AppDimens.md),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      flex: 3,
-                      child: TextField(
-                        controller: _dateLabel,
-                        decoration: InputDecoration(
-                          labelText: s.approxDate,
-                          errorText: err({StoryFormError.dateLabelTooLong}),
+                    _TakeCard(
+                      duration: Duration(seconds: _draft!.durationSeconds),
+                      playing: _player?.playing ?? false,
+                      onToggle: _togglePlay,
+                      onRecordAgain: () => _discardTake(recordAgain: true),
+                      onDelete: () => _discardTake(recordAgain: false),
+                    ),
+                    SizedBox(height: AppDimens.lg),
+                    AuthField(
+                      label: s.storyTitle,
+                      controller: _title,
+                      textCapitalization: TextCapitalization.sentences,
+                      errorText: err({
+                        StoryFormError.titleEmpty,
+                        StoryFormError.titleTooLong,
+                      }),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                    SizedBox(height: AppDimens.md),
+                    AuthField(
+                      label: s.description,
+                      controller: _description,
+                      maxLines: 3,
+                      errorText: err({StoryFormError.descriptionTooLong}),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                    SizedBox(height: AppDimens.md),
+                    AuthField(
+                      label: s.approxDate,
+                      controller: _dateLabel,
+                      errorText: err({StoryFormError.dateLabelTooLong}),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                    SizedBox(height: AppDimens.md),
+                    AuthField(
+                      label: s.saveStoryYear,
+                      controller: _year,
+                      keyboardType: TextInputType.number,
+                      errorText: err({StoryFormError.yearInvalid}),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                    SizedBox(height: AppDimens.lg),
+                    AppSectionLabel(s.topic),
+                    _ChipWrap(
+                      children: [
+                        AppChip(
+                          label: s.noTopic,
+                          selected: _topic == null,
+                          onTap: () => setState(() => _topic = null),
                         ),
-                        onChanged: (_) => setState(() {}),
+                        for (final t in kStoryTopics)
+                          AppChip(
+                            label: topicLabel(s, t),
+                            selected: _topic == t,
+                            onTap: () => setState(() => _topic = t),
+                          ),
+                      ],
+                    ),
+                    if (persons.isNotEmpty) ...[
+                      SizedBox(height: AppDimens.lg),
+                      AppSectionLabel(s.narrators),
+                      _ChipWrap(
+                        children: [
+                          for (final p in persons)
+                            AppChip(
+                              label: p.fullName,
+                              selected: _narrators.contains(p.id),
+                              onTap: () =>
+                                  setState(() => _toggle(_narrators, p.id)),
+                            ),
+                        ],
+                      ),
+                      SizedBox(height: AppDimens.lg),
+                      AppSectionLabel(s.peopleMentioned),
+                      _ChipWrap(
+                        children: [
+                          for (final p in persons)
+                            AppChip(
+                              label: p.fullName,
+                              selected: _people.contains(p.id),
+                              onTap: () =>
+                                  setState(() => _toggle(_people, p.id)),
+                            ),
+                        ],
+                      ),
+                    ],
+                    // Linking a photo never widens the photo's own audience; only
+                    // photos the member can already see are listed.
+                    if (photos.isNotEmpty) ...[
+                      SizedBox(height: AppDimens.lg),
+                      AppSectionLabel(s.linkPhotos),
+                      _ChipWrap(
+                        children: [
+                          for (final p in photos)
+                            AppChip(
+                              label:
+                                  p.caption ??
+                                  p.approxDateLabel ??
+                                  p.id.substring(0, 8),
+                              selected: _photos.contains(p.id),
+                              onTap: () =>
+                                  setState(() => _toggle(_photos, p.id)),
+                            ),
+                        ],
+                      ),
+                    ],
+                    SizedBox(height: AppDimens.xl),
+                    AppSectionLabel(s.whoCanHear),
+                    SizedBox(height: AppDimens.sm),
+                    VisibilityPicker(
+                      value: _toPicker(_visibility),
+                      onChanged: (v) =>
+                          setState(() => _visibility = _fromPicker(v)),
+                      consequenceText: visibilitySentence(
+                        s,
+                        visibility: _visibility,
+                        selectedNames: selectedNames,
+                        familyCount: members.length,
                       ),
                     ),
-                    SizedBox(width: AppDimens.md),
-                    Expanded(
-                      flex: 2,
-                      child: TextField(
-                        controller: _year,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: s.saveStoryYear,
-                          errorText: err({StoryFormError.yearInvalid}),
-                        ),
-                        onChanged: (_) => setState(() {}),
+                    if (_visibility == m.StoryVisibility.selected) ...[
+                      SizedBox(height: AppDimens.md),
+                      _ChipWrap(
+                        children: [
+                          for (final mem in members)
+                            AppChip(
+                              label: mem.displayName,
+                              selected: _recipients.contains(mem.userId),
+                              onTap: () => setState(
+                                () => _toggle(_recipients, mem.userId),
+                              ),
+                            ),
+                        ],
                       ),
-                    ),
+                      if (err({StoryFormError.noRecipients}) case final text?)
+                        Padding(
+                          padding: EdgeInsets.only(top: AppDimens.sm),
+                          child: Text(
+                            text,
+                            style: AppTextStyles.caption.copyWith(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                    ],
                   ],
                 ),
-                SizedBox(height: AppDimens.lg),
-                AppSectionLabel(s.topic),
-                _ChipWrap(
-                  children: [
-                    AppChip(
-                      label: s.noTopic,
-                      selected: _topic == null,
-                      onTap: () => setState(() => _topic = null),
-                    ),
-                    for (final t in kStoryTopics)
-                      AppChip(
-                        label: topicLabel(s, t),
-                        selected: _topic == t,
-                        onTap: () => setState(() => _topic = t),
-                      ),
-                  ],
-                ),
-                if (persons.isNotEmpty) ...[
-                  SizedBox(height: AppDimens.lg),
-                  AppSectionLabel(s.narrators),
-                  _ChipWrap(
-                    children: [
-                      for (final p in persons)
-                        AppChip(
-                          label: p.fullName,
-                          selected: _narrators.contains(p.id),
-                          onTap: () =>
-                              setState(() => _toggle(_narrators, p.id)),
-                        ),
-                    ],
-                  ),
-                  SizedBox(height: AppDimens.lg),
-                  AppSectionLabel(s.peopleMentioned),
-                  _ChipWrap(
-                    children: [
-                      for (final p in persons)
-                        AppChip(
-                          label: p.fullName,
-                          selected: _people.contains(p.id),
-                          onTap: () => setState(() => _toggle(_people, p.id)),
-                        ),
-                    ],
-                  ),
-                ],
-                // Linking a photo never widens the photo's own audience; only
-                // photos the member can already see are listed.
-                if (photos.isNotEmpty) ...[
-                  SizedBox(height: AppDimens.lg),
-                  AppSectionLabel(s.linkPhotos),
-                  _ChipWrap(
-                    children: [
-                      for (final p in photos)
-                        AppChip(
-                          label:
-                              p.caption ??
-                              p.approxDateLabel ??
-                              p.id.substring(0, 8),
-                          selected: _photos.contains(p.id),
-                          onTap: () => setState(() => _toggle(_photos, p.id)),
-                        ),
-                    ],
-                  ),
-                ],
-                SizedBox(height: AppDimens.xl),
-                AppSectionLabel(s.whoCanHear),
-                SizedBox(height: AppDimens.sm),
-                VisibilityPicker(
-                  value: _toPicker(_visibility),
-                  onChanged: (v) =>
-                      setState(() => _visibility = _fromPicker(v)),
-                  consequenceText: visibilitySentence(
-                    s,
-                    visibility: _visibility,
-                    selectedNames: selectedNames,
-                    familyCount: members.length,
-                  ),
-                ),
-                if (_visibility == m.StoryVisibility.selected) ...[
-                  SizedBox(height: AppDimens.md),
-                  _ChipWrap(
-                    children: [
-                      for (final mem in members)
-                        AppChip(
-                          label: mem.displayName,
-                          selected: _recipients.contains(mem.userId),
-                          onTap: () =>
-                              setState(() => _toggle(_recipients, mem.userId)),
-                        ),
-                    ],
-                  ),
-                  if (err({StoryFormError.noRecipients}) case final text?)
-                    Padding(
-                      padding: EdgeInsets.only(top: AppDimens.sm),
-                      child: Text(
-                        text,
-                        style: AppTextStyles.caption.copyWith(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ),
-                ],
-              ],
-            ),
+        ),
+      ),
     );
   }
 
@@ -605,6 +597,7 @@ class _TakeCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: AppButton.secondary(
+                    wrap: true,
                     label: s.saveStoryRecordAgain,
                     onPressed: onRecordAgain,
                   ),
@@ -612,6 +605,7 @@ class _TakeCard extends StatelessWidget {
                 SizedBox(width: AppDimens.md),
                 Expanded(
                   child: AppButton.destructive(
+                    wrap: true,
                     label: s.saveStoryDelete,
                     onPressed: onDelete,
                   ),
