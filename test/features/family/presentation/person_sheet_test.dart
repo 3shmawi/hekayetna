@@ -1,10 +1,14 @@
+import 'package:family_stories/core/theme/app_dimens.dart';
+import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/features/family/domain/family_graph.dart';
 import 'package:family_stories/features/family/presentation/person_sheet.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/features/stories/player/audio_player_controller.dart';
 import 'package:family_stories/features/stories/presentation/story_providers.dart';
+import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/pump_app.dart';
@@ -153,6 +157,46 @@ void main() {
     expect(find.text('Story b'), findsOneWidget);
     expect(find.text('Story a'), findsNothing);
     expect(find.textContaining('See all'), findsNothing);
+  });
+
+  testWidgets('the close button dismisses the sheet (artboard X)', (t) async {
+    t.view
+      ..physicalSize = const Size(1125, 2436)
+      ..devicePixelRatio = 3;
+    addTearDown(t.view.reset);
+    // The sheet is a route, so the provider scope sits above the app.
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [
+          storyFeedProvider.overrideWith2(_Feed.new),
+          audioPlayerControllerProvider.overrideWith(_Player.new),
+        ],
+        child: ScreenUtilInit(
+          designSize: AppDimens.designSize,
+          builder: (context, _) => MaterialApp(
+            theme: AppTheme.light,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () =>
+                      showPersonSheet(context, graph: graph, personId: 'sitto'),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await t.tap(find.text('open'));
+    await t.pumpAndSettle();
+    expect(find.byType(PersonSheet), findsOneWidget);
+    expect(find.byTooltip('Close'), findsOneWidget);
+    await t.tap(find.byTooltip('Close'));
+    await t.pumpAndSettle();
+    expect(find.byType(PersonSheet), findsNothing);
   });
 
   testWidgets('the long-press menu has exactly three actions', (t) async {
