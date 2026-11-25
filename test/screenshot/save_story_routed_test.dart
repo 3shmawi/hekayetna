@@ -9,6 +9,7 @@ import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_ui.dart' hide StoryVisibility;
+import 'package:family_stories/core/ui/auth_chrome.dart';
 import 'package:family_stories/features/family/data/family_repository.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/photos/data/models.dart';
@@ -142,6 +143,7 @@ void main() {
     double textScale = 1,
     bool dark = false,
     double keyboard = 0,
+    TargetPlatform? platform,
   }) async {
     tester.view
       ..physicalSize = size
@@ -190,7 +192,9 @@ void main() {
           designSize: AppDimens.designSize,
           builder: (context, _) => MaterialApp.router(
             locale: locale,
-            theme: dark ? AppTheme.dark : AppTheme.light,
+            theme: (dark ? AppTheme.dark : AppTheme.light).copyWith(
+              platform: platform,
+            ),
             routerConfig: router,
             builder: (context, child) => MediaQuery(
               data: MediaQuery.of(context).copyWith(
@@ -276,4 +280,38 @@ void main() {
     await tester.pumpAndSettle();
     await shot(tester, 'visibility_ar_dark');
   });
+
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    for (final label in ['Approximate date or period', 'Year (optional)']) {
+      testWidgets('keyboard on "$label", $platform: field above Save', (
+        tester,
+      ) async {
+        await pump(tester, keyboard: 280, platform: platform);
+        await tester.scrollUntilVisible(
+          find.text(label),
+          100,
+          scrollable: find.byType(Scrollable).first,
+        );
+        final field = find.descendant(
+          of: find.ancestor(
+            of: find.text(label),
+            matching: find.byType(AuthField),
+          ),
+          matching: find.byType(TextField),
+        );
+        await tester.ensureVisible(field);
+        await tester.pumpAndSettle();
+        await tester.showKeyboard(field);
+        await tester.enterText(field, '1968');
+        await tester.pumpAndSettle();
+        final fieldRect = tester.getRect(field);
+        final saveRect = tester.getRect(find.byType(AppButton).last);
+        expect(fieldRect.bottom, lessThanOrEqualTo(saveRect.top));
+        expect(saveRect.bottom, lessThanOrEqualTo(812 - 280 + 100));
+        expect(fieldRect.top, greaterThan(0));
+        final n = label.startsWith('Year') ? 'year' : 'date';
+        await shot(tester, 'keyboard_${n}_${platform.name}');
+      });
+    }
+  }
 }
