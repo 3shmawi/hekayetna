@@ -144,9 +144,15 @@ class AppIconButton extends StatelessWidget {
 /// Opens a bottom sheet with a grab handle; [builder]'s content scrolls
 /// when it's taller than the screen allows. Drag it down or tap outside to
 /// close. Returns what the sheet pops with.
+///
+/// [handleInside] draws the grab handle on the sheet's own surface. The
+/// default leaves it to the modal, which paints it on the transparent area
+/// above the sheet; that suits sheets that bring their own full-height
+/// scaffold, and looks detached on a plain content sheet.
 Future<T?> showAppSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
+  bool handleInside = false,
 }) {
   final scheme = Theme.of(context).colorScheme;
   final radius = Radius.circular(AppDimens.radiusLg);
@@ -154,7 +160,7 @@ Future<T?> showAppSheet<T>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    showDragHandle: true,
+    showDragHandle: !handleInside,
     backgroundColor: Colors.transparent,
     constraints: BoxConstraints(
       maxHeight: MediaQuery.sizeOf(context).height * AppDimens.sheetMaxShare,
@@ -171,7 +177,23 @@ Future<T?> showAppSheet<T>(
         // Material (not ColoredBox) so ListTiles inside paint their ink.
         child: Material(
           color: scheme.surface.withValues(alpha: AppDimens.sheetGlassOpacity),
-          child: builder(sheetContext),
+          child: handleInside
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 4,
+                      margin: const EdgeInsets.only(top: 10, bottom: 12),
+                      decoration: BoxDecoration(
+                        color: scheme.onSurfaceVariant.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    Flexible(child: builder(sheetContext)),
+                  ],
+                )
+              : builder(sheetContext),
         ),
       ),
     ),

@@ -28,6 +28,7 @@ Future<PersonAction?> showPersonSheet(
   unawaited(Analytics.capture('person_sheet_opened'));
   return showAppSheet<PersonAction>(
     context,
+    handleInside: true,
     builder: (_) => PersonSheet(graph: graph, personId: personId),
   );
 }
