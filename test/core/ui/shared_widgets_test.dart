@@ -1,5 +1,6 @@
 import 'dart:ui' show Tristate;
 
+import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:flutter/material.dart';
@@ -482,6 +483,25 @@ void main() {
         ),
       );
       await tester.expectAccessible();
+    });
+  });
+
+  group('AppScaffold on iOS', () {
+    testWidgets('gives its body a Material ancestor (text fields work)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light.copyWith(platform: TargetPlatform.iOS),
+          home: AppScaffold(
+            title: 'Sign in',
+            body: ListView(children: const [TextField(key: Key('field'))]),
+          ),
+        ),
+      );
+      await tester.enterText(find.byKey(const Key('field')), 'a@b.co');
+      expect(tester.takeException(), isNull);
+      expect(find.text('a@b.co'), findsOneWidget);
     });
   });
 }
