@@ -33,6 +33,9 @@ returns void language plpgsql as $$
 begin
   if not coalesce(p_cond, false) then
     raise exception 'RLS TEST FAILED: %', p_msg;
+  end if;
+end $$;
+grant execute on function pg_temp._assert(boolean, text) to authenticated, anon;
 
 -- o = owner, m = member (joins by code), r = removed member, x = stranger.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at) values
