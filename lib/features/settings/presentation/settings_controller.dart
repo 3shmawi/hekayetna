@@ -26,6 +26,12 @@ class SettingsController extends Notifier<AppSettings> {
   void setThemeMode(ThemeMode themeMode) =>
       _update(state.copyWith(themeMode: themeMode));
 
+  void setLastNarrator(String? personId) =>
+      _update(state.copyWith(lastNarratorId: () => personId));
+
+  void setShowPrompts({required bool value}) =>
+      _update(state.copyWith(showPrompts: value));
+
   void _update(AppSettings next) {
     if (next == state) return;
     state = next;
