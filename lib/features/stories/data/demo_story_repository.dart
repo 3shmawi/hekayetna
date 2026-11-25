@@ -1,3 +1,5 @@
+import 'package:family_stories/core/network/app_failure.dart';
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/features/stories/data/story_repository.dart';
 
@@ -32,7 +34,43 @@ class DemoStoryRepository implements StoryRepository {
   var _seq = 0;
 
   @override
-  Future<List<Story>> listStories(String spaceId, {StoryFilter? filter}) async {
+  Future<Result<List<Story>>> listStories(
+    String spaceId, {
+    StoryFilter? filter,
+  }) => guard(() => _listStories(spaceId, filter: filter));
+
+  @override
+  Future<Result<Story?>> getStory(String storyId) =>
+      guard(() => _getStory(storyId));
+
+  @override
+  Future<Result<Story>> createStory(Story story) =>
+      guard(() => _createStory(story));
+
+  @override
+  Future<Result<Story>> updateStory(Story story) =>
+      guard(() => _updateStory(story));
+
+  @override
+  Future<Result<void>> deleteStory(String storyId) =>
+      guard(() => _deleteStory(storyId));
+
+  @override
+  Future<Result<String>> createAudioUrl(String audioPath) =>
+      guard(() => _createAudioUrl(audioPath));
+
+  @override
+  Future<Result<String>> uploadAudio(String localPath, String storagePath) =>
+      guard(() => _uploadAudio(localPath, storagePath));
+
+  @override
+  Future<Result<void>> deleteAudio(String storagePath) =>
+      guard(() => _deleteAudio(storagePath));
+
+  Future<List<Story>> _listStories(
+    String spaceId, {
+    StoryFilter? filter,
+  }) async {
     var all = List<Story>.from(_stories);
     final f = filter;
     if (f?.narratorId != null) {
@@ -52,16 +90,14 @@ class DemoStoryRepository implements StoryRepository {
     return all;
   }
 
-  @override
-  Future<Story?> getStory(String storyId) async {
+  Future<Story?> _getStory(String storyId) async {
     for (final s in _stories) {
       if (s.id == storyId) return s;
     }
     return null;
   }
 
-  @override
-  Future<Story> createStory(Story story) async {
+  Future<Story> _createStory(Story story) async {
     final s = Story(
       id: 's-${_seq++}',
       spaceId: story.spaceId,
@@ -84,27 +120,22 @@ class DemoStoryRepository implements StoryRepository {
     return s;
   }
 
-  @override
-  Future<Story> updateStory(Story story) async {
+  Future<Story> _updateStory(Story story) async {
     final i = _stories.indexWhere((s) => s.id == story.id);
-    if (i < 0) throw StateError('not_found');
+    if (i < 0) throw const NotFoundFailure();
     _stories[i] = story;
     return story;
   }
 
-  @override
-  Future<void> deleteStory(String storyId) async {
+  Future<void> _deleteStory(String storyId) async {
     _stories.removeWhere((s) => s.id == storyId);
   }
 
-  @override
-  Future<String> createAudioUrl(String audioPath) async =>
+  Future<String> _createAudioUrl(String audioPath) async =>
       'demo://audio/$audioPath';
 
-  @override
-  Future<String> uploadAudio(String localPath, String storagePath) async =>
+  Future<String> _uploadAudio(String localPath, String storagePath) async =>
       storagePath;
 
-  @override
-  Future<void> deleteAudio(String storagePath) async {}
+  Future<void> _deleteAudio(String storagePath) async {}
 }

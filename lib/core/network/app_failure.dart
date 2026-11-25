@@ -70,6 +70,22 @@ final class StorageFullFailure extends AppFailure {
   const StorageFullFailure([super.cause]);
 }
 
+/// Why joining or managing a family space didn't work.
+enum FamilyFailureReason {
+  invalidInviteCode,
+  memberRemoved,
+  notOwner,
+  cannotRemoveSelf,
+  membershipNotFound,
+}
+
+/// A family-space rule the backend refused, with a message the user can act on.
+final class FamilyFailure extends AppFailure {
+  const FamilyFailure(this.reason, [super.cause]);
+
+  final FamilyFailureReason reason;
+}
+
 final class UnknownFailure extends AppFailure {
   const UnknownFailure([super.cause]);
 }

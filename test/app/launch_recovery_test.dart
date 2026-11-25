@@ -13,14 +13,17 @@ import 'package:family_stories/features/onboarding/data/onboarding.dart';
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
 import 'package:family_stories/features/recording/presentation/launch_recovery_listener.dart';
-import 'package:family_stories/features/recording/presentation/preview_screen.dart';
-import 'package:family_stories/features/recording/presentation/record_screen.dart';
+import 'package:family_stories/features/recording/presentation/record_page.dart';
+import 'package:family_stories/features/recording/presentation/save_story_page.dart';
+import 'package:family_stories/features/settings/data/settings_repository.dart';
+import 'package:family_stories/features/settings/presentation/settings_controller.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/pump_app.dart';
 
@@ -32,6 +35,10 @@ class _Recorder implements RecorderService {
   RecorderState get state => RecorderState(
     status: continued.isEmpty ? _status : RecorderStatus.recording,
   );
+  @override
+  Stream<double> get levels => const Stream.empty();
+  @override
+  List<int>? get waveform => null;
   @override
   Stream<RecorderState> watch() => const Stream.empty();
   @override
@@ -97,6 +104,8 @@ void main() {
     for (final d in drafts) {
       await store.save(d);
     }
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     recorder = _Recorder(status);
     t.view
       ..physicalSize = const Size(1125, 2436)
@@ -107,6 +116,9 @@ void main() {
         overrides: [
           draftStoreProvider.overrideWithValue(store),
           recorderServiceProvider.overrideWithValue(recorder),
+          settingsRepositoryProvider.overrideWithValue(
+            SettingsRepository(prefs),
+          ),
         ],
         child: AppUi.testWrap(
           ScreenUtilInit(
@@ -153,10 +165,13 @@ void main() {
   ) async {
     await pumpApp(t, drafts: [_draft(DraftStatus.interrupted)]);
     await t.tap(find.byKey(const Key('resume_continue_d1')));
-    await t.pumpAndSettle();
+    // The live screen's halo animates forever: pump frames, don't settle.
+    for (var i = 0; i < 20; i++) {
+      await t.pump(const Duration(milliseconds: 100));
+    }
     expect(recorder.continued, ['d1']);
     expect(find.byType(BottomSheet), findsNothing);
-    expect(find.byType(RecordScreen), findsOneWidget);
+    expect(find.byType(RecordPage), findsOneWidget);
   });
 
   testWidgets('It is finished opens the save screen and keeps the draft', (
@@ -171,11 +186,7 @@ void main() {
     await t.tap(find.byKey(const Key('resume_save_d1')));
     await t.pumpAndSettle();
     expect(find.byType(BottomSheet), findsNothing);
-    expect(
-      find.byType(RecordingPreviewScreen),
-      findsOneWidget,
-      reason: '$visited',
-    );
+    expect(find.byType(SaveStoryPage), findsOneWidget, reason: '$visited');
     final store = ProviderScope.containerOf(
       t.element(find.byType(MaterialApp)),
     ).read(draftStoreProvider);

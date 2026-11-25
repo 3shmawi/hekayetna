@@ -26,7 +26,7 @@ a locked screen never loses recorded audio.
   same check pauses it with `PauseReason.storage`. Free space comes from a
   small native channel (`com.mohager.hekayetna/storage`: Android `StatFs`, iOS
   `volumeAvailableCapacityForImportantUsage`), no extra package.
-- Save and preview join the segments into one WAV (`SegmentJoiner`): PCM is
+- Save joins the segments into one WAV (`SegmentJoiner`): PCM is
   concatenated under a single header, so the uploaded size is the sum of the
   segments' audio plus one 44-byte header. Storage path stays
   `<space>/<uid>/<story>/a.wav`, content type `audio/wav`. The local draft is
@@ -72,3 +72,28 @@ Each must keep every second recorded before the event. Results go in the PR.
 ## Not built yet
 The Continue-a-recording screen (AC-6/AC-7 UI) waits for the `RecordResume`
 artboard.
+
+## Record and save (spec 04)
+Spec: [04-record-and-share](../designs/04-record-and-share.md).
+
+- `RecordPage`/`RecordView` is the recording screen: close, draft-saved line,
+  Speaking chip (last narrator is remembered), topic chip, a starter-question
+  card (4 generic localized questions, hideable by `showPrompts`), a 20-bar
+  live meter fed by `RecorderService.levels`, the record button, and Done
+  (disabled until audio exists).
+- Done opens `SaveStoryPage` at `/record/new-story/:draftId`. It replaces the
+  old preview screen and the create path of `StoryEditScreen`; the preview
+  route no longer exists. The page has a take card (play, Record again,
+  Delete, each asking once), title, description, date, year, topic, people,
+  photos, the visibility picker with its exact sentence, and a sticky Save.
+- `StorySaver` joins segments, uploads audio and photos, creates the story,
+  then deletes the draft. A failure keeps the form and draft and offers Retry.
+  Offline disables Save and says why. Progress is phase text only: the storage
+  API gives no byte percentage.
+- The waveform is kept in memory by `RecorderService.waveform`; after a draft
+  resume or app restart it is null and the story saves without one.
+- Analytics now wired: `story_saved`, `story_save_failed`,
+  `recording_take_discarded`, `recording_narrator_changed`.
+- Tests: `record_view_test`, `starter_questions_test`, `save_story_page_test`,
+  `story_saver_test`, `waveform_builder_test`. The AC-10 integration test and
+  pgTAP for migration 0008 are written but not run.

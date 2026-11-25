@@ -23,6 +23,10 @@ class _Recorder implements RecorderService {
   @override
   Stream<RecorderState> watch() => const Stream.empty();
   @override
+  Stream<double> get levels => const Stream.empty();
+  @override
+  List<int>? get waveform => null;
+  @override
   Future<bool> ensurePermission() async => permission;
   @override
   Future<void> continueDraft(String draftId) async => continued.add(draftId);
@@ -81,7 +85,7 @@ Future<(MemoryDraftStore, _Recorder)> _pump(
         builder: (context, _) => const ContinueRecordingScreen(),
       ),
       GoRoute(
-        path: '/record/preview/:id',
+        path: '/record/new-story/:id',
         builder: (context, state) =>
             Text('preview ${state.pathParameters['id']}'),
       ),

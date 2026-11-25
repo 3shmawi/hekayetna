@@ -26,10 +26,21 @@ AppFailure? backendFailure(Object error) => switch (error) {
   FunctionException(status: 401 || 403) => UnauthorizedFailure(error),
   FunctionException() => ServerFailure(error),
   AuthException() => UnauthorizedFailure(error),
+  PostgrestException(:final message) when _familyReason(message) != null =>
+    FamilyFailure(_familyReason(message)!, error),
   PostgrestException(code: 'PGRST116') => NotFoundFailure(error),
   PostgrestException(code: '42501') => UnauthorizedFailure(error),
   PostgrestException(:final String code) when code.startsWith('22') =>
     ValidationFailure(error),
   PostgrestException() => ServerFailure(error),
+  _ => null,
+};
+
+FamilyFailureReason? _familyReason(String message) => switch (message) {
+  'invalid_invite_code' => FamilyFailureReason.invalidInviteCode,
+  'member_removed' => FamilyFailureReason.memberRemoved,
+  'not_owner' => FamilyFailureReason.notOwner,
+  'cannot_remove_self' => FamilyFailureReason.cannotRemoveSelf,
+  'membership_not_found' => FamilyFailureReason.membershipNotFound,
   _ => null,
 };

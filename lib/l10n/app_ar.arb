@@ -113,6 +113,9 @@
   "errorNotFound": "لم نجد ما تبحث عنه.",
   "errorValidation": "هناك خطأ في البيانات. راجعها وحاول مرة أخرى.",
   "errorUnknown": "حصلت مشكلة. حاول تاني.",
+  "familyErrorInvalidCode": "كود الدعوة ده مش صح. اتأكد منه وحاول تاني.",
+  "familyErrorNotOwner": "صاحب العيلة بس هو اللي يقدر يعمل كده.",
+  "familyErrorCannotRemoveSelf": "صاحب العيلة مينفعش يشيل نفسه.",
   "addPerson": "ضيف حد",
   "addPhoto": "ضيف صورة",
   "addRelationship": "ضيف علاقة",
@@ -175,6 +178,69 @@
   "narrators": "اللي بيحكي",
   "noStoriesBody": "سجّل أول واحدة. صوت واحد يكفي عشان نبدأ.",
   "noStoriesTitle": "لسه مفيش حكايات",
+  "feedFilterAll": "الكل",
+  "feedRecentlyAdded": "أُضيفت حديثًا",
+  "feedRecordFirst": "سجّل أول حكاية",
+  "feedFiltersLabel": "تصفية الحكايات",
+  "feedDecade": "{decade}s",
+  "@feedDecade": {
+    "placeholders": {
+      "decade": {
+        "type": "String"
+      }
+    }
+  },
+  "feedNarratorFallback": "العيلة",
+  "storyMore": "المزيد",
+  "storyEditDetails": "عدّل التفاصيل",
+  "storyWhoCanListen": "مين يقدر يسمع",
+  "storyDelete": "امسح الحكاية",
+  "storyToldLabel": "بصوت",
+  "storyTold": "بصوت {name}",
+  "@storyTold": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "storyRecordedBy": "سجّلها {name}",
+  "@storyRecordedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "storyInThisStory": "في الحكاية دي",
+  "storyVisFamily": "كل أفراد العيلة دلوقتي ({count, plural, =1{شخص واحد} =2{شخصين} few{{count} أشخاص} other{{count} شخص}})",
+  "@storyVisFamily": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storyVisSelected": "{count, plural, =1{شخص واحد يقدر} =2{شخصين يقدروا} few{{count} أشخاص يقدروا} other{{count} شخص يقدروا}} يسمعوها: {names}",
+  "@storyVisSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "listSeparator": "، ",
+  "storyVisPrivate": "إنت بس اللي تقدر تسمعها",
+  "storyDeleteTitle": "تمسح الحكاية دي؟",
+  "storyDeleteBody": "الكل هيفقد الوصول والتسجيل هيتمسح. مفيش رجوع.",
+  "storyDeleted": "الحكاية اتمسحت",
+  "storyNotShared": "الحكاية دي مش متشاركة معاك",
+  "storyEditTitle": "عدّل التفاصيل",
+  "storySpeedLabel": "سرعة التشغيل",
+  "storyPickPeopleSoon": "اختيار ناس معينين جاي قريب. دلوقتي اختار إنت بس أو العيلة كلها.",
   "noTopic": "من غير موضوع",
   "ownerRole": "المسؤول",
   "pause": "وقفة",
@@ -254,5 +320,44 @@
   "recordNotificationPause": "إيقاف مؤقت",
   "recordNotificationResume": "كمّل",
   "recordNotificationStop": "إنهاء",
-  "recordNotificationHint": "اسمح بالإشعارات عشان التسجيل يكمّل والتطبيق في الخلفية."
+  "recordNotificationHint": "اسمح بالإشعارات عشان التسجيل يكمّل والتطبيق في الخلفية.",
+  "recordClose": "إغلاق، المسودة محفوظة",
+  "recordDraftSaved": "المسودة محفوظة على هذا الهاتف",
+  "recordSpeaking": "بيحكي",
+  "recordPickNarrator": "مين بيحكي؟",
+  "recordAddPerson": "أضف شخصًا",
+  "recordPersonName": "الاسم",
+  "recordAskLabel": "اسألها / اسأله",
+  "recordDifferentQuestion": "سؤال تاني",
+  "recordTopic": "الموضوع",
+  "recordMeterLabel": "مستوى الصوت",
+  "recordPrompt1": "إيه أول ذكرى فاكرها؟",
+  "recordPrompt2": "احكيلي عن البيت اللي اتربيت فيه.",
+  "recordPrompt3": "مين أكتر واحد علّمك، وعلّمك إيه؟",
+  "recordPrompt4": "إيه اليوم اللي عمرك ما هتنساه؟",
+  "saveStoryTitle": "احفظ الحكاية",
+  "saveStoryButton": "احفظ الحكاية",
+  "saveStoryYear": "السنة (اختياري)",
+  "saveStoryRecordAgain": "سجّل تاني",
+  "saveStoryDelete": "امسح",
+  "saveStoryRecordAgainTitle": "تسجّل الحكاية دي تاني؟",
+  "saveStoryRecordAgainBody": "التسجيل ده هيتمسح وهتبدأ تسجيل جديد.",
+  "saveStoryDeleteTitle": "تمسح التسجيل ده؟",
+  "saveStoryDeleteBody": "التسجيل اللي على التليفون ده هيتمسح. مش هتقدر ترجّعه.",
+  "saveStoryErrTitleEmpty": "اكتب عنوان للحكاية",
+  "saveStoryErrTitleTooLong": "العنوان طويل أوي (١٤٠ حرف بالكتير)",
+  "saveStoryErrDescriptionTooLong": "الوصف طويل أوي (٢٠٠٠ حرف بالكتير)",
+  "saveStoryErrDateTooLong": "ده طويل أوي (٦٠ حرف بالكتير)",
+  "saveStoryErrYear": "اكتب سنة بين ١٨٠٠ و ٢١٠٠",
+  "saveStoryErrNoRecipients": "اختار شخص واحد على الأقل، أو اختار أنا بس",
+  "saveStoryOffline": "مفيش إنترنت. حكايتك في أمان على التليفون ده؛ احفظها لما ترجع أونلاين.",
+  "saveStoryPreparing": "بنجهّز تسجيلك",
+  "saveStoryUploading": "بنرفع حكايتك",
+  "saveStoryCreating": "بنحفظ الحكاية",
+  "saveStorySaved": "الحكاية اتحفظت",
+  "saveStoryFailed": "الحكاية ماتحفظتش. تسجيلك لسه على التليفون ده.",
+  "saveStoryPlay": "اسمع التسجيل",
+  "saveStoryPauseListen": "أوقف التسجيل مؤقتًا",
+  "saveStoryBack": "ارجع للتسجيل",
+  "saveStoryMissing": "مش لاقيين التسجيل ده على التليفون."
 }

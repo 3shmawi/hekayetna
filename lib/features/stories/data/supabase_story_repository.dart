@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/features/stories/data/story_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -17,7 +18,43 @@ class SupabaseStoryRepository implements StoryRepository {
   String get _uid => _client.auth.currentUser!.id;
 
   @override
-  Future<List<Story>> listStories(String spaceId, {StoryFilter? filter}) async {
+  Future<Result<List<Story>>> listStories(
+    String spaceId, {
+    StoryFilter? filter,
+  }) => guard(() => _listStories(spaceId, filter: filter));
+
+  @override
+  Future<Result<Story?>> getStory(String storyId) =>
+      guard(() => _getStory(storyId));
+
+  @override
+  Future<Result<Story>> createStory(Story story) =>
+      guard(() => _createStory(story));
+
+  @override
+  Future<Result<Story>> updateStory(Story story) =>
+      guard(() => _updateStory(story));
+
+  @override
+  Future<Result<void>> deleteStory(String storyId) =>
+      guard(() => _deleteStory(storyId));
+
+  @override
+  Future<Result<String>> createAudioUrl(String audioPath) =>
+      guard(() => _createAudioUrl(audioPath));
+
+  @override
+  Future<Result<String>> uploadAudio(String localPath, String storagePath) =>
+      guard(() => _uploadAudio(localPath, storagePath));
+
+  @override
+  Future<Result<void>> deleteAudio(String storagePath) =>
+      guard(() => _deleteAudio(storagePath));
+
+  Future<List<Story>> _listStories(
+    String spaceId, {
+    StoryFilter? filter,
+  }) async {
     var q = _client.from('stories').select(_select).eq('space_id', spaceId);
     final f = filter;
     if (f?.topic != null) q = q.eq('topic', f!.topic!);
@@ -41,8 +78,7 @@ class SupabaseStoryRepository implements StoryRepository {
     return stories;
   }
 
-  @override
-  Future<Story?> getStory(String storyId) async {
+  Future<Story?> _getStory(String storyId) async {
     final rows = await _client
         .from('stories')
         .select(_select)
@@ -52,8 +88,7 @@ class SupabaseStoryRepository implements StoryRepository {
     return Story.fromJson(Map<String, dynamic>.from(rows[0] as Map));
   }
 
-  @override
-  Future<Story> createStory(Story story) async {
+  Future<Story> _createStory(Story story) async {
     final row = await _client
         .from('stories')
         .insert({
@@ -68,17 +103,17 @@ class SupabaseStoryRepository implements StoryRepository {
           'audio_path': story.audioPath,
           'duration_seconds': story.durationSeconds,
           'created_by': _uid,
+          if (story.waveform != null) 'waveform': story.waveform,
         })
         .select()
         .single();
     final id = row['id'] as String;
     await _syncJoins(id, story);
-    return (await getStory(id))!;
+    return (await _getStory(id))!;
   }
 
-  @override
-  Future<Story> updateStory(Story story) async {
-    final before = await getStory(story.id);
+  Future<Story> _updateStory(Story story) async {
+    final before = await _getStory(story.id);
     final visibilityChanged = before?.visibility != story.visibility;
     // Old grants go first, so removing someone from a "selected" story or
     // making a shared story private takes their access away. A family story
@@ -105,7 +140,7 @@ class SupabaseStoryRepository implements StoryRepository {
     await _client.from('story_people').delete().eq('story_id', story.id);
     await _client.from('story_photos').delete().eq('story_id', story.id);
     await _syncJoins(story.id, story);
-    return (await getStory(story.id))!;
+    return (await _getStory(story.id))!;
   }
 
   Future<void> _syncJoins(String storyId, Story story) async {
@@ -138,20 +173,17 @@ class SupabaseStoryRepository implements StoryRepository {
     }
   }
 
-  @override
-  Future<void> deleteStory(String storyId) async {
+  Future<void> _deleteStory(String storyId) async {
     await _client.from('stories').delete().eq('id', storyId);
   }
 
   /// Short-lived signed URL (15 minutes). A signed URL stays usable until it
   /// expires even if access is revoked a second later; the short TTL is the
   /// mitigation, so do not raise it.
-  @override
-  Future<String> createAudioUrl(String audioPath) =>
+  Future<String> _createAudioUrl(String audioPath) =>
       _client.storage.from('story-audio').createSignedUrl(audioPath, 60 * 15);
 
-  @override
-  Future<String> uploadAudio(String localPath, String storagePath) async {
+  Future<String> _uploadAudio(String localPath, String storagePath) async {
     await _client.storage
         .from('story-audio')
         .upload(
@@ -164,8 +196,7 @@ class SupabaseStoryRepository implements StoryRepository {
     return storagePath;
   }
 
-  @override
-  Future<void> deleteAudio(String storagePath) async {
+  Future<void> _deleteAudio(String storagePath) async {
     await _client.storage.from('story-audio').remove([storagePath]);
   }
 }

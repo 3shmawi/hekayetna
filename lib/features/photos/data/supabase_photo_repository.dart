@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/photos/data/models.dart';
 import 'package:family_stories/features/photos/data/photo_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,7 +16,26 @@ class SupabasePhotoRepository implements PhotoRepository {
   static const _select = '*, photo_people(person_id)';
 
   @override
-  Future<List<Photo>> listPhotos(String spaceId, {String? personId}) async {
+  Future<Result<List<Photo>>> listPhotos(String spaceId, {String? personId}) =>
+      guard(() => _listPhotos(spaceId, personId: personId));
+
+  @override
+  Future<Result<String>> uploadImage(String localPath, String storagePath) =>
+      guard(() => _uploadImage(localPath, storagePath));
+
+  @override
+  Future<Result<void>> deleteImage(String storagePath) =>
+      guard(() => _deleteImage(storagePath));
+
+  @override
+  Future<Result<Photo>> createPhoto(Photo photo) =>
+      guard(() => _createPhoto(photo));
+
+  @override
+  Future<Result<String>> createImageUrl(String imagePath) =>
+      guard(() => _createImageUrl(imagePath));
+
+  Future<List<Photo>> _listPhotos(String spaceId, {String? personId}) async {
     final rows = await _client
         .from('photos')
         .select(_select)
@@ -30,21 +50,18 @@ class SupabasePhotoRepository implements PhotoRepository {
     return photos;
   }
 
-  @override
-  Future<String> uploadImage(String localPath, String storagePath) async {
+  Future<String> _uploadImage(String localPath, String storagePath) async {
     await _client.storage
         .from('family-photos')
         .upload(storagePath, File(localPath));
     return storagePath;
   }
 
-  @override
-  Future<void> deleteImage(String storagePath) async {
+  Future<void> _deleteImage(String storagePath) async {
     await _client.storage.from('family-photos').remove([storagePath]);
   }
 
-  @override
-  Future<Photo> createPhoto(Photo photo) async {
+  Future<Photo> _createPhoto(Photo photo) async {
     final row = await _client
         .from('photos')
         .insert({
@@ -74,7 +91,6 @@ class SupabasePhotoRepository implements PhotoRepository {
     );
   }
 
-  @override
-  Future<String> createImageUrl(String imagePath) =>
+  Future<String> _createImageUrl(String imagePath) =>
       _client.storage.from('family-photos').createSignedUrl(imagePath, 60 * 15);
 }

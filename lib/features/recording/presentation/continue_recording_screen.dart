@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/adaptive/adaptive.dart';
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/ui/app_message.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
@@ -82,9 +83,9 @@ class _ContinueRecordingScreenState
     final names = <String, String>{};
     try {
       final repo = ref.read(familyRepositoryProvider);
-      final space = await repo.getMySpace();
+      final space = await repo.getMySpace().unwrap();
       if (space != null) {
-        for (final p in await repo.listPersons(space.id)) {
+        for (final p in await repo.listPersons(space.id).unwrap()) {
           names[p.id] = p.fullName;
         }
       }
@@ -191,11 +192,12 @@ class _ContinueRecordingScreenState
     }
     if (!mounted) return;
     final router = GoRouter.of(context);
+    final target = AppRoutes.recordNewStory(item.id);
     if (widget.asSheet) {
       _leave();
-      unawaited(router.push('/record/preview/${item.id}'));
+      unawaited(router.push(target));
     } else {
-      context.pushReplacement('/record/preview/${item.id}');
+      context.pushReplacement(target);
     }
   }
 

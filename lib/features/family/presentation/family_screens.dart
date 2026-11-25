@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/ids.dart';
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/theme/app_colors.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/family/presentation/family_tree_view.dart';
@@ -35,14 +36,17 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen> {
       appBar: AppBar(title: Text(s.family)),
       body: FutureBuilder(
         key: ValueKey(_reload),
-        future: ref.read(familyRepositoryProvider).getMySpace(),
+        future: ref.read(familyRepositoryProvider).getMySpace().unwrap(),
         builder: (context, snap) {
           final space = snap.data;
           if (space == null) {
             return const Center(child: CircularProgressIndicator());
           }
           return FutureBuilder<List<Person>>(
-            future: ref.read(familyRepositoryProvider).listPersons(space.id),
+            future: ref
+                .read(familyRepositoryProvider)
+                .listPersons(space.id)
+                .unwrap(),
             builder: (context, personsSnap) {
               final persons = personsSnap.data ?? const <Person>[];
               return ListView(
@@ -96,7 +100,8 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen> {
                   FutureBuilder<List<FamilyMember>>(
                     future: ref
                         .read(familyRepositoryProvider)
-                        .listMembers(space.id),
+                        .listMembers(space.id)
+                        .unwrap(),
                     builder: (context, memberSnap) {
                       final members = memberSnap.data ?? const <FamilyMember>[];
                       final myId = ref.read(currentUserIdProvider);
@@ -182,7 +187,8 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen> {
                     FutureBuilder<List<Relationship>>(
                       future: ref
                           .read(familyRepositoryProvider)
-                          .listRelationships(space.id),
+                          .listRelationships(space.id)
+                          .unwrap(),
                       builder: (context, relSnap) => SizedBox(
                         height: 420,
                         child: FamilyTreeView(
@@ -238,14 +244,15 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen> {
 
   Future<_PersonBundle> _load() async {
     final repo = ref.read(familyRepositoryProvider);
-    final space = await repo.getMySpace();
+    final space = await repo.getMySpace().unwrap();
     if (space == null) return const _PersonBundle(null, [], [], [], []);
-    final persons = await repo.listPersons(space.id);
-    final rels = await repo.listRelationships(space.id);
-    final members = await repo.listMembers(space.id);
+    final persons = await repo.listPersons(space.id).unwrap();
+    final rels = await repo.listRelationships(space.id).unwrap();
+    final members = await repo.listMembers(space.id).unwrap();
     final photos = await ref
         .read(photoRepositoryProvider)
-        .listPhotos(space.id, personId: widget.personId);
+        .listPhotos(space.id, personId: widget.personId)
+        .unwrap();
     return _PersonBundle(space, persons, rels, members, photos);
   }
 
@@ -362,7 +369,8 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen> {
                                 try {
                                   await ref
                                       .read(familyRepositoryProvider)
-                                      .confirmRelationship(r.id);
+                                      .confirmRelationship(r.id)
+                                      .unwrap();
                                   setState(() => _reload++);
                                 } on Exception catch (_) {
                                   if (context.mounted) {
@@ -496,7 +504,8 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen> {
             personId: person.id,
             relatedPersonId: selected!.id,
             type: type,
-          );
+          )
+          .unwrap();
       setState(() => _reload++);
     } on Exception catch (_) {
       if (context.mounted) {
@@ -589,22 +598,26 @@ class _PersonDetailScreenState extends ConsumerState<PersonDetailScreen> {
       // outside your own prefix.
       final storagePath = '${person.spaceId}/$uid/$photoId/photo.$ext';
       final repo = ref.read(photoRepositoryProvider);
-      await repo.uploadImage(picked.path, storagePath);
+      await repo.uploadImage(picked.path, storagePath).unwrap();
       try {
-        await repo.createPhoto(
-          Photo(
-            id: photoId,
-            spaceId: person.spaceId,
-            imagePath: storagePath,
-            caption: caption.text.trim().isEmpty ? null : caption.text.trim(),
-            visibility: visibility,
-            uploadedBy: uid,
-            personIds: [person.id],
-          ),
-        );
+        await repo
+            .createPhoto(
+              Photo(
+                id: photoId,
+                spaceId: person.spaceId,
+                imagePath: storagePath,
+                caption: caption.text.trim().isEmpty
+                    ? null
+                    : caption.text.trim(),
+                visibility: visibility,
+                uploadedBy: uid,
+                personIds: [person.id],
+              ),
+            )
+            .unwrap();
       } on Exception catch (_) {
         // Photo-row insert failed after the upload: remove the orphan object.
-        await repo.deleteImage(storagePath);
+        await repo.deleteImage(storagePath).unwrap();
         rethrow;
       }
       setState(() => _reload++);
@@ -675,31 +688,43 @@ Future<void> _editPerson(
   try {
     final repo = ref.read(familyRepositoryProvider);
     if (person == null) {
-      await repo.createPerson(
-        Person(
-          id: '',
-          spaceId: spaceId,
-          fullName: name.text.trim(),
-          approxBirthDate: birth.text.trim().isEmpty ? null : birth.text.trim(),
-          approxDeathDate: death.text.trim().isEmpty ? null : death.text.trim(),
-          bio: bio.text.trim().isEmpty ? null : bio.text.trim(),
-          createdBy: '',
-        ),
-      );
+      await repo
+          .createPerson(
+            Person(
+              id: '',
+              spaceId: spaceId,
+              fullName: name.text.trim(),
+              approxBirthDate: birth.text.trim().isEmpty
+                  ? null
+                  : birth.text.trim(),
+              approxDeathDate: death.text.trim().isEmpty
+                  ? null
+                  : death.text.trim(),
+              bio: bio.text.trim().isEmpty ? null : bio.text.trim(),
+              createdBy: '',
+            ),
+          )
+          .unwrap();
     } else {
-      await repo.updatePerson(
-        Person(
-          id: person.id,
-          spaceId: person.spaceId,
-          fullName: name.text.trim(),
-          photoPath: person.photoPath,
-          approxBirthDate: birth.text.trim().isEmpty ? null : birth.text.trim(),
-          approxDeathDate: death.text.trim().isEmpty ? null : death.text.trim(),
-          bio: bio.text.trim().isEmpty ? null : bio.text.trim(),
-          linkedUserId: person.linkedUserId,
-          createdBy: person.createdBy,
-        ),
-      );
+      await repo
+          .updatePerson(
+            Person(
+              id: person.id,
+              spaceId: person.spaceId,
+              fullName: name.text.trim(),
+              photoPath: person.photoPath,
+              approxBirthDate: birth.text.trim().isEmpty
+                  ? null
+                  : birth.text.trim(),
+              approxDeathDate: death.text.trim().isEmpty
+                  ? null
+                  : death.text.trim(),
+              bio: bio.text.trim().isEmpty ? null : bio.text.trim(),
+              linkedUserId: person.linkedUserId,
+              createdBy: person.createdBy,
+            ),
+          )
+          .unwrap();
     }
     onSaved();
   } on Exception catch (_) {
@@ -726,31 +751,37 @@ extension on _FamilyHomeScreenState {
       final repo = ref.read(familyRepositoryProvider);
       Person? you;
       if (draft.name.trim().isNotEmpty) {
-        you = await repo.createPerson(
-          Person(
-            id: '',
-            spaceId: spaceId,
-            fullName: draft.name.trim(),
-            createdBy: '',
-          ),
-        );
+        you = await repo
+            .createPerson(
+              Person(
+                id: '',
+                spaceId: spaceId,
+                fullName: draft.name.trim(),
+                createdBy: '',
+              ),
+            )
+            .unwrap();
       }
       for (final parentName in [draft.father, draft.mother]) {
         if (parentName.trim().isEmpty) continue;
-        final parent = await repo.createPerson(
-          Person(
-            id: '',
-            spaceId: spaceId,
-            fullName: parentName.trim(),
-            createdBy: '',
-          ),
-        );
+        final parent = await repo
+            .createPerson(
+              Person(
+                id: '',
+                spaceId: spaceId,
+                fullName: parentName.trim(),
+                createdBy: '',
+              ),
+            )
+            .unwrap();
         if (you != null) {
-          await repo.addRelationship(
-            personId: you.id,
-            relatedPersonId: parent.id,
-            type: RelationshipType.parent,
-          );
+          await repo
+              .addRelationship(
+                personId: you.id,
+                relatedPersonId: parent.id,
+                type: RelationshipType.parent,
+              )
+              .unwrap();
         }
       }
       await Onboarding.clearDraft();
@@ -789,7 +820,7 @@ extension on _FamilyHomeScreenState {
     );
     if (ok != true) return;
     try {
-      await ref.read(familyRepositoryProvider).removeMember(member.id);
+      await ref.read(familyRepositoryProvider).removeMember(member.id).unwrap();
       refresh();
     } on Exception catch (_) {
       if (context.mounted) {
@@ -918,7 +949,10 @@ class _PhotoThumb extends ConsumerWidget {
       );
     }
     return FutureBuilder<String>(
-      future: ref.read(photoRepositoryProvider).createImageUrl(photo.imagePath),
+      future: ref
+          .read(photoRepositoryProvider)
+          .createImageUrl(photo.imagePath)
+          .unwrap(),
       builder: (context, snap) {
         final url = snap.data;
         return ClipRRect(

@@ -1,3 +1,4 @@
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/family/data/family_repository.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,7 +12,58 @@ class SupabaseFamilyRepository implements FamilyRepository {
   String get _uid => _client.auth.currentUser!.id;
 
   @override
-  Future<FamilySpace?> getMySpace() async {
+  Future<Result<FamilySpace?>> getMySpace() => guard(_getMySpace);
+
+  @override
+  Future<Result<FamilySpace>> createSpace(String name) =>
+      guard(() => _createSpace(name));
+
+  @override
+  Future<Result<FamilySpace>> joinSpace(String inviteCode) =>
+      guard(() => _joinSpace(inviteCode));
+
+  @override
+  Future<Result<List<FamilyMember>>> listMembers(String spaceId) =>
+      guard(() => _listMembers(spaceId));
+
+  @override
+  Future<Result<void>> removeMember(String membershipId) =>
+      guard(() => _removeMember(membershipId));
+
+  @override
+  Future<Result<List<Person>>> listPersons(String spaceId) =>
+      guard(() => _listPersons(spaceId));
+
+  @override
+  Future<Result<Person>> createPerson(Person person) =>
+      guard(() => _createPerson(person));
+
+  @override
+  Future<Result<Person>> updatePerson(Person person) =>
+      guard(() => _updatePerson(person));
+
+  @override
+  Future<Result<List<Relationship>>> listRelationships(String spaceId) =>
+      guard(() => _listRelationships(spaceId));
+
+  @override
+  Future<Result<Relationship>> addRelationship({
+    required String personId,
+    required String relatedPersonId,
+    required RelationshipType type,
+  }) => guard(
+    () => _addRelationship(
+      personId: personId,
+      relatedPersonId: relatedPersonId,
+      type: type,
+    ),
+  );
+
+  @override
+  Future<Result<void>> confirmRelationship(String relationshipId) =>
+      guard(() => _confirmRelationship(relationshipId));
+
+  Future<FamilySpace?> _getMySpace() async {
     final rows = await _client
         .from('family_memberships')
         .select('family_spaces(id, name, invite_code)')
@@ -23,8 +75,7 @@ class SupabaseFamilyRepository implements FamilyRepository {
     );
   }
 
-  @override
-  Future<FamilySpace> createSpace(String name) async {
+  Future<FamilySpace> _createSpace(String name) async {
     // One RPC creates the space and the caller's owner membership together:
     // RLS hides a space from anyone who isn't a member yet, and members
     // can't add themselves (migration 0007).
@@ -40,8 +91,7 @@ class SupabaseFamilyRepository implements FamilyRepository {
     return FamilySpace.fromJson(row);
   }
 
-  @override
-  Future<FamilySpace> joinSpace(String inviteCode) async {
+  Future<FamilySpace> _joinSpace(String inviteCode) async {
     final id = await _client.rpc<String>(
       'join_family_space',
       params: {'p_invite_code': inviteCode},
@@ -54,8 +104,7 @@ class SupabaseFamilyRepository implements FamilyRepository {
     return FamilySpace.fromJson(row);
   }
 
-  @override
-  Future<List<FamilyMember>> listMembers(String spaceId) async {
+  Future<List<FamilyMember>> _listMembers(String spaceId) async {
     final rows = await _client
         .from('family_memberships')
         .select('id, user_id, role, person_id, profiles(display_name)')
@@ -73,8 +122,7 @@ class SupabaseFamilyRepository implements FamilyRepository {
     ];
   }
 
-  @override
-  Future<void> removeMember(String membershipId) async {
+  Future<void> _removeMember(String membershipId) async {
     // RPC, not a raw delete: it records a rejoin block so the removed member
     // cannot come back on the unchanged invite code (migration 0004).
     await _client.rpc<String>(
@@ -83,8 +131,7 @@ class SupabaseFamilyRepository implements FamilyRepository {
     );
   }
 
-  @override
-  Future<List<Person>> listPersons(String spaceId) async {
+  Future<List<Person>> _listPersons(String spaceId) async {
     final rows = await _client
         .from('persons')
         .select()
@@ -96,8 +143,7 @@ class SupabaseFamilyRepository implements FamilyRepository {
     ];
   }
 
-  @override
-  Future<Person> createPerson(Person person) async {
+  Future<Person> _createPerson(Person person) async {
     final row = await _client
         .from('persons')
         .insert({
@@ -113,8 +159,7 @@ class SupabaseFamilyRepository implements FamilyRepository {
     return Person.fromJson(row);
   }
 
-  @override
-  Future<Person> updatePerson(Person person) async {
+  Future<Person> _updatePerson(Person person) async {
     final row = await _client
         .from('persons')
         .update({
@@ -129,8 +174,7 @@ class SupabaseFamilyRepository implements FamilyRepository {
     return Person.fromJson(row);
   }
 
-  @override
-  Future<List<Relationship>> listRelationships(String spaceId) async {
+  Future<List<Relationship>> _listRelationships(String spaceId) async {
     final rows = await _client
         .from('relationships')
         .select()
@@ -141,13 +185,12 @@ class SupabaseFamilyRepository implements FamilyRepository {
     ];
   }
 
-  @override
-  Future<Relationship> addRelationship({
+  Future<Relationship> _addRelationship({
     required String personId,
     required String relatedPersonId,
     required RelationshipType type,
   }) async {
-    final space = await getMySpace();
+    final space = await _getMySpace();
     final row = await _client
         .from('relationships')
         .insert({
@@ -163,8 +206,7 @@ class SupabaseFamilyRepository implements FamilyRepository {
     return Relationship.fromJson(row);
   }
 
-  @override
-  Future<void> confirmRelationship(String relationshipId) async {
+  Future<void> _confirmRelationship(String relationshipId) async {
     await _client
         .from('relationships')
         .update({'status': 'confirmed'})

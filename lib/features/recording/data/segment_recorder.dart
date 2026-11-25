@@ -1,3 +1,4 @@
+import 'package:family_stories/features/recording/domain/waveform_builder.dart';
 import 'package:record/record.dart';
 
 /// One segment file of microphone capture. The `record` plugin implements
@@ -18,6 +19,9 @@ enum SegmentStopReason {
 abstract class SegmentRecorder {
   /// Capture ended on its own. Stops the app asked for never appear here.
   Stream<SegmentStopReason> get unexpectedStops;
+
+  /// Loudness 0..1 about every 100 ms while capturing.
+  Stream<double> get levels;
   Future<bool> hasPermission();
   Future<void> start(String path);
 
@@ -53,6 +57,11 @@ class RecordSegmentRecorder implements SegmentRecorder {
           RecordStopReason.error => SegmentStopReason.error,
         },
       );
+
+  @override
+  Stream<double> get levels => _recorder
+      .onAmplitudeChanged(const Duration(milliseconds: 100))
+      .map((a) => levelFromDecibels(a.current));
 
   @override
   Future<bool> hasPermission() => _recorder.hasPermission();

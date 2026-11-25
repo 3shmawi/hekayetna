@@ -23,6 +23,11 @@ class FakeSegmentRecorder implements SegmentRecorder {
   @override
   Stream<SegmentStopReason> get unexpectedStops => _stops.stream;
 
+  final levelController = StreamController<double>.broadcast();
+
+  @override
+  Stream<double> get levels => levelController.stream;
+
   final Future<void> Function(String path)? onStart;
   final startedPaths = <String>[];
   int stopCalls = 0;
@@ -92,6 +97,32 @@ void main() {
       expect(draft.topic, 'war');
       await service.dispose();
     });
+
+    test(
+      'levels feed the meter and the waveform only while recording',
+      () async {
+        final recorder = FakeSegmentRecorder();
+        final service = SegmentedRecorderService(
+          draftStore: store,
+          recorder: recorder,
+        );
+        final seen = <double>[];
+        final sub = service.levels.listen(seen.add);
+        expect(service.waveform, isNull);
+        await service.start(draftId: 'd2');
+        recorder.levelController.add(0.8);
+        await Future<void>.delayed(Duration.zero);
+        await service.pause();
+        recorder.levelController.add(1);
+        await Future<void>.delayed(Duration.zero);
+        expect(seen, [0.8]);
+        expect(service.waveform, everyElement(80));
+        await service.discard();
+        expect(service.waveform, isNull);
+        await sub.cancel();
+        await service.dispose();
+      },
+    );
   });
 
   group('AC-2: rotation and resume segmentation (fake clock)', () {

@@ -1,3 +1,4 @@
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/photos/data/models.dart';
 import 'package:family_stories/features/photos/data/photo_repository.dart';
 
@@ -51,7 +52,22 @@ class DemoPhotoRepository implements PhotoRepository {
   var _seq = 0;
 
   @override
-  Future<List<Photo>> listPhotos(String spaceId, {String? personId}) async {
+  Future<Result<List<Photo>>> listPhotos(String spaceId, {String? personId}) =>
+      guard(() => _listPhotos(spaceId, personId: personId));
+
+  @override
+  Future<Result<String>> uploadImage(String localPath, String storagePath) =>
+      guard(() => _uploadImage(localPath, storagePath));
+
+  @override
+  Future<Result<void>> deleteImage(String storagePath) =>
+      guard(() => _deleteImage(storagePath));
+
+  @override
+  Future<Result<Photo>> createPhoto(Photo photo) =>
+      guard(() => _createPhoto(photo));
+
+  Future<List<Photo>> _listPhotos(String spaceId, {String? personId}) async {
     // Mirrors the RLS rule for the demo session: private photos are visible
     // only to their uploader; the demo session user is always 'demo-user'.
     var photos = _photos
@@ -67,15 +83,12 @@ class DemoPhotoRepository implements PhotoRepository {
     return photos;
   }
 
-  @override
-  Future<String> uploadImage(String localPath, String storagePath) async =>
+  Future<String> _uploadImage(String localPath, String storagePath) async =>
       localPath;
 
-  @override
-  Future<void> deleteImage(String storagePath) async {}
+  Future<void> _deleteImage(String storagePath) async {}
 
-  @override
-  Future<Photo> createPhoto(Photo photo) async {
+  Future<Photo> _createPhoto(Photo photo) async {
     final p = Photo(
       id: 'photo-${_seq++}',
       spaceId: photo.spaceId,
@@ -92,5 +105,6 @@ class DemoPhotoRepository implements PhotoRepository {
 
   @override
   // Local file path in demo mode; no signed URL needed.
-  Future<String> createImageUrl(String imagePath) async => imagePath;
+  Future<Result<String>> createImageUrl(String imagePath) async =>
+      Success(imagePath);
 }

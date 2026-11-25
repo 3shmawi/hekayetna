@@ -20,6 +20,7 @@ class Story {
     this.peopleIds = const [],
     this.photoIds = const [],
     this.recipientUserIds = const [],
+    this.waveform,
   });
 
   factory Story.fromJson(Map<String, dynamic> j) => Story(
@@ -56,7 +57,39 @@ class Story {
               .cast<Map<String, dynamic>>())
         r['grantee_user_id'] as String,
     ],
+    waveform: (j['waveform'] as List?)?.map((v) => (v as num).toInt()).toList(),
   );
+
+  Story copyWith({
+    String? title,
+    String? Function()? description,
+    String? Function()? approxDateLabel,
+    StoryVisibility? visibility,
+  }) => Story(
+    id: id,
+    spaceId: spaceId,
+    title: title ?? this.title,
+    description: description == null ? this.description : description(),
+    topic: topic,
+    approxDateLabel: approxDateLabel == null
+        ? this.approxDateLabel
+        : approxDateLabel(),
+    approxYear: approxYear,
+    visibility: visibility ?? this.visibility,
+    audioPath: audioPath,
+    durationSeconds: durationSeconds,
+    createdBy: createdBy,
+    createdAt: createdAt,
+    narratorIds: narratorIds,
+    peopleIds: peopleIds,
+    photoIds: photoIds,
+    recipientUserIds: recipientUserIds,
+    waveform: waveform,
+  );
+
+  /// 0 to 100 per bar (64 bars when recorded with spec 04); null on older
+  /// stories.
+  final List<int>? waveform;
 
   final String id;
   final String spaceId;

@@ -135,6 +135,13 @@ extension AppFailureMessage on AppFailure {
     ValidationFailure() => l10n.errorValidation,
     StorageFullFailure() => l10n.errorStorageFull,
     ServerFailure() || UnknownFailure() => l10n.errorUnknown,
+    FamilyFailure(:final reason) => switch (reason) {
+      FamilyFailureReason.invalidInviteCode => l10n.familyErrorInvalidCode,
+      FamilyFailureReason.memberRemoved => l10n.errorJoinRemoved,
+      FamilyFailureReason.notOwner => l10n.familyErrorNotOwner,
+      FamilyFailureReason.cannotRemoveSelf => l10n.familyErrorCannotRemoveSelf,
+      FamilyFailureReason.membershipNotFound => l10n.errorNotFound,
+    },
     AuthFailure(:final reason) => switch (reason) {
       AuthFailureReason.invalidCredentials => l10n.authErrorInvalidCredentials,
       AuthFailureReason.emailInUse => l10n.authErrorEmailInUse,
