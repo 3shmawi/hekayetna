@@ -195,6 +195,7 @@
   "storyEditDetails": "عدّل التفاصيل",
   "storyWhoCanListen": "مين يقدر يسمع",
   "storyDelete": "امسح الحكاية",
+  "storyToldLabel": "بصوت",
   "storyTold": "بصوت {name}",
   "@storyTold": {
     "placeholders": {

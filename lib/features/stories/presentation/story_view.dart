@@ -131,6 +131,8 @@ class StoryView extends StatelessWidget {
           SizedBox(height: AppDimens.lg),
           AudioPlayerCard(
             subtitle: s.storyTold(narratorName),
+            eyebrow: s.storyToldLabel,
+            name: narratorName,
             position: formatClock(position),
             duration: formatClock(total),
             isPlaying: _mine && player.isPlaying,

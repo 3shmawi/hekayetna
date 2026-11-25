@@ -244,6 +244,7 @@
   "storyEditDetails": "Edit details",
   "storyWhoCanListen": "Who can listen",
   "storyDelete": "Delete story",
+  "storyToldLabel": "Told by",
   "storyTold": "Told by {name}",
   "@storyTold": {
     "placeholders": {

@@ -45,7 +45,8 @@ void main() {
     await t.pumpApp(_view());
     expect(find.text('The first Om Ali'), findsOneWidget);
     expect(find.text('Ramadan, late 1950s · Recorded by Mona'), findsOneWidget);
-    expect(find.text('Told by Sitto'), findsOneWidget);
+    expect(find.text('Told by'), findsOneWidget);
+    expect(find.text('Sitto'), findsOneWidget);
     expect(find.text('Sitto remembers the first pan.'), findsOneWidget);
     expect(
       find.text('The whole family can hear this (8 people)'),
