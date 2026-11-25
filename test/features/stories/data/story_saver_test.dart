@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:family_stories/core/network/app_failure.dart';
@@ -51,6 +52,9 @@ void main() {
     await drafts.save(draft);
     space = const FamilySpace(id: 'sp1', name: 'Family', inviteCode: 'X');
     when(() => family.getMySpace()).thenAnswer((_) async => Success(space));
+    when(
+      () => stories.getStory(any()),
+    ).thenAnswer((_) async => const Success(null));
     when(
       () => stories.uploadAudio(any(), any()),
     ).thenAnswer((i) async => Success(i.positionalArguments[1] as String));
@@ -213,5 +217,151 @@ void main() {
     expect(r, isA<Failed<Story>>());
     expect(await drafts.get('d1'), isNotNull);
     verifyNever(() => stories.uploadAudio(any(), any()));
+  });
+
+  group('retry and idempotency', () {
+    const req = StorySaveRequest(
+      title: 't',
+      visibility: StoryVisibility.private,
+    );
+
+    StorySaver stable({Duration timeout = const Duration(seconds: 5)}) =>
+        StorySaver(
+          stories: stories,
+          family: family,
+          drafts: drafts,
+          userId: 'u1',
+          joinTake: (_) async => '/tmp/take.wav',
+          attemptTimeout: timeout,
+        );
+
+    test('same draft and audio give the same id, other audio another', () {
+      final a = StorySaver.stableStoryId('d1', 100);
+      expect(a, StorySaver.stableStoryId('d1', 100));
+      expect(a, isNot(StorySaver.stableStoryId('d1', 101)));
+      expect(a, isNot(StorySaver.stableStoryId('d2', 100)));
+      expect(a.length, 36);
+      expect(
+        a,
+        matches(
+          RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-'),
+        ),
+      );
+    });
+
+    test(
+      'a double tap joins the running attempt: one upload, one create',
+      () async {
+        final gate = Completer<Result<String>>();
+        when(
+          () => stories.uploadAudio(any(), any()),
+        ).thenAnswer((_) => gate.future);
+        final s = stable();
+        final first = s.save(draft, req);
+        final second = s.save(draft, req);
+        await Future<void>.delayed(Duration.zero);
+        gate.complete(const Success('p'));
+        expect(await first, isA<Success<Story>>());
+        expect(await second, isA<Success<Story>>());
+        verify(() => stories.uploadAudio(any(), any())).called(1);
+        verify(() => stories.createStory(any())).called(1);
+      },
+    );
+
+    test(
+      'a timeout does not cancel the write; a retry gets its real result',
+      () async {
+        final gate = Completer<Result<String>>();
+        when(
+          () => stories.uploadAudio(any(), any()),
+        ).thenAnswer((_) => gate.future);
+        final s = stable(timeout: const Duration(milliseconds: 20));
+        final first = await s.save(draft, req);
+        expect(first, isA<Failed<Story>>());
+        expect((first as Failed<Story>).failure, isA<TimeoutFailure>());
+        expect(s.isSaving('d1'), isTrue);
+        expect(await drafts.get('d1'), isNotNull); // draft kept
+        // the late upload completes, then the retry joins the same attempt
+        final retry = s.save(draft, req);
+        gate.complete(const Success('p'));
+        expect(await retry, isA<Success<Story>>());
+        verify(() => stories.uploadAudio(any(), any())).called(1);
+        verify(() => stories.createStory(any())).called(1);
+        expect(s.isSaving('d1'), isFalse);
+        expect(await drafts.get('d1'), isNull);
+      },
+    );
+
+    test(
+      'after a restart an already created story is reused, nothing is written',
+      () async {
+        final existing = Story(
+          id: 'x',
+          spaceId: 'sp1',
+          title: 'earlier',
+          visibility: StoryVisibility.private,
+          audioPath: 'p',
+          durationSeconds: 1,
+          createdBy: 'u1',
+          createdAt: DateTime(2026),
+        );
+        when(
+          () => stories.getStory(any()),
+        ).thenAnswer((_) async => Success(existing));
+        final r = await stable().save(draft, req);
+        expect((r as Success<Story>).value.title, 'earlier');
+        verifyNever(() => stories.uploadAudio(any(), any()));
+        verifyNever(() => stories.createStory(any()));
+        verifyNever(() => stories.deleteAudio(any()));
+        expect(await drafts.get('d1'), isNull);
+      },
+    );
+
+    test(
+      'create fails but the story exists (late write): reused, audio kept',
+      () async {
+        final existing = Story(
+          id: 'x',
+          spaceId: 'sp1',
+          title: 'late',
+          visibility: StoryVisibility.private,
+          audioPath: 'p',
+          durationSeconds: 1,
+          createdBy: 'u1',
+          createdAt: DateTime(2026),
+        );
+        var calls = 0;
+        when(() => stories.getStory(any())).thenAnswer(
+          (_) async => ++calls == 1 ? const Success(null) : Success(existing),
+        );
+        when(
+          () => stories.createStory(any()),
+        ).thenAnswer((_) async => const Failed(TimeoutFailure()));
+        final r = await stable().save(draft, req);
+        expect((r as Success<Story>).value.title, 'late');
+        verifyNever(() => stories.deleteAudio(any()));
+      },
+    );
+
+    test(
+      'uncertain create failure keeps the uploaded audio for the retry',
+      () async {
+        when(
+          () => stories.createStory(any()),
+        ).thenAnswer((_) async => const Failed(NetworkFailure()));
+        final r = await stable().save(draft, req);
+        expect(r, isA<Failed<Story>>());
+        verifyNever(() => stories.deleteAudio(any()));
+        expect(await drafts.get('d1'), isNotNull);
+      },
+    );
+
+    test('definite rejection with no story removes only the upload', () async {
+      when(
+        () => stories.createStory(any()),
+      ).thenAnswer((_) async => const Failed(ServerFailure()));
+      await stable().save(draft, req);
+      verify(() => stories.deleteAudio(any())).called(1);
+    });
   });
 }

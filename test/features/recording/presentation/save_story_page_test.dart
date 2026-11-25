@@ -103,6 +103,9 @@ void main() {
       () => photos.listPhotos('sp1'),
     ).thenAnswer((_) async => const Success(<Photo>[]));
     when(
+      () => stories.getStory(any()),
+    ).thenAnswer((_) async => const Success(null));
+    when(
       () => stories.uploadAudio(any(), any()),
     ).thenAnswer((i) async => Success(i.positionalArguments[1] as String));
     when(() => stories.createStory(any())).thenAnswer((i) async {
@@ -260,6 +263,8 @@ void main() {
 
       expect(find.text('Retry'), findsOneWidget);
       expect(find.textContaining("The story wasn't saved"), findsOneWidget);
+      // names the step that failed: the audio was uploaded, create failed
+      expect(find.textContaining('The audio is uploaded'), findsOneWidget);
       expect(find.text('Keep me'), findsOneWidget);
       expect(await drafts.get('d1'), isNotNull);
       expect(find.text('FEED PAGE'), findsNothing);
