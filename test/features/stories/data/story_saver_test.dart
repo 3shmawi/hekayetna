@@ -200,6 +200,88 @@ void main() {
     },
   );
 
+  test(
+    'an unauthorized create keeps the uploaded audio and the draft',
+    () async {
+      when(
+        () => stories.createStory(any()),
+      ).thenAnswer((_) async => const Failed(UnauthorizedFailure()));
+      final r = await saver().save(
+        draft,
+        const StorySaveRequest(title: 't', visibility: StoryVisibility.private),
+      );
+      expect((r as Failed<Story>).failure, isA<UnauthorizedFailure>());
+      expect(await drafts.get('d1'), isNotNull);
+      verifyNever(() => stories.deleteAudio(any()));
+    },
+  );
+
+  test(
+    'an existing story missing its narrators is completed, not accepted',
+    () async {
+      final bare = Story(
+        id: 'story-1',
+        spaceId: 'sp1',
+        title: 't',
+        visibility: StoryVisibility.private,
+        audioPath: 'sp1/u1/story-1/a.wav',
+        durationSeconds: 95,
+        topic: 'war',
+        createdBy: 'u1',
+        createdAt: DateTime(2026),
+      );
+      when(
+        () => stories.getStory(any()),
+      ).thenAnswer((_) async => Success(bare));
+      when(
+        () => stories.updateStory(any()),
+      ).thenAnswer((i) async => Success(i.positionalArguments[0] as Story));
+      final r = await saver().save(
+        draft,
+        const StorySaveRequest(
+          title: 't',
+          visibility: StoryVisibility.private,
+          narratorIds: ['p1'],
+        ),
+      );
+      expect(r, isA<Success<Story>>());
+      final sent =
+          verify(() => stories.createStory(captureAny())).captured.single
+              as Story;
+      expect(sent.narratorIds, ['p1']);
+      verifyNever(() => stories.updateStory(any()));
+      expect(await drafts.get('d1'), isNull);
+    },
+  );
+
+  test('a story changed since is left alone, not overwritten', () async {
+    final edited = Story(
+      id: 'story-1',
+      spaceId: 'sp1',
+      title: 'renamed by the user',
+      visibility: StoryVisibility.private,
+      audioPath: 'sp1/u1/story-1/a.wav',
+      durationSeconds: 95,
+      topic: 'war',
+      createdBy: 'u1',
+      createdAt: DateTime(2026),
+    );
+    when(
+      () => stories.getStory(any()),
+    ).thenAnswer((_) async => Success(edited));
+    final r = await saver().save(
+      draft,
+      const StorySaveRequest(
+        title: 't',
+        visibility: StoryVisibility.private,
+        narratorIds: ['p1'],
+      ),
+    );
+    expect((r as Success<Story>).value.title, 'renamed by the user');
+    verifyNever(() => stories.createStory(any()));
+    verifyNever(() => stories.updateStory(any()));
+  });
+
   test('no session fails before anything is read or uploaded', () async {
     final r = await saver(userId: null).save(
       draft,

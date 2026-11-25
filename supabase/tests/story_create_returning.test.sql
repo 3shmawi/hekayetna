@@ -1,5 +1,7 @@
--- Create-with-RETURNING: the app inserts a story and reads the row back in the
--- same statement (PostgREST insert + select). The creator must be allowed.
+-- Characterisation: as an authenticated member, `insert ... returning` on
+-- stories is refused (42501, the stories SELECT policy cannot see the row the
+-- same statement inserts), while a plain insert followed by a separate read
+-- works. The app therefore inserts first and reads back afterwards.
 -- Run in CI:  supabase test db
 -- Every check raises on failure; the suite runs in one transaction and rolls
 -- back.
@@ -55,7 +57,7 @@ set local "request.jwt.claims" = '{"sub":"a2222222-2222-2222-2222-222222222222"}
 select public.join_family_space((select id from _ids where key = 'invite'));
 
 set local "request.jwt.claims" = '{"sub":"a1111111-1111-1111-1111-111111111111"}';
-create temp table _r (ok boolean, code text);
+create temp table _r (code text);
 grant all on _r to authenticated;
 do $$
 declare v uuid;
@@ -64,12 +66,17 @@ begin
   values ('a0000000-0000-0000-0000-0000000000b1', (select id from _ids where key = 'space'), 'T', 'private', 'x',
           'a1111111-1111-1111-1111-111111111111')
   returning id into v;
-  insert into _r values (v is not null, null);
+  insert into _r values ('none');
 exception when others then
-  insert into _r values (false, sqlstate);
+  insert into _r values (sqlstate);
 end $$;
-select pg_temp._assert((select ok from _r), 'insert ... returning failed for the creator, sqlstate ' || coalesce((select code from _r), '?'));
-select pg_temp._assert((select count(*) from public.stories where id = 'a0000000-0000-0000-0000-0000000000b1') = 1, 'row readable after insert');
+select pg_temp._assert((select code from _r) = '42501', 'insert returning is refused with 42501 (got ' || (select code from _r) || ')');
+
+insert into public.stories (id, space_id, title, visibility, audio_path, created_by)
+values ('a0000000-0000-0000-0000-0000000000b2', (select id from _ids where key = 'space'), 'T', 'private', 'x',
+        'a1111111-1111-1111-1111-111111111111');
+select pg_temp._assert((select count(*) from public.stories where id = 'a0000000-0000-0000-0000-0000000000b2') = 1,
+  'plain insert then a separate read works for the creator');
 
 select extensions.ok(true, 'create-with-returning suite passed');
 select extensions.finish();

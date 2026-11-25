@@ -153,6 +153,29 @@ class StorySaver {
         '${h.substring(12, 16)}-${h.substring(16, 20)}-${h.substring(20)}';
   }
 
+  static bool _sameSet(Iterable<String> a, Iterable<String> b) =>
+      a.toSet().length == b.toSet().length && a.toSet().containsAll(b);
+
+  static bool _isThisStory(Story stored, Story wanted, String uid) =>
+      stored.createdBy == uid &&
+      stored.spaceId == wanted.spaceId &&
+      stored.audioPath == wanted.audioPath &&
+      stored.visibility == wanted.visibility &&
+      stored.title == wanted.title &&
+      stored.description == wanted.description &&
+      stored.topic == wanted.topic &&
+      stored.approxDateLabel == wanted.approxDateLabel &&
+      stored.approxYear == wanted.approxYear &&
+      stored.durationSeconds == wanted.durationSeconds;
+
+  /// Whether a stored story carries the joins the request asked for.
+  static bool _joinsMatch(Story stored, Story wanted) =>
+      _sameSet(stored.narratorIds, wanted.narratorIds) &&
+      _sameSet(stored.peopleIds, wanted.peopleIds) &&
+      _sameSet(stored.photoIds, wanted.photoIds) &&
+      (wanted.visibility != StoryVisibility.selected ||
+          _sameSet(stored.recipientUserIds, wanted.recipientUserIds));
+
   /// A failure after which the write may still land (late completion).
   static bool _uncertain(AppFailure f) =>
       f is TimeoutFailure || f is NetworkFailure || f is UnknownFailure;
@@ -197,34 +220,11 @@ class StorySaver {
     final storyId = _fixedId?.call() ?? stableStoryId(uid, draft.id, digest);
     attempt.storyId = storyId;
 
-    // An earlier attempt (before a restart, or one that timed out and then
-    // finished) may already have created this story: use it, change nothing.
-    final already = await stories.getStory(storyId);
-    if (already case Success<Story?>(:final value?)) {
-      if (!attempt.superseded) await drafts.delete(draft.id);
-      return Success(value);
-    }
-
     final ext = joined.endsWith('.wav') ? 'wav' : 'm4a';
     // Namespaced by uploader: the storage insert policy rejects any write
     // outside your own prefix.
     final storagePath = '${space.id}/$uid/$storyId/a.$ext';
 
-    phase(SavePhase.uploading);
-    switch (await stories.uploadAudio(joined, storagePath)) {
-      case Failed(:final failure):
-        // The failure may be a duplicate (an earlier attempt stored it) or a
-        // real error. Reuse an existing object only when it is verifiably
-        // this audio: same content-derived path, same size. Otherwise fail
-        // and bind nothing.
-        final stored = await stories.audioSize(storagePath);
-        final same = stored is Success<int?> && stored.value == bytes;
-        if (!same) return Failed(failure);
-      case Success():
-        break;
-    }
-
-    phase(SavePhase.creating);
     final story = Story(
       id: storyId,
       spaceId: space.id,
@@ -250,12 +250,49 @@ class StorySaver {
       photoIds: request.photoIds,
       waveform: request.waveform,
     );
+    // An earlier attempt (before a restart, or one that timed out and then
+    // finished) may already have created this story: use it, change nothing.
+    final already = await stories.getStory(storyId);
+    if (already case Success<Story?>(:final value?)) {
+      // The row can exist while its joins (narrators, people, photos,
+      // recipients) are missing after an interrupted create. When it is this
+      // exact pending story (same owner, space, audio and metadata), only
+      // the missing joins are added; nothing is deleted or overwritten. A
+      // story that differs was changed since: leave it alone.
+      if (_isThisStory(value, story, uid) && !_joinsMatch(value, story)) {
+        final done = await stories.createStory(story);
+        if (done is Failed<Story>) return done;
+        if (!attempt.superseded) await drafts.delete(draft.id);
+        return done;
+      }
+      if (!attempt.superseded) await drafts.delete(draft.id);
+      return Success(value);
+    }
+
+    phase(SavePhase.uploading);
+    switch (await stories.uploadAudio(joined, storagePath)) {
+      case Failed(:final failure):
+        // The failure may be a duplicate (an earlier attempt stored it) or a
+        // real error. Reuse an existing object only when it is verifiably
+        // this audio: same content-derived path, same size. Otherwise fail
+        // and bind nothing.
+        final stored = await stories.audioSize(storagePath);
+        final same = stored is Success<int?> && stored.value == bytes;
+        if (!same) return Failed(failure);
+      case Success():
+        break;
+    }
+
+    phase(SavePhase.creating);
     final created = await stories.createStory(story);
     if (created is Failed<Story>) {
       // The row may exist even though the call failed (a late write, or a
       // duplicate id from an earlier attempt): look before concluding.
       final existing = await stories.getStory(storyId);
       if (existing case Success<Story?>(:final value?)) {
+        if (_isThisStory(value, story, uid) && !_joinsMatch(value, story)) {
+          return created;
+        }
         if (!attempt.superseded) await drafts.delete(draft.id);
         return Success(value);
       }
@@ -264,7 +301,10 @@ class StorySaver {
       // so a retry reuses it and a late-created story keeps its audio.
       // Never while this attempt was replaced or replaced another: a second
       // attempt may be using the same object.
+      // An unauthorized answer is ambiguous (a lapsed session looks the same
+      // as a policy refusal), so the upload stays for the retry.
       if (!_uncertain(created.failure) &&
+          created.failure is! UnauthorizedFailure &&
           existing is Success<Story?> &&
           !attempt.superseded &&
           !attempt.supersededOther) {
