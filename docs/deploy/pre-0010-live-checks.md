@@ -50,7 +50,7 @@ select tgname, tgenabled from pg_trigger
 where tgrelid = 'auth.users'::regclass and not tgisinternal;
 
 select (select count(*) from public.family_spaces) as family_spaces,
-       (select count(*) from public.family_members) as members,
+       (select count(*) from public.family_memberships) as members,
        (select count(*) from public.profiles) as profiles;
 ```
 0010 backfills one code per family space; the size tells how long the backfill runs.
