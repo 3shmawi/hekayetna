@@ -1,6 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:family_stories/core/ids.dart';
+import 'package:crypto/crypto.dart';
 import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/family/data/family_repository.dart';
@@ -55,23 +57,119 @@ class StorySaver {
     required this.userId,
     this.joinTake = _joinTake,
     String Function()? newId,
-  }) : _newId = newId ?? newUuid;
+    this.attemptTimeout = const Duration(minutes: 4),
+  }) : _fixedId = newId;
 
   final StoryRepository stories;
   final FamilyRepository family;
   final DraftStore drafts;
   final String? userId;
   final Future<String> Function(StoryDraft draft) joinTake;
-  final String Function() _newId;
+  final String Function()? _fixedId;
 
+  /// How long one save waits before it reports "still uploading". The write
+  /// itself is not cancelled by this: a later save of the same draft joins
+  /// the attempt that is still running instead of starting a second one.
+  final Duration attemptTimeout;
+
+  final _inFlight = <String, _Attempt>{};
+
+  /// Saves the take. One attempt per draft runs at a time: a second call
+  /// (a double tap) joins the running attempt. After [attemptTimeout] this
+  /// returns [TimeoutFailure] and the attempt keeps running (a timeout does
+  /// not cancel a write). The next call first asks the backend whether the
+  /// story already exists (the attempt may have landed remotely while its
+  /// future never resolves) and returns it if so. If not, and the old attempt
+  /// is still hung, a new attempt starts: every step is idempotent for the
+  /// same owner and audio (id from owner + draft + audio digest, existing
+  /// story reused, an existing object reused only if its size matches), so
+  /// the two cannot create two stories.
   Future<Result<Story>> save(
     StoryDraft draft,
     StorySaveRequest request, {
     void Function(SavePhase phase)? onPhase,
   }) async {
+    var attempt = _inFlight[draft.id];
+    var replaced = false;
+    if (attempt != null && attempt.timedOut) {
+      final id = attempt.storyId;
+      if (id != null) {
+        final remote = await stories.getStory(id);
+        if (remote case Success<Story?>(:final value?)) {
+          _inFlight.remove(draft.id);
+          await drafts.delete(draft.id);
+          return Success(value);
+        }
+      }
+      attempt.superseded = true; // the hung one may still finish later
+      attempt = null;
+      replaced = true;
+    }
+    if (attempt == null) {
+      final fresh = _Attempt()..supersededOther = replaced;
+      attempt = fresh;
+      _inFlight[draft.id] = fresh;
+      fresh.result = _save(draft, request, onPhase, fresh);
+      unawaited(
+        fresh.result
+            .whenComplete(() {
+              if (identical(_inFlight[draft.id], fresh)) {
+                _inFlight.remove(draft.id);
+              }
+            })
+            .then((_) {}),
+      );
+    }
+    final current = attempt;
+    final result = await current.result.timeout(
+      attemptTimeout,
+      onTimeout: () {
+        current.timedOut = true;
+        return const Failed(TimeoutFailure());
+      },
+    );
+    return result;
+  }
+
+  /// True while an attempt for [draftId] is still running (after a timeout
+  /// the user may be told it is still going).
+  bool isSaving(String draftId) => _inFlight.containsKey(draftId);
+
+  /// The operation identity: the same owner, draft and audio CONTENT always
+  /// give the same story id and path, also after an app restart (nothing to
+  /// persist), and any change to the audio gives a different one, so an old
+  /// upload can never be bound to a new recording.
+  static String stableStoryId(
+    String ownerId,
+    String draftId,
+    String audioSha256,
+  ) {
+    final d = sha256.convert(utf8.encode('$ownerId:$draftId:$audioSha256'));
+    final b = d.bytes.sublist(0, 16);
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    final h = b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
+    return '${h.substring(0, 8)}-${h.substring(8, 12)}-'
+        '${h.substring(12, 16)}-${h.substring(16, 20)}-${h.substring(20)}';
+  }
+
+  /// A failure after which the write may still land (late completion).
+  static bool _uncertain(AppFailure f) =>
+      f is TimeoutFailure || f is NetworkFailure || f is UnknownFailure;
+
+  Future<Result<Story>> _save(
+    StoryDraft draft,
+    StorySaveRequest request,
+    void Function(SavePhase phase)? onPhase,
+    _Attempt attempt,
+  ) async {
+    void phase(SavePhase p) {
+      if (!attempt.superseded) onPhase?.call(p);
+    }
+
     final uid = userId;
     if (uid == null) return const Failed(UnauthorizedFailure());
-    onPhase?.call(SavePhase.preparing);
+    phase(SavePhase.preparing);
     final FamilySpace? space;
     switch (await family.getMySpace()) {
       case Success(:final value):
@@ -87,21 +185,46 @@ class StorySaver {
     } on Exception catch (e) {
       return Failed(AppFailure.from(e));
     }
-    final storyId = _newId();
+    final int bytes;
+    final String digest;
+    try {
+      final file = File(joined);
+      bytes = await file.length();
+      digest = (await sha256.bind(file.openRead()).first).toString();
+    } on Exception catch (e) {
+      return Failed(AppFailure.from(e));
+    }
+    final storyId = _fixedId?.call() ?? stableStoryId(uid, draft.id, digest);
+    attempt.storyId = storyId;
+
+    // An earlier attempt (before a restart, or one that timed out and then
+    // finished) may already have created this story: use it, change nothing.
+    final already = await stories.getStory(storyId);
+    if (already case Success<Story?>(:final value?)) {
+      if (!attempt.superseded) await drafts.delete(draft.id);
+      return Success(value);
+    }
+
     final ext = joined.endsWith('.wav') ? 'wav' : 'm4a';
     // Namespaced by uploader: the storage insert policy rejects any write
     // outside your own prefix.
     final storagePath = '${space.id}/$uid/$storyId/a.$ext';
 
-    onPhase?.call(SavePhase.uploading);
+    phase(SavePhase.uploading);
     switch (await stories.uploadAudio(joined, storagePath)) {
       case Failed(:final failure):
-        return Failed(failure);
+        // The failure may be a duplicate (an earlier attempt stored it) or a
+        // real error. Reuse an existing object only when it is verifiably
+        // this audio: same content-derived path, same size. Otherwise fail
+        // and bind nothing.
+        final stored = await stories.audioSize(storagePath);
+        final same = stored is Success<int?> && stored.value == bytes;
+        if (!same) return Failed(failure);
       case Success():
         break;
     }
 
-    onPhase?.call(SavePhase.creating);
+    phase(SavePhase.creating);
     final story = Story(
       id: storyId,
       spaceId: space.id,
@@ -129,12 +252,27 @@ class StorySaver {
     );
     final created = await stories.createStory(story);
     if (created is Failed<Story>) {
-      // The take is in the bucket but no story points at it: remove it so
-      // failed saves leave nothing behind. A cleanup failure is not shown.
-      await stories.deleteAudio(storagePath);
+      // The row may exist even though the call failed (a late write, or a
+      // duplicate id from an earlier attempt): look before concluding.
+      final existing = await stories.getStory(storyId);
+      if (existing case Success<Story?>(:final value?)) {
+        if (!attempt.superseded) await drafts.delete(draft.id);
+        return Success(value);
+      }
+      // Remove the upload only when the failure is a definite rejection and
+      // the story does not exist. After an uncertain failure the audio stays
+      // so a retry reuses it and a late-created story keeps its audio.
+      // Never while this attempt was replaced or replaced another: a second
+      // attempt may be using the same object.
+      if (!_uncertain(created.failure) &&
+          existing is Success<Story?> &&
+          !attempt.superseded &&
+          !attempt.supersededOther) {
+        await stories.deleteAudio(storagePath);
+      }
       return created;
     }
-    await drafts.delete(draft.id);
+    if (!attempt.superseded) await drafts.delete(draft.id);
     return created;
   }
 }
@@ -148,4 +286,17 @@ Future<String> _joinTake(StoryDraft draft) {
     draft.segments,
     '${File(first).parent.path}/story.wav',
   );
+}
+
+class _Attempt {
+  late Future<Result<Story>> result;
+  String? storyId;
+  bool timedOut = false;
+
+  /// A newer attempt replaced this one: it must not touch the draft, the
+  /// shared audio or the UI.
+  bool superseded = false;
+
+  /// This attempt replaced a hung one that may still be writing.
+  bool supersededOther = false;
 }

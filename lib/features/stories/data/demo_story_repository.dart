@@ -64,6 +64,10 @@ class DemoStoryRepository implements StoryRepository {
       guard(() => _uploadAudio(localPath, storagePath));
 
   @override
+  Future<Result<int?>> audioSize(String storagePath) async =>
+      const Success(null);
+
+  @override
   Future<Result<void>> deleteAudio(String storagePath) =>
       guard(() => _deleteAudio(storagePath));
 
