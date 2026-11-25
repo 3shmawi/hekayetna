@@ -516,6 +516,8 @@
   "inviteMore": "More",
   "joinConfirmTitle": "Join this family?",
   "joinConfirmBody": "{name} · {count, plural, =1{1 member} other{{count} members}}",
+  "joinMemberCount": "{count, plural, =1{1 member} other{{count} members}}",
+  "@joinMemberCount": {"placeholders": {"count": {"type": "int"}}},
   "@joinConfirmBody": {
     "placeholders": {
       "name": {
@@ -527,7 +529,7 @@
     }
   },
   "joinConfirmButton": "Join",
-  "joinInvalid": "This invite link or code isn't valid. Ask for a new one.",
+  "joinInvalid": "This invitation isn't valid. Ask for a new one.",
   "joinAlreadyMember": "You're already in this family.",
   "joinOpenFamily": "Open the family",
   "displayNameTitle": "What does the family call you?",

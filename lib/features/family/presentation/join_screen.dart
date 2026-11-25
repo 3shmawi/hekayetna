@@ -94,8 +94,14 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          l10n.joinConfirmBody(p.name, p.memberCount),
-                          style: Theme.of(context).textTheme.titleMedium,
+                          p.name,
+                          style: Theme.of(context).textTheme.titleLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.joinMemberCount(p.memberCount),
+                          style: Theme.of(context).textTheme.bodyMedium,
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 24),
