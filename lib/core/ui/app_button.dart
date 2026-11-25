@@ -119,12 +119,18 @@ class AppButton extends StatelessWidget {
     final style = TextButton.styleFrom(
       backgroundColor: background,
       foregroundColor: foreground,
+      // A disabled filled button is a quiet neutral chip with readable
+      // text, not the brand fill at half strength (that was ~2:1 in light).
       disabledBackgroundColor: busy
           ? background.withValues(alpha: 0.85)
-          : background.withValues(alpha: 0.5),
+          : _kind == _Kind.secondary
+          ? background.withValues(alpha: 0.5)
+          : Color.alphaBlend(scheme.onSurface.withValues(alpha: 0.12), hk.sand),
       disabledForegroundColor: busy
           ? foreground
-          : foreground.withValues(alpha: 0.6),
+          : _kind == _Kind.secondary
+          ? foreground.withValues(alpha: 0.6)
+          : hk.inkSoft,
       padding: EdgeInsets.symmetric(horizontal: AppDimens.xl),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
