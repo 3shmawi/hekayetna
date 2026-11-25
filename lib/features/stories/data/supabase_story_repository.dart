@@ -103,6 +103,7 @@ class SupabaseStoryRepository implements StoryRepository {
           'audio_path': story.audioPath,
           'duration_seconds': story.durationSeconds,
           'created_by': _uid,
+          if (story.waveform != null) 'waveform': story.waveform,
         })
         .select()
         .single();

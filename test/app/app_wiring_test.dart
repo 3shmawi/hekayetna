@@ -7,11 +7,14 @@ import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart';
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
+import 'package:family_stories/features/settings/data/settings_repository.dart';
+import 'package:family_stories/features/settings/presentation/settings_controller.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/pump_app.dart';
 
@@ -42,9 +45,16 @@ void main() {
       ..physicalSize = const Size(1125, 2436)
       ..devicePixelRatio = 3;
     addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [draftStoreProvider.overrideWithValue(MemoryDraftStore())],
+        overrides: [
+          draftStoreProvider.overrideWithValue(MemoryDraftStore()),
+          settingsRepositoryProvider.overrideWithValue(
+            SettingsRepository(prefs),
+          ),
+        ],
         child: AppUi.testWrap(
           ScreenUtilInit(
             designSize: AppDimens.designSize,
@@ -110,10 +120,10 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester);
-    appRouter.go('/record/preview/does-not-exist');
+    appRouter.go('/record/new-story/does-not-exist');
     await tester.pumpAndSettle();
     final l10n = lookupAppLocalizations(const Locale('en'));
-    expect(find.text(l10n.errorUnknown), findsOneWidget);
+    expect(find.text(l10n.saveStoryMissing), findsOneWidget);
     expect(find.byIcon(Icons.play_arrow), findsNothing);
   });
 }

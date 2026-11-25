@@ -12,14 +12,13 @@ import 'package:family_stories/features/auth/presentation/sign_in_page.dart';
 import 'package:family_stories/features/family/presentation/family_screens.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
 import 'package:family_stories/features/recording/presentation/continue_recording_screen.dart';
-import 'package:family_stories/features/recording/presentation/preview_screen.dart';
-import 'package:family_stories/features/recording/presentation/record_screen.dart';
+import 'package:family_stories/features/recording/presentation/record_page.dart';
+import 'package:family_stories/features/recording/presentation/save_story_page.dart';
 import 'package:family_stories/features/settings/presentation/settings_page.dart';
 import 'package:family_stories/features/stories/player/audio_player_controller.dart';
 import 'package:family_stories/features/stories/presentation/mini_player.dart';
 import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
 import 'package:family_stories/features/stories/presentation/story_page.dart';
-import 'package:family_stories/features/stories/presentation/story_screens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -76,7 +75,7 @@ final appRouter = GoRouter(
             GoRoute(
               path: AppRoutes.record,
               name: 'record',
-              builder: (context, state) => const RecordScreen(),
+              builder: (context, state) => const RecordPage(),
               routes: [
                 GoRoute(
                   path: 'continue',
@@ -86,17 +85,10 @@ final appRouter = GoRouter(
                   builder: (context, state) => const ContinueRecordingScreen(),
                 ),
                 GoRoute(
-                  path: 'preview/:draftId',
-                  name: 'record_preview',
-                  builder: (context, state) => RecordingPreviewScreen(
-                    draftId: state.pathParameters['draftId']!,
-                  ),
-                ),
-                GoRoute(
                   path: 'new-story/:draftId',
                   name: 'record_new_story',
                   builder: (context, state) =>
-                      StoryEditScreen(draftId: state.pathParameters['draftId']),
+                      SaveStoryPage(draftId: state.pathParameters['draftId']!),
                 ),
               ],
             ),

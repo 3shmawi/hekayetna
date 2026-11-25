@@ -7,14 +7,18 @@ import 'dart:io';
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
+import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_view.dart';
 import 'package:family_stories/features/family/data/models.dart' show Person;
 import 'package:family_stories/features/family/presentation/family_screens.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
-import 'package:family_stories/features/recording/presentation/record_screen.dart';
-import 'package:family_stories/features/stories/data/models.dart';
+import 'package:family_stories/features/recording/presentation/record_page.dart';
+import 'package:family_stories/features/recording/presentation/record_view.dart';
+import 'package:family_stories/features/settings/data/settings_repository.dart';
+import 'package:family_stories/features/settings/presentation/settings_controller.dart';
+import 'package:family_stories/features/stories/data/models.dart' as stories;
 import 'package:family_stories/features/stories/player/audio_player_controller.dart';
 import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
 import 'package:family_stories/features/stories/presentation/story_view.dart';
@@ -24,6 +28,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Visual-evidence screenshots with the app's REAL fonts (Inter + Cairo),
 /// unlike the layout goldens which use Flutter's box test font. These
@@ -33,7 +38,7 @@ import 'package:flutter_test/flutter_test.dart';
 final Map<String, Widget Function()> scenes = {
   'stories_feed': () => const _DemoScope(child: StoryFeedPage()),
   'story_detail': () => StoryView(
-    story: Story(
+    story: stories.Story(
       id: 's1',
       spaceId: 'sp',
       title: 'The first Om Ali',
@@ -42,7 +47,7 @@ final Map<String, Widget Function()> scenes = {
           'in Sayeda Zeinab, and why she still breaks the bread by hand.',
       topic: 'ramadan_eid_traditions',
       approxDateLabel: 'Ramadan, late 1950s',
-      visibility: StoryVisibility.family,
+      visibility: stories.StoryVisibility.family,
       audioPath: 'a/b.wav',
       durationSeconds: 154,
       createdBy: 'me',
@@ -74,9 +79,30 @@ final Map<String, Widget Function()> scenes = {
     onSendLink: (_) {},
   ),
   'family': () => const _DemoScope(child: FamilyHomeScreen()),
-  'record': () => const _DemoScope(child: RecordScreen()),
+  'record': () => const _DemoScope(child: RecordPage()),
+  'record_recording': () => _recordView(RecordButtonState.recording),
+  'record_paused': () => _recordView(RecordButtonState.paused),
   'onboarding': () => const OnboardingPage(),
 };
+
+Widget _recordView(RecordButtonState state) => Builder(
+  builder: (context) => RecordView(
+    buttonState: state,
+    elapsed: const Duration(minutes: 2, seconds: 14),
+    levels: [for (var i = 0; i < 20; i++) (i % 7) / 7],
+    narratorName: 'Sitto Amina',
+    draftSaved: true,
+    canFinish: true,
+    topicLabel: 'Childhood & first home',
+    promptText: context.l10n.recordPrompt1,
+    onDifferentQuestion: () {},
+    onClose: () {},
+    onToggle: () {},
+    onPickNarrator: () {},
+    onPickTopic: () {},
+    onDone: () {},
+  ),
+);
 
 Future<void> loadRealFonts() async {
   final fonts = {
@@ -105,6 +131,8 @@ Future<void> loadRealFonts() async {
   await icons.load();
 }
 
+late SharedPreferences _prefs;
+
 class _DemoScope extends StatelessWidget {
   const _DemoScope({required this.child});
 
@@ -115,6 +143,7 @@ class _DemoScope extends StatelessWidget {
     overrides: [
       draftStoreProvider.overrideWithValue(MemoryDraftStore()),
       recorderServiceProvider.overrideWithValue(_FakeRecorderService()),
+      settingsRepositoryProvider.overrideWithValue(SettingsRepository(_prefs)),
     ],
     child: child,
   );
@@ -129,6 +158,12 @@ class _FakeRecorderService implements RecorderService {
 
   @override
   Stream<RecorderState> watch() => _controller.stream;
+
+  @override
+  Stream<double> get levels => const Stream.empty();
+
+  @override
+  List<int>? get waveform => null;
 
   @override
   Future<bool> ensurePermission() async => false;
@@ -161,34 +196,48 @@ class _FakeRecorderService implements RecorderService {
 }
 
 void main() {
-  setUp(loadRealFonts);
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    _prefs = await SharedPreferences.getInstance();
+    await loadRealFonts();
+  });
 
   for (final MapEntry(key: name, value: build) in scenes.entries) {
     for (final locale in const ['en', 'ar']) {
-      testWidgets('$name · $locale', (tester) async {
-        tester.view
-          ..physicalSize = const Size(375, 812) * 2
-          ..devicePixelRatio = 2;
-        addTearDown(tester.view.reset);
-        await tester.pumpWidget(
-          ScreenUtilInit(
-            designSize: AppDimens.designSize,
-            builder: (context, _) => MaterialApp(
-              debugShowCheckedModeBanner: false,
-              locale: Locale(locale),
-              theme: AppTheme.light,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              home: build(),
+      for (final dark in const [false, true]) {
+        if (dark && !name.startsWith('record')) continue;
+        final tag = dark ? '${locale}_dark' : locale;
+        testWidgets('$name · $tag', (tester) async {
+          tester.view
+            ..physicalSize = const Size(375, 812) * 2
+            ..devicePixelRatio = 2;
+          addTearDown(tester.view.reset);
+          await tester.pumpWidget(
+            ScreenUtilInit(
+              designSize: AppDimens.designSize,
+              builder: (context, _) => MaterialApp(
+                debugShowCheckedModeBanner: false,
+                locale: Locale(locale),
+                theme: dark ? AppTheme.dark : AppTheme.light,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                home: build(),
+              ),
             ),
-          ),
-        );
-        await tester.pumpAndSettle();
-        await expectLater(
-          find.byType(MaterialApp),
-          matchesGoldenFile('shots/${name}_$locale.png'),
-        );
-      });
+          );
+          if (name == 'record_recording') {
+            // The halo breathes forever; it never settles.
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 800));
+          } else {
+            await tester.pumpAndSettle();
+          }
+          await expectLater(
+            find.byType(MaterialApp),
+            matchesGoldenFile('shots/${name}_$tag.png'),
+          );
+        });
+      }
     }
   }
 }

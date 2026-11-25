@@ -43,6 +43,7 @@ Story _story({
   String id = 's1',
   StoryVisibility visibility = StoryVisibility.private,
   List<String> recipients = const [],
+  List<int>? waveform,
 }) => Story(
   id: id,
   spaceId: 'sp',
@@ -54,6 +55,7 @@ Story _story({
   createdAt: DateTime(2026),
   narratorIds: const ['p1'],
   recipientUserIds: recipients,
+  waveform: waveform,
 );
 
 const _boom = PostgrestException(message: 'denied', code: '42501');
@@ -161,12 +163,13 @@ void main() {
       world.responses['stories.insert'] = {'id': 's9'};
       world.responses['story_narrators.insert'] = null;
       world.responses['stories.select'] = [_row(id: 's9')];
-      final r = await repo.createStory(_story(id: ''));
+      final r = await repo.createStory(_story(id: '', waveform: [1, 2, 3]));
       expect((r as Success<Story>).value.id, 's9');
       final insert = world.on('stories', 'insert').single;
       final values = insert.args.single! as Map;
       expect(values['created_by'], 'u1');
       expect(values['visibility'], 'private');
+      expect(values['waveform'], [1, 2, 3]);
       expect(values.containsKey('id'), isFalse);
       final narrators =
           world.on('story_narrators', 'insert').single.args.single! as List;

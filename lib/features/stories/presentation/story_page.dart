@@ -9,6 +9,7 @@ import 'package:family_stories/core/ui/app_message.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/stories/data/models.dart';
+import 'package:family_stories/features/stories/domain/visibility_sentence.dart';
 import 'package:family_stories/features/stories/player/audio_player_controller.dart';
 import 'package:family_stories/features/stories/presentation/story_providers.dart';
 import 'package:family_stories/features/stories/presentation/story_screens.dart';
@@ -75,17 +76,15 @@ class _Loaded extends ConsumerWidget {
       if (m.userId == story.createdBy) recordedBy = m.displayName;
     }
 
-    String note(StoryVisibility v) => switch (v) {
-      StoryVisibility.private => s.storyVisPrivate,
-      StoryVisibility.family => s.storyVisFamily('${members.length}'),
-      StoryVisibility.selected => s.storyVisSelected(
-        '${story.recipientUserIds.length}',
-        [
-          for (final m in members)
-            if (story.recipientUserIds.contains(m.userId)) m.displayName,
-        ].join(', '),
-      ),
-    };
+    String note(StoryVisibility v) => visibilitySentence(
+      s,
+      visibility: v,
+      selectedNames: [
+        for (final m in members)
+          if (story.recipientUserIds.contains(m.userId)) m.displayName,
+      ],
+      familyCount: members.length,
+    );
 
     return StoryView(
       story: story,
