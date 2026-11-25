@@ -104,6 +104,9 @@ class RecorderTransitions {
 }
 
 abstract class RecorderService {
+  /// `RecorderState.error` when the draft to continue no longer exists.
+  static const continueMissingError = 'draft_missing';
+
   RecorderState get state;
   Stream<RecorderState> watch();
 
@@ -123,6 +126,12 @@ abstract class RecorderService {
     String? topic,
     String? promptId,
   });
+
+  /// Continues an interrupted draft: keeps its closed segments, appends a
+  /// new open one and starts capture. The timer carries on from the kept
+  /// duration. Nothing is lost if the draft is missing: the state becomes
+  /// failed with [continueMissingError].
+  Future<void> continueDraft(String draftId);
   Future<void> pause({PauseReason reason = PauseReason.user});
   Future<void> resume();
 

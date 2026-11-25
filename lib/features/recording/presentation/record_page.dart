@@ -11,6 +11,7 @@ import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
+import 'package:family_stories/features/recording/presentation/continue_recording_screen.dart';
 import 'package:family_stories/features/recording/presentation/record_view.dart';
 import 'package:family_stories/features/settings/presentation/settings_controller.dart';
 import 'package:family_stories/features/stories/domain/story_topics.dart';
@@ -60,33 +61,12 @@ class _RecordPageState extends ConsumerState<RecordPage> {
   Future<void> _offerDraftResume() async {
     if (_checkedDrafts) return;
     _checkedDrafts = true;
-    final drafts = await ref.read(draftStoreProvider).list();
+    // Never while a take is live (a continued draft lands here recording).
+    final status = ref.read(recorderServiceProvider).state.status;
+    if (status != RecorderStatus.idle) return;
+    final drafts = await interruptedDrafts(ref);
     if (drafts.isEmpty || !mounted) return;
-    final s = context.l10n;
-    final draft = drafts.first; // newest first
-    final resume = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(s.draftFoundTitle),
-        content: Text(s.draftFoundBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(s.discardDraft),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(s.continueDraft),
-          ),
-        ],
-      ),
-    );
-    if (!mounted) return;
-    if (resume ?? false) {
-      unawaited(context.push(AppRoutes.recordNewStory(draft.id)));
-    } else if (resume == false) {
-      await ref.read(draftStoreProvider).delete(draft.id);
-    }
+    unawaited(context.push('/record/continue'));
   }
 
   Future<void> _toggle() async {
