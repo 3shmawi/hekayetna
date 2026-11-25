@@ -3,9 +3,12 @@ import 'dart:async';
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/network/app_failure.dart';
+import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
+import 'package:family_stories/features/family/data/models.dart';
+import 'package:family_stories/features/family/presentation/display_name_dialog.dart';
 import 'package:family_stories/features/stories/data/story_repository.dart';
 import 'package:family_stories/features/stories/player/audio_player_controller.dart';
 import 'package:family_stories/features/stories/presentation/feed_filters.dart';
@@ -41,8 +44,8 @@ class _StoryFeedPageState extends ConsumerState<StoryFeedPage> {
     return switch (space) {
       AsyncData(value: null) => AppScaffold(
         body: NoSpaceView(
-          onCreate: notifier.createSpace,
-          onJoin: notifier.joinSpace,
+          onCreate: (name) => _thenAskName(notifier.createSpace(name)),
+          onJoin: (code) => _thenAskName(notifier.joinSpace(code)),
         ),
       ),
       AsyncData(value: final s?) => _feed(s.id),
@@ -54,6 +57,27 @@ class _StoryFeedPageState extends ConsumerState<StoryFeedPage> {
       ),
       _ => const AppScaffold(body: LoadingView()),
     };
+  }
+
+  /// After a family is created or joined, ask once what the family calls
+  /// the person, if they have no name yet. Cancelling skips it (Settings >
+  /// Account can set it later).
+  Future<Result<FamilySpace>> _thenAskName(
+    Future<Result<FamilySpace>> action,
+  ) async {
+    final result = await action;
+    if (result is Success<FamilySpace> && mounted) {
+      unawaited(_askNameIfMissing());
+    }
+    return result;
+  }
+
+  Future<void> _askNameIfMissing() async {
+    final r = await ref.read(familyRepositoryProvider).getMyDisplayName();
+    if (!mounted) return;
+    if (r case Success(:final value) when value.trim().isEmpty) {
+      await showDisplayNameDialog(context, ref, current: '');
+    }
   }
 
   Widget _feed(String spaceId) {

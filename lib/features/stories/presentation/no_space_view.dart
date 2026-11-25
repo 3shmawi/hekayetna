@@ -95,6 +95,9 @@ class _NoSpaceViewState extends State<NoSpaceView> {
         SizedBox(height: AppDimens.md),
         TextField(
           controller: _code,
+          textCapitalization: TextCapitalization.characters,
+          autocorrect: false,
+          enableSuggestions: false,
           decoration: InputDecoration(labelText: s.inviteCode),
         ),
         SizedBox(height: AppDimens.md),
