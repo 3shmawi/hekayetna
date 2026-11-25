@@ -3,7 +3,9 @@ import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart';
 import 'package:family_stories/features/settings/data/settings_repository.dart';
 import 'package:family_stories/features/settings/presentation/settings_controller.dart';
+import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -202,6 +204,52 @@ void main() {
       expect(auth.calls, ['signInWithGoogle']);
       expect(find.byKey(const Key('sign_in_error')), findsNothing);
     });
+
+    for (final (width, scale) in [(375.0, 1.0), (320.0, 1.0), (320.0, 1.6)]) {
+      testWidgets('Arabic labels are never cut off at $width wide, x$scale', (
+        tester,
+      ) async {
+        await prefs.setString('settings.locale', 'ar');
+        await tester.pumpApp(
+          MediaQuery(
+            data: MediaQueryData(
+              size: Size(width, 900),
+              textScaler: TextScaler.linear(scale),
+            ),
+            child: ProviderScope(
+              overrides: [
+                settingsRepositoryProvider.overrideWithValue(
+                  SettingsRepository(prefs),
+                ),
+              ],
+              child: const SignInPage(),
+            ),
+          ),
+          locale: const Locale('ar'),
+        );
+        tester.view.physicalSize = Size(width, 900) * 3;
+        await tester.pumpAndSettle();
+        for (final key in [
+          'sign_in_submit',
+          'sign_in_send_link',
+          'sign_in_forgot',
+          'sign_in_switch_mode',
+        ]) {
+          final text = find.descendant(
+            of: find.byKey(Key(key)),
+            matching: find.byType(Text),
+          );
+          if (text.evaluate().isEmpty) continue;
+          final paragraph = tester.renderObject<RenderParagraph>(text.first);
+          expect(paragraph.didExceedMaxLines, isFalse, reason: key);
+          expect(tester.takeException(), isNull, reason: key);
+        }
+        expect(
+          find.text(lookupAppLocalizations(const Locale('ar')).authSendLink),
+          findsOneWidget,
+        );
+      });
+    }
 
     testWidgets('works right to left in Arabic', (tester) async {
       await prefs.setString('settings.locale', 'ar');

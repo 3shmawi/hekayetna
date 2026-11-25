@@ -67,8 +67,11 @@ class AppButton extends StatelessWidget {
       _Kind.destructive => (scheme.errorContainer, scheme.error, null),
       _Kind.record => (hk.record, hk.onRecord, null),
     };
-    final child = SizedBox(
-      height: AppDimens.buttonHeight,
+    // At least the standard height; a long label (Arabic, large text size,
+    // narrow phone) wraps onto more lines and the button grows instead of
+    // cutting the words off.
+    final child = ConstrainedBox(
+      constraints: BoxConstraints(minHeight: AppDimens.buttonHeight),
       child: Center(
         widthFactor: expand ? null : 1,
         child: busy
@@ -89,8 +92,7 @@ class AppButton extends StatelessWidget {
                   Flexible(
                     child: Text(
                       label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
                       style: AppTextStyles.label,
                     ),
                   ),
@@ -103,7 +105,10 @@ class AppButton extends StatelessWidget {
       foregroundColor: foreground,
       disabledBackgroundColor: background.withValues(alpha: 0.5),
       disabledForegroundColor: foreground.withValues(alpha: 0.6),
-      padding: EdgeInsets.symmetric(horizontal: AppDimens.xl),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppDimens.xl,
+        vertical: AppDimens.sm,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
         side: border ?? BorderSide.none,
