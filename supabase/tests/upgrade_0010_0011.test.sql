@@ -232,8 +232,8 @@ declare v_failed boolean := false;
 begin
   begin
     perform pg_temp._apply('0010',
-      $h$create or replace function public.generate_short_code() returns text
-         language sql as $f$ select 'AAAAAAA'::text $f$$h$);
+      $hook$create or replace function public.generate_short_code() returns text
+         language sql as 'select ''AAAAAAA''::text'$hook$);
   exception when unique_violation then
     v_failed := true;
   end;
