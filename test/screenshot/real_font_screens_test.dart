@@ -12,6 +12,7 @@ import 'package:family_stories/features/family/presentation/family_screens.dart'
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
 import 'package:family_stories/features/recording/data/memory_draft_store.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
+import 'package:family_stories/features/recording/presentation/continue_recording_view.dart';
 import 'package:family_stories/features/recording/presentation/record_screen.dart';
 import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
 import 'package:family_stories/l10n/l10n.dart';
@@ -34,6 +35,23 @@ final Map<String, Widget Function()> scenes = {
     onSendLink: (_) {},
   ),
   'family': () => const _DemoScope(child: FamilyHomeScreen()),
+  'record_resume': () => ContinueRecordingView(
+    items: const [
+      ResumeItem(
+        id: 'a',
+        title: 'Ramadan in the old house',
+        narratorName: 'Sitto Fatma',
+        stoppedAtLabel: 'yesterday at 8:40 pm',
+        segmentMs: [240000, 225000],
+      ),
+    ],
+    playingId: null,
+    onPlayToggle: (_) {},
+    onContinue: (_) {},
+    onSave: (_) {},
+    onDelete: (_) {},
+    onClose: () {},
+  ),
   'record': () => const _DemoScope(child: RecordScreen()),
   'onboarding': () => const OnboardingPage(),
 };
@@ -100,6 +118,9 @@ class _FakeRecorderService implements RecorderService {
     String? topic,
     String? promptId,
   }) async {}
+
+  @override
+  Future<void> continueDraft(String draftId) async {}
 
   @override
   Future<void> pause({PauseReason reason = PauseReason.user}) async {}
