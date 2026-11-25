@@ -731,16 +731,21 @@ class _Controls extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
-    Widget button(IconData icon, String tip, VoidCallback onTap) =>
-        IconButton.filledTonal(
-          tooltip: tip,
-          constraints: BoxConstraints.tightFor(
-            width: AppDimens.targetMin,
-            height: AppDimens.targetMin,
-          ),
-          onPressed: onTap,
-          icon: Icon(icon),
-        );
+    Widget button(IconData icon, String tip, VoidCallback onTap) => IconButton(
+      tooltip: tip,
+      style: IconButton.styleFrom(
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
+        side: BorderSide(color: scheme.outlineVariant),
+        shape: const CircleBorder(),
+      ),
+      constraints: BoxConstraints.tightFor(
+        width: AppDimens.targetMin,
+        height: AppDimens.targetMin,
+      ),
+      onPressed: onTap,
+      icon: Icon(icon),
+    );
     return SizedBox(
       width: AppDimens.targetMin + AppDimens.md * 2,
       child: Padding(
