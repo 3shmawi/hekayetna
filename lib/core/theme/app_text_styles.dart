@@ -1,3 +1,4 @@
+import 'package:family_stories/core/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -6,12 +7,27 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 /// Nothing is smaller than 15sp except [tabLabel] (12) and [countBadge]
 /// (13), the two named exceptions; older family members are first-class.
 abstract final class AppTextStyles {
-  static TextStyle get display =>
-      TextStyle(fontSize: 32.sp, fontWeight: FontWeight.w700, height: 40 / 32);
-  static TextStyle get headline =>
-      TextStyle(fontSize: 26.sp, fontWeight: FontWeight.w700, height: 34 / 26);
-  static TextStyle get title =>
-      TextStyle(fontSize: 21.sp, fontWeight: FontWeight.w600, height: 28 / 21);
+  static TextStyle get display => TextStyle(
+    fontFamily: AppFonts.display,
+    fontFamilyFallback: const [AppFonts.arabic],
+    fontSize: 32.sp,
+    fontWeight: FontWeight.w600,
+    height: 40 / 32,
+  );
+  static TextStyle get headline => TextStyle(
+    fontFamily: AppFonts.display,
+    fontFamilyFallback: const [AppFonts.arabic],
+    fontSize: 26.sp,
+    fontWeight: FontWeight.w600,
+    height: 34 / 26,
+  );
+  static TextStyle get title => TextStyle(
+    fontFamily: AppFonts.display,
+    fontFamilyFallback: const [AppFonts.arabic],
+    fontSize: 21.sp,
+    fontWeight: FontWeight.w600,
+    height: 28 / 21,
+  );
   static TextStyle get bodyLarge => TextStyle(fontSize: 19.sp, height: 30 / 19);
   static TextStyle get body => TextStyle(fontSize: 17.sp, height: 26 / 17);
   static TextStyle get label =>

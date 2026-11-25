@@ -16,6 +16,8 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
     required this.line,
     required this.inkSoft,
     required this.sand,
+    required this.fill,
+    required this.onFill,
   });
 
   /// Terracotta: recording only, so it always means "your voice is being
@@ -41,15 +43,22 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
   /// Scaffold background.
   final Color sand;
 
+  /// Primary button fill and its label color (dark mode keeps
+  /// `colorScheme.primary` light for text and icons).
+  final Color fill;
+  final Color onFill;
+
   static const light = HekayetnaColors(
     record: Color(0xFF9C4A21),
     onRecord: Color(0xFFFFFFFF),
     recordTint: Color(0xFFF3E1D6),
     gold: Color(0xFFC9A227),
     goldTint: Color(0xFFF5ECD0),
-    line: Color(0xFFE2D9C8),
-    inkSoft: Color(0xFF5A645C),
-    sand: Color(0xFFF6F1E7),
+    line: Color(0xFFDFE4DD),
+    inkSoft: Color(0xFF4F564F),
+    sand: Color(0xFFF6FBF4),
+    fill: Color(0xFF243828),
+    onFill: Color(0xFFFFFFFF),
   );
 
   static const dark = HekayetnaColors(
@@ -58,9 +67,11 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
     recordTint: Color(0xFF3A2418),
     gold: Color(0xFFD9B84A),
     goldTint: Color(0xFF332B14),
-    line: Color(0xFF3A342C),
-    inkSoft: Color(0xFFB4BDB5),
-    sand: Color(0xFF171512),
+    line: Color(0xFF27372C),
+    inkSoft: Color(0xFF9EACA1),
+    sand: Color(0xFF111A13),
+    fill: Color(0xFF2F4A35),
+    onFill: Color(0xFFF3F7F2),
   );
 
   @override
@@ -73,6 +84,8 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
     Color? line,
     Color? inkSoft,
     Color? sand,
+    Color? fill,
+    Color? onFill,
   }) {
     return HekayetnaColors(
       record: record ?? this.record,
@@ -83,6 +96,8 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
       line: line ?? this.line,
       inkSoft: inkSoft ?? this.inkSoft,
       sand: sand ?? this.sand,
+      fill: fill ?? this.fill,
+      onFill: onFill ?? this.onFill,
     );
   }
 
@@ -98,6 +113,8 @@ class HekayetnaColors extends ThemeExtension<HekayetnaColors> {
       line: Color.lerp(line, other.line, t)!,
       inkSoft: Color.lerp(inkSoft, other.inkSoft, t)!,
       sand: Color.lerp(sand, other.sand, t)!,
+      fill: Color.lerp(fill, other.fill, t)!,
+      onFill: Color.lerp(onFill, other.onFill, t)!,
     );
   }
 }

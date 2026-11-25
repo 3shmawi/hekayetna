@@ -224,7 +224,8 @@ Widget _recordView(RecordButtonState state) => Builder(
 
 Future<void> loadRealFonts() async {
   final fonts = {
-    'Inter': [400, 500, 600, 700],
+    'PlusJakartaSans': [400, 500, 600, 700],
+    'PlayfairDisplay': [600, 700],
     'Cairo': [400, 500, 600, 700],
   };
   for (final entry in fonts.entries) {

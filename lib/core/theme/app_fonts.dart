@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 /// runtime download). Latin text uses [latin]; Arabic characters fall back
 /// to [arabic] automatically, so mixed text renders correctly.
 abstract final class AppFonts {
-  static const latin = 'Inter';
+  static const latin = 'PlusJakartaSans';
+  static const display = 'PlayfairDisplay';
   static const arabic = 'Cairo';
 
   /// Auth screens (approved design direction): body and display faces.

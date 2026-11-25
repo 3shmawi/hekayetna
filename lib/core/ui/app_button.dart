@@ -68,7 +68,7 @@ class AppButton extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final hk = context.hk;
     final (background, foreground, border) = switch (_kind) {
-      _Kind.primary => (scheme.primary, scheme.onPrimary, null),
+      _Kind.primary => (hk.fill, hk.onFill, null),
       _Kind.secondary => (
         Colors.transparent,
         LinkColor.of(context),
