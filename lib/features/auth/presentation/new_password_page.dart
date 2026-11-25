@@ -8,6 +8,7 @@ import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
 import 'package:family_stories/core/ui/app_message.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
+import 'package:family_stories/core/ui/brand_panel.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -68,6 +69,8 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       body: ListView(
         padding: EdgeInsets.all(AppDimens.xl),
         children: [
+          const BrandPanel(),
+          SizedBox(height: AppDimens.xl),
           TextField(
             key: const Key('new_password_field'),
             controller: _password,
