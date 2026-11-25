@@ -51,6 +51,7 @@ class FakeSegmentRecorder implements SegmentRecorder {
 }
 
 void main() {
+  continueDraftTests();
   interruptionTests();
   storageSpaceTests();
   group('AC-1: the draft is indexed before the first second of audio', () {
@@ -386,6 +387,96 @@ void storageSpaceTests() {
         (_) async => throw PlatformException(code: 'unavailable'),
       );
       expect(await StorageSpace.freeBytes(), isNull);
+    });
+  });
+}
+
+void continueDraftTests() {
+  group('continueDraft (RecordResume)', () {
+    test(
+      'keeps kept segments, appends an open one, timer carries on',
+      () async {
+        final store = MemoryDraftStore();
+        await store.save(
+          StoryDraft(
+            id: 'd1',
+            updatedAt: DateTime(2026),
+            status: DraftStatus.interrupted,
+            narratorPersonId: 'p1',
+            topic: 'war',
+            segments: const [
+              DraftSegment(path: 'a.wav', durationMs: 30000, closed: true),
+              DraftSegment(path: 'b.wav', durationMs: 15000),
+              DraftSegment(path: 'empty.wav', durationMs: 0),
+            ],
+          ),
+        );
+        StoryDraft? seenAtRecorderStart;
+        final recorder = FakeSegmentRecorder(
+          onStart: (_) async => seenAtRecorderStart = await store.get('d1'),
+        );
+        final service = SegmentedRecorderService(
+          draftStore: store,
+          recorder: recorder,
+        );
+        await service.continueDraft('d1');
+
+        // Indexed as recording BEFORE capture starts (AC-1).
+        expect(seenAtRecorderStart!.status, DraftStatus.recording);
+        final draft = (await store.get('d1'))!;
+        expect(draft.segments.map((s) => s.path).take(2), ['a.wav', 'b.wav']);
+        expect(draft.segments.map((s) => s.closed), [true, true, false]);
+        expect(draft.segments.last.path, recorder.startedPaths.single);
+        // The empty leftover is dropped; narrator and topic are kept.
+        expect(draft.segments, hasLength(3));
+        expect(draft.narratorPersonId, 'p1');
+        expect(draft.topic, 'war');
+        expect(service.state.status, RecorderStatus.recording);
+        expect(service.state.draftId, 'd1');
+        expect(service.state.elapsed, const Duration(seconds: 45));
+        await service.dispose();
+      },
+    );
+
+    test(
+      'a missing draft fails with a clear error and records nothing',
+      () async {
+        final recorder = FakeSegmentRecorder();
+        final service = SegmentedRecorderService(
+          draftStore: MemoryDraftStore(),
+          recorder: recorder,
+        );
+        await service.continueDraft('nope');
+        expect(service.state.status, RecorderStatus.failed);
+        expect(service.state.error, RecorderService.continueMissingError);
+        expect(recorder.startedPaths, isEmpty);
+        await service.dispose();
+      },
+    );
+
+    test('stop after continuing finishes with all segments closed', () async {
+      final store = MemoryDraftStore();
+      await store.save(
+        StoryDraft(
+          id: 'd2',
+          updatedAt: DateTime(2026),
+          status: DraftStatus.interrupted,
+          segments: const [
+            DraftSegment(path: 'a.wav', durationMs: 20000, closed: true),
+          ],
+        ),
+      );
+      final service = SegmentedRecorderService(
+        draftStore: store,
+        recorder: FakeSegmentRecorder(),
+      );
+      await service.continueDraft('d2');
+      await service.stop();
+      final draft = (await store.get('d2'))!;
+      expect(draft.status, DraftStatus.finished);
+      expect(draft.segments.every((s) => s.closed), isTrue);
+      expect(draft.segments.first.path, 'a.wav');
+      await service.dispose();
     });
   });
 }
