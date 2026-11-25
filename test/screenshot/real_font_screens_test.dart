@@ -32,77 +32,91 @@ import 'package:flutter_test/flutter_test.dart';
 /// inspected by a human/agent. Output: test/screenshot/shots/*.png.
 final Map<String, Widget Function()> scenes = {
   'stories_feed': () => const _DemoScope(child: StoryFeedPage()),
-  'story_detail': () => StoryView(
-    story: Story(
-      id: 's1',
-      spaceId: 'sp',
-      title: 'The first Om Ali',
-      description:
-          'How Sitto learned to make Om Ali from her mother in the house '
-          'in Sayeda Zeinab, and why she still breaks the bread by hand.',
-      topic: 'ramadan_eid_traditions',
-      approxDateLabel: 'Ramadan, late 1950s',
-      visibility: StoryVisibility.family,
-      audioPath: 'a/b.wav',
-      durationSeconds: 154,
-      createdBy: 'me',
-      createdAt: DateTime(2026),
+  'story_detail': () => Builder(
+    builder: (context) => StoryView(
+      story: Story(
+        id: 's1',
+        spaceId: 'sp',
+        title: 'The first Om Ali',
+        description:
+            'How Sitto learned to make Om Ali from her mother in the house '
+            'in Sayeda Zeinab, and why she still breaks the bread by hand.',
+        topic: 'ramadan_eid_traditions',
+        approxDateLabel: 'Ramadan, late 1950s',
+        visibility: StoryVisibility.family,
+        audioPath: 'a/b.wav',
+        durationSeconds: 154,
+        createdBy: 'me',
+        createdAt: DateTime(2026),
+      ),
+      player: const PlayerState(
+        storyId: 's1',
+        status: PlayerStatus.playing,
+        position: Duration(seconds: 72),
+        duration: Duration(seconds: 154),
+      ),
+      narratorName: 'Sitto Fatma',
+      recordedBy: 'Recorded by Omar',
+      people: const [
+        Person(
+          id: 'p1',
+          spaceId: 'sp',
+          fullName: 'Sitto Fatma',
+          createdBy: 'me',
+        ),
+        Person(
+          id: 'p2',
+          spaceId: 'sp',
+          fullName: 'Nena Zeinab',
+          createdBy: 'me',
+        ),
+      ],
+      onPersonTap: (_) {},
+      isCreator: true,
+      visibilityNote: context.l10n.storyVisFamily('8'),
+      onToggle: () {},
+      onSeek: (_) {},
+      onSpeed: () {},
+      onMenu: (_) {},
     ),
-    player: const PlayerState(
-      storyId: 's1',
-      status: PlayerStatus.playing,
-      position: Duration(seconds: 72),
-      duration: Duration(seconds: 154),
-    ),
-    narratorName: 'Sitto Fatma',
-    recordedBy: 'Recorded by Omar',
-    people: const [
-      Person(id: 'p1', spaceId: 'sp', fullName: 'Sitto Fatma', createdBy: 'me'),
-      Person(id: 'p2', spaceId: 'sp', fullName: 'Nena Zeinab', createdBy: 'me'),
-    ],
-    onPersonTap: (_) {},
-    isCreator: true,
-    visibilityNote: 'The whole family can hear this (8 people).',
-    onToggle: () {},
-    onSeek: (_) {},
-    onSpeed: () {},
-    onMenu: (_) {},
   ),
-  'story_detail_ar_content': () => StoryView(
-    story: Story(
-      id: 's1',
-      spaceId: 'sp',
-      title: 'أول أم علي',
-      description:
-          'إزاي ستو اتعلمت تعمل أم علي من أمها في بيتهم في السيدة زينب، '
-          'وليه لسه بتقطع العيش بإيديها.',
-      topic: 'ramadan_eid_traditions',
-      approxDateLabel: 'رمضان، أواخر الخمسينات',
-      visibility: StoryVisibility.family,
-      audioPath: 'a/b.wav',
-      durationSeconds: 154,
-      createdBy: 'me',
-      createdAt: DateTime(2026),
+  'story_detail_ar_content': () => Builder(
+    builder: (context) => StoryView(
+      story: Story(
+        id: 's1',
+        spaceId: 'sp',
+        title: 'أول أم علي',
+        description:
+            'إزاي ستو اتعلمت تعمل أم علي من أمها في بيتهم في السيدة زينب، '
+            'وليه لسه بتقطع العيش بإيديها.',
+        topic: 'ramadan_eid_traditions',
+        approxDateLabel: 'رمضان، أواخر الخمسينات',
+        visibility: StoryVisibility.family,
+        audioPath: 'a/b.wav',
+        durationSeconds: 154,
+        createdBy: 'me',
+        createdAt: DateTime(2026),
+      ),
+      player: const PlayerState(
+        storyId: 's1',
+        status: PlayerStatus.playing,
+        position: Duration(seconds: 72),
+        duration: Duration(seconds: 154),
+      ),
+      narratorName: 'ستو فاطمة',
+      recordedBy: 'سجّلها عمر',
+      people: const [
+        Person(id: 'p1', spaceId: 'sp', fullName: 'ستو فاطمة', createdBy: 'me'),
+        Person(id: 'p2', spaceId: 'sp', fullName: 'ننة زينب', createdBy: 'me'),
+      ],
+      onPersonTap: (_) {},
+      isCreator: true,
+      visibilityNote: context.l10n.storyVisFamily('8'),
+      onToggle: () {},
+      onSeek: (_) {},
+      onSpeed: () {},
+      onMenu: (_) {},
     ),
-    player: const PlayerState(
-      storyId: 's1',
-      status: PlayerStatus.playing,
-      position: Duration(seconds: 72),
-      duration: Duration(seconds: 154),
-    ),
-    narratorName: 'ستو فاطمة',
-    recordedBy: 'سجّلها عمر',
-    people: const [
-      Person(id: 'p1', spaceId: 'sp', fullName: 'ستو فاطمة', createdBy: 'me'),
-      Person(id: 'p2', spaceId: 'sp', fullName: 'ننة زينب', createdBy: 'me'),
-    ],
-    onPersonTap: (_) {},
-    isCreator: true,
-    visibilityNote: 'كل العيلة تقدر تسمع الحكاية دي (٨ أفراد).',
-    onToggle: () {},
-    onSeek: (_) {},
-    onSpeed: () {},
-    onMenu: (_) {},
   ),
   'sign_in': () => SignInView(
     onSubmit: (_, _, _) {},
