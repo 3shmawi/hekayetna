@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:family_stories/features/auth/presentation/sign_in_view.dart';
 import 'package:family_stories/main.dart' as app;
 import 'package:flutter/material.dart';
@@ -14,6 +16,15 @@ void main() {
   testWidgets('opens sign-in from settings and checks the email', (
     tester,
   ) async {
+    // The app's error monitoring replaces FlutterError.onError; put the
+    // test binding's handler back at the end so a failing test reports and
+    // finishes instead of leaving the harness waiting.
+    final originalOnError = FlutterError.onError;
+    final originalPlatformOnError = PlatformDispatcher.instance.onError;
+    addTearDown(() {
+      FlutterError.onError = originalOnError;
+      PlatformDispatcher.instance.onError = originalPlatformOnError;
+    });
     debugPrint('[it] before app.main');
     await app.main();
     debugPrint('[it] app.main returned');
