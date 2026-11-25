@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:family_stories/features/settings/presentation/settings_view.dart';
 import 'package:family_stories/features/stories/presentation/story_screens.dart';
 import 'package:family_stories/main.dart' as app;
@@ -15,42 +13,35 @@ void main() {
   testWidgets('starts on home, opens settings and switches the language', (
     tester,
   ) async {
-    // The app's error monitoring replaces FlutterError.onError; put the
-    // test binding's handler back at the end so a failing test reports and
-    // finishes instead of leaving the harness waiting.
-    final originalOnError = FlutterError.onError;
-    final originalPlatformOnError = PlatformDispatcher.instance.onError;
-    addTearDown(() {
-      FlutterError.onError = originalOnError;
-      PlatformDispatcher.instance.onError = originalPlatformOnError;
+    await restoringErrorHandlers(() async {
+      debugPrint('[it] before app.main');
+      await app.main();
+      debugPrint('[it] app.main returned');
+      await tester.pumpAndSettle();
+      debugPrint('[it] first pumpAndSettle done');
+      await skipFirstLaunch(tester);
+      await beat(tester, 1500);
+
+      expect(find.byType(StoryFeedScreen), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('home_settings_button')));
+      await tester.pumpAndSettle();
+      await beat(tester);
+
+      expect(find.byType(SettingsView), findsOneWidget);
+      await beat(tester);
+
+      // Language: the row opens a sheet; Arabic turns the app right-to-left.
+      await tester.tap(find.byKey(const Key('settings_language')));
+      await tester.pumpAndSettle();
+      await beat(tester);
+      await tester.tap(find.byKey(const Key('settings_choice_2')));
+      await tester.pumpAndSettle();
+      expect(
+        Directionality.of(tester.element(find.byType(SettingsView))),
+        TextDirection.rtl,
+      );
+      await beat(tester, 1500);
     });
-    debugPrint('[it] before app.main');
-    await app.main();
-    debugPrint('[it] app.main returned');
-    await tester.pumpAndSettle();
-    debugPrint('[it] first pumpAndSettle done');
-    await skipFirstLaunch(tester);
-    await beat(tester, 1500);
-
-    expect(find.byType(StoryFeedScreen), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('home_settings_button')));
-    await tester.pumpAndSettle();
-    await beat(tester);
-
-    expect(find.byType(SettingsView), findsOneWidget);
-    await beat(tester);
-
-    // Language: the row opens a sheet; Arabic turns the app right-to-left.
-    await tester.tap(find.byKey(const Key('settings_language')));
-    await tester.pumpAndSettle();
-    await beat(tester);
-    await tester.tap(find.byKey(const Key('settings_choice_2')));
-    await tester.pumpAndSettle();
-    expect(
-      Directionality.of(tester.element(find.byType(SettingsView))),
-      TextDirection.rtl,
-    );
-    await beat(tester, 1500);
   });
 }
