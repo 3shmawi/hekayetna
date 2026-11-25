@@ -60,7 +60,13 @@ class AppScaffold extends StatelessWidget {
     if (context.isCupertino) {
       return CupertinoPageScaffold(
         backgroundColor: background,
-        navigationBar: title == null && leading == null && actions.isEmpty
+        // A pushed screen with no title, leading or actions still gets the bar
+        // so the back button is there (the edge swipe is not the only way).
+        navigationBar:
+            title == null &&
+                leading == null &&
+                actions.isEmpty &&
+                !(ModalRoute.of(context)?.canPop ?? false)
             ? null
             : CupertinoNavigationBar(
                 middle: title == null ? null : Text(title!),
