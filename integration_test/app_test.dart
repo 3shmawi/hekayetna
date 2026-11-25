@@ -13,30 +13,35 @@ void main() {
   testWidgets('starts on home, opens settings and switches the language', (
     tester,
   ) async {
-    await app.main();
-    await tester.pumpAndSettle();
-    await skipFirstLaunch(tester);
-    await beat(tester, 1500);
+    await restoringErrorHandlers(() async {
+      debugPrint('[it] before app.main');
+      await app.main();
+      debugPrint('[it] app.main returned');
+      await tester.pumpAndSettle();
+      debugPrint('[it] first pumpAndSettle done');
+      await skipFirstLaunch(tester);
+      await beat(tester, 1500);
 
-    expect(find.byType(StoryFeedPage), findsOneWidget);
+      expect(find.byType(StoryFeedPage), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('home_settings_button')));
-    await tester.pumpAndSettle();
-    await beat(tester);
+      await tester.tap(find.byKey(const Key('home_settings_button')));
+      await tester.pumpAndSettle();
+      await beat(tester);
 
-    expect(find.byType(SettingsView), findsOneWidget);
-    await beat(tester);
+      expect(find.byType(SettingsView), findsOneWidget);
+      await beat(tester);
 
-    // Language: the row opens a sheet; Arabic turns the app right-to-left.
-    await tester.tap(find.byKey(const Key('settings_language')));
-    await tester.pumpAndSettle();
-    await beat(tester);
-    await tester.tap(find.byKey(const Key('settings_choice_2')));
-    await tester.pumpAndSettle();
-    expect(
-      Directionality.of(tester.element(find.byType(SettingsView))),
-      TextDirection.rtl,
-    );
-    await beat(tester, 1500);
+      // Language: the row opens a sheet; Arabic turns the app right-to-left.
+      await tester.tap(find.byKey(const Key('settings_language')));
+      await tester.pumpAndSettle();
+      await beat(tester);
+      await tester.tap(find.byKey(const Key('settings_choice_2')));
+      await tester.pumpAndSettle();
+      expect(
+        Directionality.of(tester.element(find.byType(SettingsView))),
+        TextDirection.rtl,
+      );
+      await beat(tester, 1500);
+    });
   });
 }

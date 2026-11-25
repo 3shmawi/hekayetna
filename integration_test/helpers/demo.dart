@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// True when recording a demo video (`--dart-define=DEMO=true`).
@@ -22,5 +22,21 @@ Future<void> skipFirstLaunch(WidgetTester tester) async {
     if (button.evaluate().isEmpty) continue;
     await tester.tap(button);
     await tester.pumpAndSettle();
+  }
+}
+
+/// Runs [body] and always puts the test binding's error handlers back
+/// afterwards, even when [body] fails. The app's error monitoring replaces
+/// `FlutterError.onError` and `PlatformDispatcher.onError`; if a failing
+/// test left them replaced, the binding asserted and the harness waited
+/// instead of reporting the failure. The failure itself still propagates.
+Future<void> restoringErrorHandlers(Future<void> Function() body) async {
+  final originalOnError = FlutterError.onError;
+  final originalPlatformOnError = PlatformDispatcher.instance.onError;
+  try {
+    await body();
+  } finally {
+    FlutterError.onError = originalOnError;
+    PlatformDispatcher.instance.onError = originalPlatformOnError;
   }
 }

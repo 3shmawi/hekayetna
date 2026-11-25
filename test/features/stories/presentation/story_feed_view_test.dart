@@ -48,6 +48,7 @@ Widget _view(
   ValueChanged<FeedSelection>? onChanged,
   VoidCallback? onRetry,
   VoidCallback? onRecord,
+  VoidCallback? onAccount,
 }) => StoryFeedView(
   stories: value,
   options: FeedFilterOptions.from(_stories, _persons),
@@ -59,6 +60,7 @@ Widget _view(
   onPlay: (_) {},
   onRecord: onRecord ?? () {},
   onRetry: onRetry,
+  onAccount: onAccount,
 );
 
 void main() {
@@ -95,6 +97,15 @@ void main() {
       expect(find.text('Story 1'), findsOneWidget);
       expect(find.text('RECENTLY ADDED'), findsOneWidget);
       expect(find.textContaining('Sitto'), findsWidgets);
+    });
+
+    testWidgets('the settings button keeps its key (integration tests)', (
+      t,
+    ) async {
+      var opened = 0;
+      await t.pumpApp(_view(AsyncData(_stories), onAccount: () => opened++));
+      await t.tap(find.byKey(const Key('home_settings_button')));
+      expect(opened, 1);
     });
 
     testWidgets('chips report narrator, topic, decade and All', (t) async {
