@@ -1,12 +1,19 @@
 @Tags(['golden'])
 library;
 
+import 'dart:async';
+
+import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
+import 'package:family_stories/core/ui/app_ui.dart';
+import 'package:family_stories/features/recording/data/memory_draft_store.dart';
 import 'package:family_stories/features/recording/presentation/continue_recording_screen.dart';
 import 'package:family_stories/features/recording/presentation/continue_recording_view.dart';
+import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -94,5 +101,65 @@ void main() {
         );
       });
     }
+  }
+
+  // The launch sheet itself: the real screen in the real bottom sheet over a
+  // page, with a draft from the memory store.
+  for (final locale in const ['en', 'ar']) {
+    testWidgets('record_resume_sheet · $locale', (tester) async {
+      tester.view
+        ..physicalSize = const Size(375, 812) * 2
+        ..devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      final store = MemoryDraftStore();
+      await store.save(
+        StoryDraft(
+          id: 'd1',
+          updatedAt: DateTime.now().subtract(const Duration(days: 1)),
+          status: DraftStatus.interrupted,
+          topic: locale == 'ar'
+              ? 'رمضان في البيت القديم'
+              : 'Ramadan in the old house',
+          segments: const [
+            DraftSegment(path: 'a.wav', durationMs: 240000, closed: true),
+            DraftSegment(path: 'b.wav', durationMs: 225000, closed: true),
+          ],
+        ),
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [draftStoreProvider.overrideWithValue(store)],
+          child: ScreenUtilInit(
+            designSize: AppDimens.designSize,
+            builder: (context, _) => MaterialApp(
+              debugShowCheckedModeBanner: false,
+              locale: Locale(locale),
+              theme: AppTheme.light,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Builder(
+                builder: (context) {
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => unawaited(
+                      showAppSheet<void>(
+                        context,
+                        builder: (_) =>
+                            const ContinueRecordingScreen(asSheet: true),
+                      ),
+                    ),
+                  );
+                  return const Scaffold(body: Center(child: Text('Stories')));
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile('shots/record_resume_sheet_$locale.png'),
+      );
+    });
   }
 }
