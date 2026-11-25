@@ -7,6 +7,8 @@ import 'package:family_stories/core/theme/app_colors.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/family/data/models.dart';
+import 'package:family_stories/features/family/presentation/family_tree_page.dart';
+import 'package:family_stories/features/family/presentation/family_tree_providers.dart';
 import 'package:family_stories/features/family/presentation/family_tree_view.dart';
 import 'package:family_stories/features/onboarding/data/onboarding.dart';
 import 'package:family_stories/features/photos/data/models.dart';
@@ -185,7 +187,20 @@ class _FamilyHomeScreenState extends ConsumerState<FamilyHomeScreen> {
                           setState(() => _treeView = v.first),
                     ),
                   ),
-                  if (_treeView && persons.isNotEmpty)
+                  if (_treeView &&
+                      persons.isNotEmpty &&
+                      (ref.watch(familyTreeGraphEnabledProvider).value ??
+                          false))
+                    SizedBox(
+                      height: 560,
+                      child: FamilyTreePage(
+                        spaceId: space.id,
+                        spaceName: s.family,
+                        onOpenPerson: (id) =>
+                            context.push('/family/people/$id'),
+                      ),
+                    )
+                  else if (_treeView && persons.isNotEmpty)
                     FutureBuilder<List<Relationship>>(
                       future: ref
                           .read(familyRepositoryProvider)
