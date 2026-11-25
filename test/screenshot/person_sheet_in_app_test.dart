@@ -112,6 +112,13 @@ void main() {
           matchesGoldenFile('shots/$name.png'),
         );
         if (scale > 1) {
+          // Part-way down: rows scroll up under the handle area.
+          await tester.drag(find.byType(PersonSheet), const Offset(0, -260));
+          await tester.pumpAndSettle();
+          await expectLater(
+            find.byType(MaterialApp),
+            matchesGoldenFile('shots/${name}_mid.png'),
+          );
           await tester.drag(find.byType(PersonSheet), const Offset(0, -2000));
           await tester.pumpAndSettle();
           await expectLater(
