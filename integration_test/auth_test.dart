@@ -44,7 +44,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('settings_account')));
     await tester.pumpAndSettle();
-    // Diagnostic (kept small): what is on screen if the sign-in view is missing.
+    // Diagnostic: what is on screen if the sign-in view is missing.
     if (find.byType(SignInView).evaluate().isEmpty) {
       final texts = tester
           .widgetList<Text>(find.byType(Text))
