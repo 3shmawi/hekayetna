@@ -22,6 +22,7 @@ void main() {
     'light': (dark: false, width: 375.0, scale: 1),
     'dark': (dark: true, width: 375.0, scale: 1),
     'narrow_large': (dark: false, width: 320.0, scale: 1.6),
+    'narrow_large_end': (dark: false, width: 320.0, scale: 1.6),
   };
 
   for (final locale in const ['en', 'ar']) {
@@ -80,6 +81,13 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
+        if (name.endsWith('_end')) {
+          await tester.drag(
+            find.byType(Scrollable).first,
+            const Offset(0, -3000),
+          );
+          await tester.pumpAndSettle();
+        }
         await expectLater(
           find.byType(MaterialApp),
           matchesGoldenFile('shots/record_resume_${locale}_$name.png'),
