@@ -377,5 +377,17 @@
   "saveStoryPlay": "Listen to the recording",
   "saveStoryPauseListen": "Pause the recording",
   "saveStoryBack": "Back to recording",
-  "saveStoryMissing": "This recording can't be found on this phone."
+  "saveStoryMissing": "This recording can't be found on this phone.",
+  "personGender": "Gender (optional)",
+  "personGenderHint": "So we can say grandmother or grandfather",
+  "genderFemale": "Female",
+  "genderMale": "Male",
+  "kinshipLabel": "{key, select, me{You} relative{Relative} notConfirmed{Not confirmed yet} mother{Mother} father{Father} parent{Parent} grandmother{Grandmother} grandfather{Grandfather} grandparent{Grandparent} greatGrandmother{Great-grandmother} greatGrandfather{Great-grandfather} greatGrandparent{Great-grandparent} daughter{Daughter} son{Son} child{Child} granddaughter{Granddaughter} grandson{Grandson} grandchild{Grandchild} greatGranddaughter{Great-granddaughter} greatGrandson{Great-grandson} greatGrandchild{Great-grandchild} sister{Sister} brother{Brother} sibling{Sibling} wife{Wife} husband{Husband} spouse{Spouse} motherInLaw{Mother-in-law} fatherInLaw{Father-in-law} parentInLaw{Parent-in-law} sisterInLaw{Sister-in-law} brotherInLaw{Brother-in-law} siblingInLaw{Sibling-in-law} daughterInLaw{Daughter-in-law} sonInLaw{Son-in-law} childInLaw{Child-in-law} aunt_m{Aunt} uncle_m{Uncle} auntOrUncle_m{Aunt or uncle} aunt_p{Aunt} uncle_p{Uncle} auntOrUncle_p{Aunt or uncle} aunt_x{Aunt} uncle_x{Uncle} auntOrUncle_x{Aunt or uncle} cousinDaughter_x{Cousin} cousinDaughter_mf{Cousin} cousinDaughter_mm{Cousin} cousinDaughter_mx{Cousin} cousinDaughter_pf{Cousin} cousinDaughter_pm{Cousin} cousinDaughter_px{Cousin} cousinSon_x{Cousin} cousinSon_mf{Cousin} cousinSon_mm{Cousin} cousinSon_mx{Cousin} cousinSon_pf{Cousin} cousinSon_pm{Cousin} cousinSon_px{Cousin} cousinChild_x{Cousin} cousinChild_mf{Cousin} cousinChild_mm{Cousin} cousinChild_mx{Cousin} cousinChild_pf{Cousin} cousinChild_pm{Cousin} cousinChild_px{Cousin} niece_f{Niece} niece_m{Niece} niece_x{Niece} nephew_f{Nephew} nephew_m{Nephew} nephew_x{Nephew} nieceOrNephew_f{Niece or nephew} nieceOrNephew_m{Niece or nephew} nieceOrNephew_x{Niece or nephew} other{Relative}}",
+  "@kinshipLabel": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  }
 }

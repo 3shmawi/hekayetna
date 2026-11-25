@@ -152,6 +152,7 @@ class SupabaseFamilyRepository implements FamilyRepository {
           'approx_birth_date': person.approxBirthDate,
           'approx_death_date': person.approxDeathDate,
           'bio': person.bio,
+          'gender': person.gender?.name,
           'created_by': _uid,
         })
         .select()
@@ -167,6 +168,7 @@ class SupabaseFamilyRepository implements FamilyRepository {
           'approx_birth_date': person.approxBirthDate,
           'approx_death_date': person.approxDeathDate,
           'bio': person.bio,
+          'gender': person.gender?.name,
         })
         .eq('id', person.id)
         .select()

@@ -4,6 +4,8 @@ import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/ids.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/core/theme/app_colors.dart';
+import 'package:family_stories/core/theme/app_dimens.dart';
+import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/family/presentation/family_tree_view.dart';
 import 'package:family_stories/features/onboarding/data/onboarding.dart';
@@ -645,6 +647,7 @@ Future<void> _editPerson(
   final birth = TextEditingController(text: person?.approxBirthDate ?? '');
   final death = TextEditingController(text: person?.approxDeathDate ?? '');
   final bio = TextEditingController(text: person?.bio ?? '');
+  var gender = person?.gender;
   final ok = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -668,6 +671,33 @@ Future<void> _editPerson(
             TextField(
               controller: bio,
               decoration: InputDecoration(labelText: s.bio),
+            ),
+            SizedBox(height: AppDimens.md),
+            StatefulBuilder(
+              builder: (context, setGender) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppSectionLabel(s.personGender),
+                  Wrap(
+                    spacing: AppDimens.sm,
+                    children: [
+                      for (final g in PersonGender.values)
+                        AppChip(
+                          label: g == PersonGender.female
+                              ? s.genderFemale
+                              : s.genderMale,
+                          selected: gender == g,
+                          onTap: () =>
+                              setGender(() => gender = gender == g ? null : g),
+                        ),
+                    ],
+                  ),
+                  Text(
+                    s.personGenderHint,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -701,6 +731,7 @@ Future<void> _editPerson(
                   ? null
                   : death.text.trim(),
               bio: bio.text.trim().isEmpty ? null : bio.text.trim(),
+              gender: gender,
               createdBy: '',
             ),
           )
@@ -721,6 +752,7 @@ Future<void> _editPerson(
                   : death.text.trim(),
               bio: bio.text.trim().isEmpty ? null : bio.text.trim(),
               linkedUserId: person.linkedUserId,
+              gender: gender,
               createdBy: person.createdBy,
             ),
           )
