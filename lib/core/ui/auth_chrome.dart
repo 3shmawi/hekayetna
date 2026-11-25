@@ -1,6 +1,7 @@
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_fonts.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
+import 'package:family_stories/core/ui/app_theme_link.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 
@@ -19,6 +20,7 @@ class AuthPalette {
     required this.primary,
     required this.onPrimary,
     required this.accent,
+    required this.link,
     required this.secondaryFill,
     required this.text,
     required this.textSoft,
@@ -34,6 +36,7 @@ class AuthPalette {
   final Color primary;
   final Color onPrimary;
   final Color accent;
+  final Color link;
   final Color secondaryFill;
   final Color text;
   final Color textSoft;
@@ -49,6 +52,7 @@ class AuthPalette {
     primary: Color(0xFF243828),
     onPrimary: Color(0xFFFFFFFF),
     accent: Color(0xFF775A19),
+    link: Color(0xFF243828),
     secondaryFill: Color(0xFFE5E9E3),
     text: Color(0xFF181D19),
     textSoft: Color(0xFF434842),
@@ -65,6 +69,7 @@ class AuthPalette {
     primary: Color(0xFF2F4A35),
     onPrimary: Color(0xFFF3F7F2),
     accent: Color(0xFFCBB47E),
+    link: Color(0xFFB5CDB6),
     secondaryFill: Color(0xFF1A251E),
     text: Color(0xFFF3F7F2),
     textSoft: Color(0xFF9EACA1),
@@ -107,6 +112,7 @@ class AuthTheme extends StatelessWidget {
           fontFamily: family,
           fontFamilyFallback: fallback,
         ),
+        extensions: [...base.extensions.values, LinkColor(p.link)],
         scaffoldBackgroundColor: p.background,
         appBarTheme: base.appBarTheme.copyWith(
           backgroundColor: p.background,
@@ -126,7 +132,7 @@ class AuthTheme extends StatelessWidget {
           errorBorder: border(scheme.error),
           focusedErrorBorder: border(scheme.error, 2),
           labelStyle: AppTextStyles.body.copyWith(color: p.placeholder),
-          floatingLabelStyle: AppTextStyles.caption.copyWith(color: p.primary),
+          floatingLabelStyle: AppTextStyles.caption.copyWith(color: p.link),
           hintStyle: AppTextStyles.body.copyWith(color: p.placeholder),
         ),
       ),
@@ -171,14 +177,14 @@ class AuthEmblem extends StatelessWidget {
                 height: size * 0.36,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: p.primary, width: size * 0.07),
+                  border: Border.all(color: p.link, width: size * 0.07),
                 ),
                 alignment: Alignment.center,
                 child: Container(
                   width: size * 0.1,
                   height: size * 0.1,
                   decoration: BoxDecoration(
-                    color: p.primary,
+                    color: p.link,
                     shape: BoxShape.circle,
                   ),
                 ),

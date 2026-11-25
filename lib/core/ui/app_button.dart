@@ -1,6 +1,7 @@
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
+import 'package:family_stories/core/ui/app_theme_link.dart';
 import 'package:flutter/material.dart';
 
 /// The app's three buttons (Design System card): primary for the one action
@@ -70,7 +71,7 @@ class AppButton extends StatelessWidget {
       _Kind.primary => (scheme.primary, scheme.onPrimary, null),
       _Kind.secondary => (
         Colors.transparent,
-        scheme.primary,
+        LinkColor.of(context),
         BorderSide(color: scheme.outlineVariant),
       ),
       _Kind.destructive => (scheme.errorContainer, scheme.error, null),

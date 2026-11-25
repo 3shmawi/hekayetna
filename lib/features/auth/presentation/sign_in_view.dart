@@ -2,6 +2,7 @@ import 'package:family_stories/core/adaptive/adaptive.dart';
 import 'package:family_stories/core/auth/auth_redirect.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
+import 'package:family_stories/core/ui/app_theme_link.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/core/ui/auth_chrome.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart'
@@ -268,11 +269,10 @@ class _LinkButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        foregroundColor: scheme.primary,
+        foregroundColor: LinkColor.of(context),
         minimumSize: Size(AppDimens.targetMin, AppDimens.targetMin),
         padding: EdgeInsets.symmetric(
           horizontal: AppDimens.lg,
