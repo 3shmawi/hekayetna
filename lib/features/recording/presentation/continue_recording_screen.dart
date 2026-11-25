@@ -30,7 +30,14 @@ List<StoryDraft> onlyInterrupted(List<StoryDraft> all) =>
 /// The "Continue a recording" screen (artboard RecordResume). Replaces the
 /// old "unfinished recording" dialog.
 class ContinueRecordingScreen extends ConsumerStatefulWidget {
-  const ContinueRecordingScreen({this.asSheet = false, super.key});
+  const ContinueRecordingScreen({
+    this.asSheet = false,
+    this.now = DateTime.now,
+    super.key,
+  });
+
+  /// The clock behind "today / yesterday". Tests and renders inject one.
+  final DateTime Function() now;
 
   /// Shown as the launch bottom sheet (a modal route on the root navigator)
   /// instead of a page: leaving closes the sheet, then navigates.
@@ -114,7 +121,7 @@ class _ContinueRecordingScreenState
     context.l10n,
     Localizations.localeOf(context).toString(),
     at,
-    DateTime.now(),
+    widget.now(),
   );
 
   Future<void> _togglePlay(ResumeItem item) async {
