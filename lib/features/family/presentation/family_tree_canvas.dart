@@ -174,6 +174,30 @@ class _FamilyTreeCanvasState extends State<FamilyTreeCanvas> {
   Widget build(BuildContext context) {
     final rtl = Directionality.of(context) == TextDirection.rtl;
     final layout = _ensureLayout(rtl);
+    // The controls and the legend sit beside and below the canvas, never
+    // on top of it, so no person can be hidden under them.
+    return Column(
+      children: [
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _viewer(layout)),
+              _Controls(
+                zoom: _scale,
+                onZoomIn: () => _zoomButton(1.25),
+                onZoomOut: () => _zoomButton(0.8),
+                onFit: _fit,
+                onCenter: _centerOnMe,
+              ),
+            ],
+          ),
+        ),
+        const _Legend(),
+      ],
+    );
+  }
+
+  Widget _viewer(FamilyLayout layout) {
     return LayoutBuilder(
       builder: (context, constraints) {
         _viewport = constraints.biggest;
@@ -185,42 +209,30 @@ class _FamilyTreeCanvasState extends State<FamilyTreeCanvas> {
           });
         }
         return ClipRect(
-          child: Stack(
-            children: [
-              InteractiveViewer(
-                transformationController: _tc,
-                constrained: false,
-                minScale: kTreeMinScale,
-                maxScale: kTreeMaxScale,
-                boundaryMargin: const EdgeInsets.all(200),
-                child: _Scene(
-                  layout: layout,
-                  graph: widget.graph,
-                  visible: _visibleScene().inflate(160),
-                  zoom: _scale,
-                  selectedId: widget.selectedId,
-                  onTapPerson: widget.onTapPerson,
-                  onLongPressPerson: widget.onLongPressPerson,
-                  // Double tap lives on the background only, so a tap on
-                  // a person is never delayed waiting for a second tap.
-                  onDoubleTapAt: (scenePoint) {
-                    _zoomAround(
-                      1.5,
-                      MatrixUtils.transformPoint(_tc.value, scenePoint),
-                    );
-                    widget.onZoomed?.call(TreeZoomVia.pinch);
-                  },
-                ),
-              ),
-              _Controls(
-                zoom: _scale,
-                onZoomIn: () => _zoomButton(1.25),
-                onZoomOut: () => _zoomButton(0.8),
-                onFit: _fit,
-                onCenter: _centerOnMe,
-              ),
-              const _Legend(),
-            ],
+          child: InteractiveViewer(
+            transformationController: _tc,
+            constrained: false,
+            minScale: kTreeMinScale,
+            maxScale: kTreeMaxScale,
+            boundaryMargin: const EdgeInsets.all(200),
+            child: _Scene(
+              layout: layout,
+              graph: widget.graph,
+              visible: _visibleScene().inflate(160),
+              zoom: _scale,
+              selectedId: widget.selectedId,
+              onTapPerson: widget.onTapPerson,
+              onLongPressPerson: widget.onLongPressPerson,
+              // Double tap lives on the background only, so a tap on
+              // a person is never delayed waiting for a second tap.
+              onDoubleTapAt: (scenePoint) {
+                _zoomAround(
+                  1.5,
+                  MatrixUtils.transformPoint(_tc.value, scenePoint),
+                );
+                widget.onZoomed?.call(TreeZoomVia.pinch);
+              },
+            ),
           ),
         );
       },
@@ -724,59 +736,43 @@ class _Controls extends StatelessWidget {
           onPressed: onTap,
           icon: Icon(icon),
         );
-    return Positioned.fill(
+    return SizedBox(
+      width: AppDimens.targetMin + AppDimens.md * 2,
       child: Padding(
-        padding: EdgeInsets.all(AppDimens.md),
-        child: Stack(
+        padding: EdgeInsets.symmetric(horizontal: AppDimens.md),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            PositionedDirectional(
-              start: 0,
-              top: 0,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
                   child: Text(
                     l10n.treeZoomPercent((zoom * 100).round()),
                     style: AppTextStyles.tabLabel,
+                    softWrap: false,
                   ),
                 ),
               ),
             ),
-            PositionedDirectional(
-              end: 0,
-              bottom: 56,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  button(
-                    AdaptiveIcons.zoomIn(context),
-                    l10n.treeZoomIn,
-                    onZoomIn,
-                  ),
-                  SizedBox(height: AppDimens.sm),
-                  button(
-                    AdaptiveIcons.zoomOut(context),
-                    l10n.treeZoomOut,
-                    onZoomOut,
-                  ),
-                  SizedBox(height: AppDimens.sm),
-                  button(AdaptiveIcons.fitAll(context), l10n.treeFit, onFit),
-                  SizedBox(height: AppDimens.sm),
-                  button(
-                    AdaptiveIcons.centerMe(context),
-                    l10n.treeCenterMe,
-                    onCenter,
-                  ),
-                ],
-              ),
+            SizedBox(height: AppDimens.sm),
+            button(AdaptiveIcons.zoomIn(context), l10n.treeZoomIn, onZoomIn),
+            SizedBox(height: AppDimens.sm),
+            button(AdaptiveIcons.zoomOut(context), l10n.treeZoomOut, onZoomOut),
+            SizedBox(height: AppDimens.sm),
+            button(AdaptiveIcons.fitAll(context), l10n.treeFit, onFit),
+            SizedBox(height: AppDimens.sm),
+            button(
+              AdaptiveIcons.centerMe(context),
+              l10n.treeCenterMe,
+              onCenter,
             ),
+            SizedBox(height: AppDimens.sm),
           ],
         ),
       ),
@@ -799,56 +795,54 @@ class _Legend extends StatelessWidget {
         Text(text, style: AppTextStyles.tabLabel),
       ],
     );
-    return Positioned.fill(
-      child: Padding(
-        padding: EdgeInsets.all(AppDimens.md),
-        child: Align(
-          alignment: AlignmentDirectional.bottomStart,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: scheme.surface.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              child: Wrap(
-                spacing: 14,
-                runSpacing: 4,
-                children: [
-                  entry(
-                    CustomPaint(
-                      size: const Size.square(14),
-                      painter: _RingPainter(
-                        color: scheme.primary,
-                        hasStories: true,
-                        isMe: false,
-                      ),
+    return Padding(
+      padding: EdgeInsets.all(AppDimens.md),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: scheme.surface.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            child: Wrap(
+              spacing: 14,
+              runSpacing: 4,
+              children: [
+                entry(
+                  CustomPaint(
+                    size: const Size.square(14),
+                    painter: _RingPainter(
+                      color: scheme.primary,
+                      hasStories: true,
+                      isMe: false,
                     ),
-                    l10n.treeLegendStories,
                   ),
-                  entry(
-                    CustomPaint(
-                      size: const Size.square(14),
-                      painter: _RingPainter(
-                        color: scheme.primary,
-                        hasStories: false,
-                        isMe: false,
-                      ),
+                  l10n.treeLegendStories,
+                ),
+                entry(
+                  CustomPaint(
+                    size: const Size.square(14),
+                    painter: _RingPainter(
+                      color: scheme.primary,
+                      hasStories: false,
+                      isMe: false,
                     ),
-                    l10n.treeLegendNone,
                   ),
-                  entry(
-                    SizedBox(
-                      width: 18,
-                      child: CustomPaint(
-                        size: const Size(18, 2),
-                        painter: _DashSample(scheme.onSurfaceVariant),
-                      ),
+                  l10n.treeLegendNone,
+                ),
+                entry(
+                  SizedBox(
+                    width: 18,
+                    child: CustomPaint(
+                      size: const Size(18, 2),
+                      painter: _DashSample(scheme.onSurfaceVariant),
                     ),
-                    l10n.treeLegendPending,
                   ),
-                ],
-              ),
+                  l10n.treeLegendPending,
+                ),
+              ],
             ),
           ),
         ),

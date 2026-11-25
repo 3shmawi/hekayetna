@@ -172,7 +172,9 @@ void main() {
 
   testWidgets('RTL mirrors: the start side is the right', (t) async {
     final g = bigGraph();
-    await _pump(t, g, locale: const Locale('ar'));
+    final r = await _pump(t, g, locale: const Locale('ar'));
+    r.controller.focusOn('sitto');
+    await t.pump();
     final sitto = t.getCenter(find.bySemanticsLabel(RegExp('^sitto')));
     final giddu = t.getCenter(find.bySemanticsLabel(RegExp('^giddu')));
     // LTR layout puts the first spouse on the left; Arabic flips it.
@@ -277,10 +279,7 @@ void main() {
           Offset(0, -100),
         ]) {
           final before = t.getCenter(f);
-          await t.dragFrom(
-            t.getCenter(find.byType(FamilyTreeCanvas)) + const Offset(0, 200),
-            d,
-          );
+          await t.dragFrom(t.getCenter(find.byType(InteractiveViewer)), d);
           await t.pump();
           final moved = t.getCenter(f) - before;
           expect(
