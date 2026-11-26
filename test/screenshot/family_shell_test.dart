@@ -80,42 +80,56 @@ void main() {
   for (final locale in const ['en', 'ar']) {
     for (final dark in const [false, true]) {
       final name = 'family_shell_${dark ? 'dark_' : ''}$locale';
-      testWidgets(name, (tester) async {
-        tester.view
-          ..physicalSize = const Size(375, 812) * 2
-          ..devicePixelRatio = 2
-          ..padding = const FakeViewPadding(top: 94, bottom: 68)
-          ..viewPadding = const FakeViewPadding(top: 94, bottom: 68);
-        addTearDown(tester.view.reset);
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              draftStoreProvider.overrideWithValue(MemoryDraftStore()),
-              familyGraphProvider.overrideWith((ref, _) async => _graph()),
-              familyTreeGraphEnabledProvider.overrideWith((ref) async => true),
-            ],
-            child: AppUi.testWrap(
-              ScreenUtilInit(
-                designSize: AppDimens.designSize,
-                builder: (context, _) => MaterialApp.router(
-                  debugShowCheckedModeBanner: false,
-                  locale: Locale(locale),
-                  theme: dark ? AppTheme.dark : AppTheme.light,
-                  localizationsDelegates:
-                      AppLocalizations.localizationsDelegates,
-                  supportedLocales: AppLocalizations.supportedLocales,
-                  routerConfig: _router(),
+      for (final fit in const [false, true]) {
+        final shot = fit ? '${name}_fit' : name;
+        testWidgets(shot, (tester) async {
+          tester.view
+            ..physicalSize = const Size(375, 812) * 2
+            ..devicePixelRatio = 2
+            ..padding = const FakeViewPadding(top: 94, bottom: 68)
+            ..viewPadding = const FakeViewPadding(top: 94, bottom: 68);
+          addTearDown(tester.view.reset);
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                draftStoreProvider.overrideWithValue(MemoryDraftStore()),
+                familyGraphProvider.overrideWith((ref, _) async => _graph()),
+                familyTreeGraphEnabledProvider.overrideWith(
+                  (ref) async => true,
+                ),
+              ],
+              child: AppUi.testWrap(
+                ScreenUtilInit(
+                  designSize: AppDimens.designSize,
+                  builder: (context, _) => MaterialApp.router(
+                    debugShowCheckedModeBanner: false,
+                    locale: Locale(locale),
+                    theme: dark ? AppTheme.dark : AppTheme.light,
+                    localizationsDelegates:
+                        AppLocalizations.localizationsDelegates,
+                    supportedLocales: AppLocalizations.supportedLocales,
+                    routerConfig: _router(),
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-        await tester.pumpAndSettle();
-        await expectLater(
-          find.byType(MaterialApp),
-          matchesGoldenFile('shots/$name.png'),
-        );
-      });
+          );
+          await tester.pumpAndSettle();
+          if (fit) {
+            // Fit-to-all: tap the real "show the whole family" control.
+            await tester.tap(
+              find.byTooltip(
+                locale == 'ar' ? 'اعرض العيلة كلها' : 'Show the whole family',
+              ),
+            );
+            await tester.pumpAndSettle();
+          }
+          await expectLater(
+            find.byType(MaterialApp),
+            matchesGoldenFile('shots/$shot.png'),
+          );
+        });
+      }
     }
   }
 }

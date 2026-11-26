@@ -54,32 +54,32 @@ void main() {
       'errorContainer': (s) => s.errorContainer,
     };
     const lightExpected = {
-      'primary': Color(0xFF3F6B5C),
+      'primary': Color(0xFF243828),
       'onPrimary': Color(0xFFFFFFFF),
-      'primaryContainer': Color(0xFFE3ECE6),
-      'onPrimaryContainer': Color(0xFF25211D),
-      'secondary': Color(0xFF2F5246),
+      'primaryContainer': Color(0xFFE0EBDF),
+      'onPrimaryContainer': Color(0xFF181D19),
+      'secondary': Color(0xFF0F2214),
       'onSecondary': Color(0xFFFFFFFF),
-      'surface': Color(0xFFFFFDF8),
-      'onSurface': Color(0xFF25211D),
-      'onSurfaceVariant': Color(0xFF5A645C),
-      'outlineVariant': Color(0xFFE2D9C8),
-      'surfaceContainerHigh': Color(0xFFFFFFFF),
+      'surface': Color(0xFFFFFFFF),
+      'onSurface': Color(0xFF181D19),
+      'onSurfaceVariant': Color(0xFF4F564F),
+      'outlineVariant': Color(0xFFDFE4DD),
+      'surfaceContainerHigh': Color(0xFFEBEFE8),
       'error': Color(0xFFB3261E),
       'errorContainer': Color(0xFFF9DEDC),
     };
     const darkExpected = {
-      'primary': Color(0xFF8DB8A6),
-      'onPrimary': Color(0xFF10241C),
-      'primaryContainer': Color(0xFF22332C),
-      'onPrimaryContainer': Color(0xFFF3ECE1),
-      'secondary': Color(0xFFA9CDBD),
-      'onSecondary': Color(0xFF10241C),
-      'surface': Color(0xFF211E1A),
-      'onSurface': Color(0xFFF3ECE1),
-      'onSurfaceVariant': Color(0xFFB4BDB5),
-      'outlineVariant': Color(0xFF3A342C),
-      'surfaceContainerHigh': Color(0xFF2B2722),
+      'primary': Color(0xFFB5CDB6),
+      'onPrimary': Color(0xFF0F2214),
+      'primaryContainer': Color(0xFF27372C),
+      'onPrimaryContainer': Color(0xFFF3F7F2),
+      'secondary': Color(0xFFB5CDB6),
+      'onSecondary': Color(0xFF0F2214),
+      'surface': Color(0xFF1A251E),
+      'onSurface': Color(0xFFF3F7F2),
+      'onSurfaceVariant': Color(0xFF9EACA1),
+      'outlineVariant': Color(0xFF27372C),
+      'surfaceContainerHigh': Color(0xFF1F2D24),
       'error': Color(0xFFF2B8B5),
       'errorContainer': Color(0xFF3C1B19),
     };
@@ -99,8 +99,8 @@ void main() {
           reason: 'dark ${entry.key}',
         );
       }
-      expect(light.scaffoldBackgroundColor, const Color(0xFFF6F1E7));
-      expect(dark.scaffoldBackgroundColor, const Color(0xFF171512));
+      expect(light.scaffoldBackgroundColor, const Color(0xFFF6FBF4));
+      expect(dark.scaffoldBackgroundColor, const Color(0xFF111A13));
     });
 
     test('card shadow exists in light theme only', () {
@@ -119,6 +119,9 @@ void main() {
       'line': (h) => h.line,
       'inkSoft': (h) => h.inkSoft,
       'sand': (h) => h.sand,
+      'fill': (h) => h.fill,
+      'onFill': (h) => h.onFill,
+      'onGold': (h) => h.onGold,
     };
     const lightExpected = {
       'record': Color(0xFF9C4A21),
@@ -126,9 +129,12 @@ void main() {
       'recordTint': Color(0xFFF3E1D6),
       'gold': Color(0xFFC9A227),
       'goldTint': Color(0xFFF5ECD0),
-      'line': Color(0xFFE2D9C8),
-      'inkSoft': Color(0xFF5A645C),
-      'sand': Color(0xFFF6F1E7),
+      'line': Color(0xFFDFE4DD),
+      'inkSoft': Color(0xFF4F564F),
+      'sand': Color(0xFFF6FBF4),
+      'fill': Color(0xFF243828),
+      'onFill': Color(0xFFFFFFFF),
+      'onGold': Color(0xFF5D4201),
     };
     const darkExpected = {
       'record': Color(0xFFE08A5C),
@@ -136,9 +142,12 @@ void main() {
       'recordTint': Color(0xFF3A2418),
       'gold': Color(0xFFD9B84A),
       'goldTint': Color(0xFF332B14),
-      'line': Color(0xFF3A342C),
-      'inkSoft': Color(0xFFB4BDB5),
-      'sand': Color(0xFF171512),
+      'line': Color(0xFF27372C),
+      'inkSoft': Color(0xFF9EACA1),
+      'sand': Color(0xFF111A13),
+      'fill': Color(0xFF2F4A35),
+      'onFill': Color(0xFFF3F7F2),
+      'onGold': Color(0xFFE9C176),
     };
 
     testWidgets('every field matches tokens, both brightnesses', (
@@ -166,8 +175,8 @@ void main() {
   group('AC-2 type scale', () {
     // Design System scale: name → (size, line height, weight) in sp.
     final scale = <String, (TextStyle Function(), double, double, FontWeight?)>{
-      'display': (() => AppTextStyles.display, 32, 40, FontWeight.w700),
-      'headline': (() => AppTextStyles.headline, 26, 34, FontWeight.w700),
+      'display': (() => AppTextStyles.display, 32, 40, FontWeight.w600),
+      'headline': (() => AppTextStyles.headline, 26, 34, FontWeight.w600),
       'title': (() => AppTextStyles.title, 21, 28, FontWeight.w600),
       'bodyLarge': (() => AppTextStyles.bodyLarge, 19, 30, null),
       'body': (() => AppTextStyles.body, 17, 26, null),

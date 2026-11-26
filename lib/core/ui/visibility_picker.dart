@@ -12,6 +12,7 @@ class VisibilityPicker extends StatelessWidget {
     required this.value,
     required this.onChanged,
     required this.consequenceText,
+    this.filled,
     super.key,
   });
 
@@ -20,6 +21,10 @@ class VisibilityPicker extends StatelessWidget {
 
   /// e.g. "3 people can hear this: Mama, Omar, Nour."
   final String consequenceText;
+
+  /// Optional filled-selection look (auth/SaveStory theme): colors for the
+  /// selected card and the card text. Null keeps the app-wide look.
+  final VisibilityFill? filled;
 
   @override
   Widget build(BuildContext context) {
@@ -38,15 +43,19 @@ class VisibilityPicker extends StatelessWidget {
           _VisibilityOption(
             label: label,
             selected: value == option,
+            fill: filled,
+            detail: value == option ? consequenceText : null,
             onTap: () => onChanged(option),
           ),
           SizedBox(height: AppDimens.sm),
         ],
-        SizedBox(height: AppDimens.sm),
-        Text(
-          consequenceText,
-          style: AppTextStyles.body.copyWith(color: hk.inkSoft),
-        ),
+        if (filled == null) ...[
+          SizedBox(height: AppDimens.sm),
+          Text(
+            consequenceText,
+            style: AppTextStyles.body.copyWith(color: hk.inkSoft),
+          ),
+        ],
       ],
     );
   }
@@ -54,13 +63,35 @@ class VisibilityPicker extends StatelessWidget {
 
 enum StoryVisibility { onlyMe, selectedPeople, wholeFamily }
 
+/// Colors for the filled selected card.
+class VisibilityFill {
+  const VisibilityFill({
+    required this.selected,
+    required this.onSelected,
+    required this.idle,
+    required this.onIdle,
+    required this.serif,
+  });
+  final Color selected;
+  final Color onSelected;
+  final Color idle;
+  final Color onIdle;
+  final String serif;
+}
+
 class _VisibilityOption extends StatelessWidget {
   const _VisibilityOption({
     required this.label,
     required this.selected,
     required this.onTap,
+    this.fill,
+    this.detail,
   });
 
+  final VisibilityFill? fill;
+
+  /// Filled look only: the real consequence sentence, inside the selected card.
+  final String? detail;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -72,6 +103,7 @@ class _VisibilityOption extends StatelessWidget {
       button: true,
       selected: selected,
       label: label,
+      hint: selected ? detail : null,
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
@@ -84,21 +116,66 @@ class _VisibilityOption extends StatelessWidget {
               vertical: AppDimens.md,
             ),
             decoration: BoxDecoration(
-              color: selected ? scheme.primaryContainer : scheme.surface,
-              border: Border.all(
-                color: selected ? scheme.primary : scheme.outlineVariant,
-                width: selected ? 2 : 1,
-              ),
+              color: fill != null
+                  ? (selected ? fill!.selected : fill!.idle)
+                  : (selected ? scheme.primaryContainer : scheme.surface),
+              border: fill != null
+                  ? null
+                  : Border.all(
+                      color: selected ? scheme.primary : scheme.outlineVariant,
+                      width: selected ? 2 : 1,
+                    ),
               borderRadius: BorderRadius.circular(AppDimens.radiusMd),
             ),
             alignment: AlignmentDirectional.centerStart,
             child: ExcludeSemantics(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.label,
-              ),
+              child: fill == null
+                  ? Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.label,
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                label,
+                                style: AppTextStyles.label.copyWith(
+                                  color: selected
+                                      ? fill!.onSelected
+                                      : fill!.onIdle,
+                                  fontFamily: selected ? fill!.serif : null,
+                                  fontFamilyFallback: const ['Cairo'],
+                                  fontWeight: selected ? FontWeight.w600 : null,
+                                ),
+                              ),
+                              if (selected && detail != null) ...[
+                                SizedBox(height: AppDimens.xs),
+                                Text(
+                                  detail!,
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: fill!.onSelected,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: AppDimens.sm),
+                        Icon(
+                          selected
+                              ? Icons.check_circle
+                              : Icons.radio_button_unchecked,
+                          size: AppDimens.iconMd,
+                          color: selected ? fill!.onSelected : fill!.onIdle,
+                        ),
+                      ],
+                    ),
             ),
           ),
         ),

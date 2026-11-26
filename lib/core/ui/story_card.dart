@@ -95,7 +95,7 @@ class StoryCard extends StatelessWidget {
                               _Tag(
                                 label: 'Sample',
                                 background: hk.goldTint,
-                                foreground: hk.gold,
+                                foreground: hk.onGold,
                               ),
                           ],
                         ),

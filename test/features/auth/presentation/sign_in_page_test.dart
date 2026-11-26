@@ -198,6 +198,11 @@ void main() {
       Auth.service = auth = FakeAuthService(canUseGoogle: true)
         ..nextFailure = const AuthFailure(AuthFailureReason.cancelled);
       await pumpPage(tester);
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('sign_in_google')),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.byKey(const Key('sign_in_google')));
       await tester.pumpAndSettle();
 

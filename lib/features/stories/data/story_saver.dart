@@ -92,15 +92,9 @@ class StorySaver {
     var attempt = _inFlight[draft.id];
     var replaced = false;
     if (attempt != null && attempt.timedOut) {
-      final id = attempt.storyId;
-      if (id != null) {
-        final remote = await stories.getStory(id);
-        if (remote case Success<Story?>(:final value?)) {
-          _inFlight.remove(draft.id);
-          await drafts.delete(draft.id);
-          return Success(value);
-        }
-      }
+      // The hung attempt may have landed remotely; the replacement checks
+      // for the story and reconciles it with this request before anything
+      // else (so a changed story is never taken for ours).
       attempt.superseded = true; // the hung one may still finish later
       attempt = null;
       replaced = true;
@@ -153,6 +147,40 @@ class StorySaver {
         '${h.substring(12, 16)}-${h.substring(16, 20)}-${h.substring(20)}';
   }
 
+  static bool _isThisStory(Story stored, Story wanted, String uid) =>
+      stored.createdBy == uid &&
+      stored.spaceId == wanted.spaceId &&
+      stored.audioPath == wanted.audioPath &&
+      stored.visibility == wanted.visibility &&
+      stored.title == wanted.title &&
+      stored.description == wanted.description &&
+      stored.topic == wanted.topic &&
+      stored.approxDateLabel == wanted.approxDateLabel &&
+      stored.approxYear == wanted.approxYear &&
+      stored.durationSeconds == wanted.durationSeconds;
+
+  static bool _subset(Iterable<String> a, Iterable<String> b) =>
+      b.toSet().containsAll(a);
+
+  static _Reconcile _reconcile(Story stored, Story wanted, String uid) {
+    if (!_isThisStory(stored, wanted, uid)) return _Reconcile.conflict;
+    final pairs = <(List<String>, List<String>)>[
+      (stored.narratorIds, wanted.narratorIds),
+      (stored.peopleIds, wanted.peopleIds),
+      (stored.photoIds, wanted.photoIds),
+      if (wanted.visibility == StoryVisibility.selected)
+        (stored.recipientUserIds, wanted.recipientUserIds),
+    ];
+    var missing = false;
+    for (final (have, want) in pairs) {
+      // Something remote that the request does not contain (for example an
+      // extra recipient) is not ours to remove or to accept silently.
+      if (!_subset(have, want)) return _Reconcile.conflict;
+      if (!_subset(want, have)) missing = true;
+    }
+    return missing ? _Reconcile.completeJoins : _Reconcile.same;
+  }
+
   /// A failure after which the write may still land (late completion).
   static bool _uncertain(AppFailure f) =>
       f is TimeoutFailure || f is NetworkFailure || f is UnknownFailure;
@@ -197,34 +225,11 @@ class StorySaver {
     final storyId = _fixedId?.call() ?? stableStoryId(uid, draft.id, digest);
     attempt.storyId = storyId;
 
-    // An earlier attempt (before a restart, or one that timed out and then
-    // finished) may already have created this story: use it, change nothing.
-    final already = await stories.getStory(storyId);
-    if (already case Success<Story?>(:final value?)) {
-      if (!attempt.superseded) await drafts.delete(draft.id);
-      return Success(value);
-    }
-
     final ext = joined.endsWith('.wav') ? 'wav' : 'm4a';
     // Namespaced by uploader: the storage insert policy rejects any write
     // outside your own prefix.
     final storagePath = '${space.id}/$uid/$storyId/a.$ext';
 
-    phase(SavePhase.uploading);
-    switch (await stories.uploadAudio(joined, storagePath)) {
-      case Failed(:final failure):
-        // The failure may be a duplicate (an earlier attempt stored it) or a
-        // real error. Reuse an existing object only when it is verifiably
-        // this audio: same content-derived path, same size. Otherwise fail
-        // and bind nothing.
-        final stored = await stories.audioSize(storagePath);
-        final same = stored is Success<int?> && stored.value == bytes;
-        if (!same) return Failed(failure);
-      case Success():
-        break;
-    }
-
-    phase(SavePhase.creating);
     final story = Story(
       id: storyId,
       spaceId: space.id,
@@ -250,21 +255,71 @@ class StorySaver {
       photoIds: request.photoIds,
       waveform: request.waveform,
     );
+    // An earlier attempt (before a restart, or one that timed out and then
+    // finished) may already have created this story: use it, change nothing.
+    final already = await stories.getStory(storyId);
+    if (already case Success<Story?>(:final value?)) {
+      // The row can exist already: an earlier attempt of this same save may
+      // have landed (possibly without its joins), or the story was changed
+      // since. Nothing remote is overwritten or deleted. Only an exact
+      // match, or this exact story missing joins the request asks for, is
+      // reported as saved; anything else is a conflict and the draft stays.
+      switch (_reconcile(value, story, uid)) {
+        case _Reconcile.same:
+          if (!attempt.superseded) await drafts.delete(draft.id);
+          return Success(value);
+        case _Reconcile.completeJoins:
+          final done = await stories.createStory(story);
+          if (done is Failed<Story>) return done;
+          if (!attempt.superseded) await drafts.delete(draft.id);
+          return done;
+        case _Reconcile.conflict:
+          return const Failed(ConflictFailure());
+      }
+    }
+
+    phase(SavePhase.uploading);
+    switch (await stories.uploadAudio(joined, storagePath)) {
+      case Failed(:final failure):
+        // The failure may be a duplicate (an earlier attempt stored it) or a
+        // real error. Reuse an existing object only when it is verifiably
+        // this audio: same content-derived path, same size. Otherwise fail
+        // and bind nothing.
+        final stored = await stories.audioSize(storagePath);
+        final same = stored is Success<int?> && stored.value == bytes;
+        if (!same) return Failed(failure);
+      case Success():
+        break;
+    }
+
+    phase(SavePhase.creating);
     final created = await stories.createStory(story);
     if (created is Failed<Story>) {
       // The row may exist even though the call failed (a late write, or a
       // duplicate id from an earlier attempt): look before concluding.
       final existing = await stories.getStory(storyId);
       if (existing case Success<Story?>(:final value?)) {
-        if (!attempt.superseded) await drafts.delete(draft.id);
-        return Success(value);
+        switch (_reconcile(value, story, uid)) {
+          case _Reconcile.same:
+            if (!attempt.superseded) await drafts.delete(draft.id);
+            return Success(value);
+          case _Reconcile.completeJoins:
+            // The row landed late but lacks joins: report the failure so the
+            // retry completes them; the draft and the upload stay.
+            return created;
+          case _Reconcile.conflict:
+            return const Failed(ConflictFailure());
+        }
       }
       // Remove the upload only when the failure is a definite rejection and
       // the story does not exist. After an uncertain failure the audio stays
       // so a retry reuses it and a late-created story keeps its audio.
       // Never while this attempt was replaced or replaced another: a second
       // attempt may be using the same object.
+      // An unauthorized answer is ambiguous (a lapsed session looks the same
+      // as a policy refusal), so the upload stays for the retry.
       if (!_uncertain(created.failure) &&
+          created.failure is! UnauthorizedFailure &&
           existing is Success<Story?> &&
           !attempt.superseded &&
           !attempt.supersededOther) {
@@ -287,6 +342,8 @@ Future<String> _joinTake(StoryDraft draft) {
     '${File(first).parent.path}/story.wav',
   );
 }
+
+enum _Reconcile { same, completeJoins, conflict }
 
 class _Attempt {
   late Future<Result<Story>> result;
