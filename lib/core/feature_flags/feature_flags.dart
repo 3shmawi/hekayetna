@@ -28,4 +28,8 @@ abstract final class Flags {
   /// The interactive family tree (spec 05). On in dev and staging; the
   /// owner turns it on in production from the PostHog dashboard.
   static const familyTreeGraph = 'family_tree_graph';
+
+  /// Questions to ask, the question of the week and the prompt card
+  /// (spec 07). Off everywhere until the owner turns it on in PostHog.
+  static const interviewPrompts = 'interview_prompts';
 }
