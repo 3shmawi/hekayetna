@@ -13,11 +13,12 @@ Future<void> beat(WidgetTester tester, [int milliseconds = 900]) async {
 }
 
 /// Gets past first-launch screens so every flow starts on home: the
-/// welcome pages (onboarding module) and the usage-data question (only
+/// welcome step (onboarding step 0 has only a start button), the
+/// onboarding pages' skip button, and the usage-data question (only
 /// shown when the env file has an analytics key). Call it right after
 /// `app.main()` + `pumpAndSettle()`.
 Future<void> skipFirstLaunch(WidgetTester tester) async {
-  for (final key in ['onboarding_skip', 'consent_deny']) {
+  for (final key in ['onboarding_next', 'onboarding_skip', 'consent_deny']) {
     final button = find.byKey(Key(key));
     if (button.evaluate().isEmpty) continue;
     await tester.tap(button);
