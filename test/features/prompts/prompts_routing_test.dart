@@ -165,6 +165,11 @@ void main() {
     expect(find.byType(RecordPage), findsOneWidget);
     expect(find.text(p.en.question), findsOneWidget);
     expect(find.text(l10nEn.topic_funny_memories), findsOneWidget);
+    // The follow-ups show under the question (Record artboard).
+    expect(
+      find.text(l10nEn.recordThen(p.en.followUps.join(' '))),
+      findsOneWidget,
+    );
     t.widget<RecordButton>(find.byType(RecordButton)).onPressed();
     await frames(t);
     expect(recorder.started, [(topic: 'funny_memories', promptId: p.id)]);

@@ -278,6 +278,11 @@ class _RecordPageState extends ConsumerState<RecordPage> {
               ? (chosen?.text(lang).question ??
                     prompts[_promptIndex % prompts.length])
               : null,
+          promptFollowUp: settings.showPrompts && chosen != null
+              ? (chosen.text(lang).followUps.isEmpty
+                    ? null
+                    : chosen.text(lang).followUps.join(' '))
+              : null,
           onDifferentQuestion: () => setState(() => _promptIndex++),
           onMoreQuestions: flagOn
               ? () => unawaited(context.push(AppRoutes.promptsFrom('record')))

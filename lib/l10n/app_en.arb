@@ -548,5 +548,31 @@
     }
   },
   "promptsMore": "More questions",
-  "promptsDismiss": "Hide until next week"
+  "promptsDismiss": "Hide until next week",
+  "promptsSubtitle": "Pick one, press record, and listen.",
+  "promptsThenAsk": "Then ask: {followUps}",
+  "@promptsThenAsk": {
+    "placeholders": {
+      "followUps": {"type": "String"}
+    }
+  },
+  "promptsAnsweredTitle": "Answered · {title}",
+  "@promptsAnsweredTitle": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "promptsWeekAsk": "Ask {name}: {question}",
+  "@promptsWeekAsk": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "question": {"type": "String"}
+    }
+  },
+  "recordThen": "Then: {followUps}",
+  "@recordThen": {
+    "placeholders": {
+      "followUps": {"type": "String"}
+    }
+  }
 }

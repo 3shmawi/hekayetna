@@ -412,5 +412,10 @@
   "promptsWeekTitle": "سؤال الأسبوع",
   "promptsWeekRecord": "سجّل إجابة {name}",
   "promptsMore": "أسئلة تانية",
-  "promptsDismiss": "اخفيه لحد الأسبوع الجاي"
+  "promptsDismiss": "اخفيه لحد الأسبوع الجاي",
+  "promptsSubtitle": "اختار سؤال، دوس سجّل، واسمع.",
+  "promptsThenAsk": "وبعدين اسأل: {followUps}",
+  "promptsAnsweredTitle": "اتجاوب · {title}",
+  "promptsWeekAsk": "اسأل {name}: {question}",
+  "recordThen": "وبعدين: {followUps}"
 }

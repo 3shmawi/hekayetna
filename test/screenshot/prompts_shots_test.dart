@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:family_stories/app/app_providers.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
+import 'package:family_stories/core/ui/record_button.dart';
 import 'package:family_stories/features/family/data/demo_family_repository.dart';
 import 'package:family_stories/features/prompts/data/prompt_flag.dart';
 import 'package:family_stories/features/prompts/data/prompt_library_loader.dart';
@@ -15,6 +16,7 @@ import 'package:family_stories/features/prompts/domain/interview_prompt.dart';
 import 'package:family_stories/features/prompts/presentation/prompts_page.dart';
 import 'package:family_stories/features/prompts/presentation/prompts_providers.dart';
 import 'package:family_stories/features/prompts/presentation/weekly_prompt_card.dart';
+import 'package:family_stories/features/recording/presentation/record_view.dart';
 import 'package:family_stories/features/settings/data/settings_repository.dart';
 import 'package:family_stories/features/settings/presentation/settings_controller.dart';
 import 'package:family_stories/features/stories/data/demo_story_repository.dart';
@@ -34,7 +36,7 @@ import 'real_font_screens_test.dart' show loadRealFonts;
 void main() {
   setUp(loadRealFonts);
 
-  for (final screen in const ['page', 'week']) {
+  for (final screen in const ['page', 'week', 'record']) {
     for (final mode in const [ThemeMode.light, ThemeMode.dark]) {
       for (final locale in const ['en', 'ar']) {
         final variant = 'prompts_${screen}_${mode.name}_$locale';
@@ -86,7 +88,31 @@ void main() {
                   localizationsDelegates:
                       AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: screen == 'page'
+                  home: screen == 'record'
+                      ? Builder(
+                          builder: (context) {
+                            final q = lib.byId('childhood_games')!.text(locale);
+                            return RecordView(
+                              buttonState: RecordButtonState.idle,
+                              elapsed: Duration.zero,
+                              levels: const [],
+                              narratorName: 'Sitto Amina',
+                              draftSaved: false,
+                              canFinish: false,
+                              topicLabel: 'Childhood & first home',
+                              promptText: q.question,
+                              promptFollowUp: q.followUps.join(' '),
+                              onDifferentQuestion: () {},
+                              onMoreQuestions: () {},
+                              onClose: () {},
+                              onToggle: () {},
+                              onPickNarrator: () {},
+                              onPickTopic: () {},
+                              onDone: () {},
+                            );
+                          },
+                        )
+                      : screen == 'page'
                       ? const PromptsPage()
                       : Scaffold(
                           body: Padding(

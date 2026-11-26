@@ -121,14 +121,27 @@ void main() {
     expect(expectedQuestion(thursday), expectedQuestion(sunday));
     expect(expectedQuestion(thursday), isNot(expectedQuestion(nextWeek)));
     await pump(tester, today: thursday);
-    expect(find.text(expectedQuestion(thursday)), findsOneWidget);
-    expect(find.text(l10nEn.promptsWeekTitle.toUpperCase()), findsOneWidget);
+    expect(
+      find.textContaining(expectedQuestion(thursday).substring(1)),
+      findsOneWidget,
+    );
+    // The question names who to ask, like the Main artboard.
+    expect(find.textContaining('Ask '), findsWidgets);
+    expect(find.text(l10nEn.promptsWeekTitle), findsOneWidget);
   });
 
   testWidgets('a different week shows a different question', (tester) async {
     await pump(tester, today: DateTime(2026, 12, 3));
-    expect(find.text(expectedQuestion(DateTime(2026, 12, 3))), findsOneWidget);
-    expect(find.text(expectedQuestion(DateTime(2026, 11, 26))), findsNothing);
+    expect(
+      find.textContaining(expectedQuestion(DateTime(2026, 12, 3)).substring(1)),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining(
+        expectedQuestion(DateTime(2026, 11, 26)).substring(1),
+      ),
+      findsNothing,
+    );
   });
 
   testWidgets('dismiss hides it for the week and stays hidden', (tester) async {

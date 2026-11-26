@@ -147,22 +147,41 @@ class _PromptsPageState extends ConsumerState<PromptsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              s.promptsSubtitle,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            SizedBox(height: AppDimens.md),
             if (askable.isNotEmpty) ...[
-              AppSectionLabel(s.promptsAsking),
-              SizedBox(height: AppDimens.sm),
-              _ChipRow(
+              Row(
                 children: [
-                  for (final a in askable)
-                    AppChip(
-                      label: a.name,
-                      selected: a.id == _personId,
-                      onTap: () => setState(
-                        () => _personId = a.id == _personId ? null : a.id,
-                      ),
+                  Text(
+                    s.promptsAsking,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
                     ),
+                  ),
+                  SizedBox(width: AppDimens.sm),
+                  Expanded(
+                    child: _ChipRow(
+                      children: [
+                        for (final a in askable)
+                          AppChip(
+                            label: a.name,
+                            selected: a.id == _personId,
+                            leading: PersonAvatar(name: a.name, size: 28),
+                            onTap: () => setState(
+                              () => _personId = a.id == _personId ? null : a.id,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-              SizedBox(height: AppDimens.lg),
+              SizedBox(height: AppDimens.md),
             ],
             _ChipRow(
               children: [
@@ -186,11 +205,9 @@ class _PromptsPageState extends ConsumerState<PromptsPage> {
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ),
-                AppButton.secondary(
-                  label: s.promptsSurprise,
-                  expand: false,
-                  icon: Icons.casino_outlined,
+                TextButton(
                   onPressed: () => _surprise(prompts, answered),
+                  child: Text(s.promptsSurprise),
                 ),
               ],
             ),
@@ -199,8 +216,8 @@ class _PromptsPageState extends ConsumerState<PromptsPage> {
               value: progress.total == 0
                   ? 0
                   : progress.answered / progress.total,
-              minHeight: 6,
-              borderRadius: BorderRadius.circular(3),
+              minHeight: 3,
+              borderRadius: BorderRadius.circular(2),
             ),
             SizedBox(height: AppDimens.lg),
             if (lib != null && prompts.isEmpty) Text(s.promptsEmpty),
@@ -306,7 +323,7 @@ class _PromptCard extends StatelessWidget {
           if (text.followUps.isNotEmpty) ...[
             SizedBox(height: AppDimens.sm),
             Text(
-              text.followUps.join(' · '),
+              s.promptsThenAsk(text.followUps.join(' ')),
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
@@ -314,18 +331,37 @@ class _PromptCard extends StatelessWidget {
           ],
           SizedBox(height: AppDimens.md),
           if (answered)
-            Text(answeredTitle!, style: Theme.of(context).textTheme.bodyMedium)
+            Row(
+              children: [
+                Icon(
+                  Icons.check,
+                  size: AppDimens.iconMd,
+                  color: scheme.primary,
+                ),
+                SizedBox(width: AppDimens.sm),
+                Expanded(
+                  child: Text(
+                    s.promptsAnsweredTitle(answeredTitle!),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+              ],
+            )
           else
             Row(
               children: [
                 Expanded(
-                  child: AppButton.record(
-                    wrap: true,
-                    label: askLabel,
-                    onPressed: onAsk,
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: AppButton.record(
+                      wrap: true,
+                      expand: false,
+                      icon: Icons.mic_none,
+                      label: askLabel,
+                      onPressed: onAsk,
+                    ),
                   ),
                 ),
-                SizedBox(width: AppDimens.sm),
                 AppIconButton(
                   icon: savedForLater ? Icons.bookmark : Icons.bookmark_border,
                   tooltip: savedForLater

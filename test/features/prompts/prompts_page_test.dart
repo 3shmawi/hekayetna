@@ -159,7 +159,10 @@ void main() {
     tester,
   ) async {
     await pump(tester, answered: {'childhood_street': 'The lane by the canal'});
-    expect(find.text('The lane by the canal'), findsOneWidget);
+    expect(
+      find.text(l10nEn.promptsAnsweredTitle('The lane by the canal')),
+      findsOneWidget,
+    );
     expect(find.text(l10nEn.promptsProgress(1, 12)), findsOneWidget);
     // 11 open questions, so 11 Ask buttons.
     expect(find.text(l10nEn.promptsAskSomeone), findsNWidgets(11));

@@ -27,6 +27,7 @@ class RecordView extends StatelessWidget {
     required this.onDone,
     this.topicLabel,
     this.promptText,
+    this.promptFollowUp,
     this.onDifferentQuestion,
     this.onMoreQuestions,
     this.note,
@@ -45,6 +46,9 @@ class RecordView extends StatelessWidget {
 
   /// The question card; null hides it (prompts turned off).
   final String? promptText;
+
+  /// The chosen prompt's follow-ups, joined; null for the starter questions.
+  final String? promptFollowUp;
   final VoidCallback? onDifferentQuestion;
 
   /// Opens "Questions to ask" (spec 07); null hides the link. Only shown
@@ -119,7 +123,11 @@ class RecordView extends StatelessWidget {
           ),
           if (promptText != null) ...[
             SizedBox(height: AppDimens.lg),
-            _PromptCard(text: promptText!, onDifferent: onDifferentQuestion),
+            _PromptCard(
+              text: promptText!,
+              followUp: promptFollowUp,
+              onDifferent: onDifferentQuestion,
+            ),
           ],
           if (onMoreQuestions != null &&
               buttonState == RecordButtonState.idle) ...[
@@ -190,9 +198,10 @@ class RecordView extends StatelessWidget {
 }
 
 class _PromptCard extends StatelessWidget {
-  const _PromptCard({required this.text, this.onDifferent});
+  const _PromptCard({required this.text, this.followUp, this.onDifferent});
 
   final String text;
+  final String? followUp;
   final VoidCallback? onDifferent;
 
   @override
@@ -216,6 +225,13 @@ class _PromptCard extends StatelessWidget {
             ),
             SizedBox(height: AppDimens.xs),
             Text(text, style: AppTextStyles.bodyLarge),
+            if (followUp != null) ...[
+              SizedBox(height: AppDimens.xs),
+              Text(
+                s.recordThen(followUp!),
+                style: AppTextStyles.caption.copyWith(color: hk.inkSoft),
+              ),
+            ],
             if (onDifferent != null)
               Align(
                 alignment: AlignmentDirectional.centerEnd,

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
-import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/prompts/data/prompt_flag.dart';
 import 'package:family_stories/features/prompts/data/prompt_library_loader.dart';
 import 'package:family_stories/features/prompts/domain/prompt_logic.dart';
@@ -77,21 +76,35 @@ class _WeeklyPromptCardState extends ConsumerState<WeeklyPromptCard> {
     final lang = Localizations.localeOf(context).languageCode;
     final scheme = Theme.of(context).colorScheme;
     final text = prompt.text(lang);
+    // Reference: dark card, light text, the question names who to ask.
+    final on = scheme.onPrimary;
+    final q = text.question;
+    final q1 = lang == 'en' && q.length > 1 && q[1] == q[1].toLowerCase()
+        ? q[0].toLowerCase() + q.substring(1)
+        : q;
     return Container(
       key: const ValueKey('weekly-prompt'),
       padding: EdgeInsets.all(AppDimens.lg),
       decoration: BoxDecoration(
-        color: scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+        color: scheme.primary,
+        borderRadius: BorderRadius.circular(AppDimens.radiusLg),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(child: AppSectionLabel(s.promptsWeekTitle)),
-              AppIconButton(
-                icon: Icons.close,
+              Expanded(
+                child: Text(
+                  s.promptsWeekTitle,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: on.withValues(alpha: 0.85),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.close, color: on),
                 tooltip: s.promptsDismiss,
                 onPressed: () {
                   setState(() => _hidden = true);
@@ -103,31 +116,49 @@ class _WeeklyPromptCardState extends ConsumerState<WeeklyPromptCard> {
               ),
             ],
           ),
-          Text(text.question, style: Theme.of(context).textTheme.titleMedium),
-          SizedBox(height: AppDimens.md),
-          AppButton.record(
-            wrap: true,
-            label: s.promptsWeekRecord(who.name),
-            onPressed: () {
-              ref
-                  .read(settingsControllerProvider.notifier)
-                  .setLastNarrator(who.id);
-              unawaited(
-                ref.read(promptEventsProvider)('weekly_prompt_recorded'),
-              );
-              context.go(
-                Uri(
-                  path: AppRoutes.record,
-                  queryParameters: {'topic': prompt.topic, 'prompt': prompt.id},
-                ).toString(),
-              );
-            },
+          Text(
+            s.promptsWeekAsk(who.name, q1),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: on),
           ),
-          SizedBox(height: AppDimens.sm),
-          AppButton.secondary(
-            label: s.promptsMore,
-            onPressed: () =>
-                unawaited(context.push(AppRoutes.promptsFrom('feed'))),
+          SizedBox(height: AppDimens.md),
+          Wrap(
+            spacing: AppDimens.sm,
+            runSpacing: AppDimens.xs,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: on,
+                  foregroundColor: scheme.primary,
+                  minimumSize: Size(0, AppDimens.buttonHeight),
+                  shape: const StadiumBorder(),
+                ),
+                onPressed: () {
+                  ref
+                      .read(settingsControllerProvider.notifier)
+                      .setLastNarrator(who.id);
+                  unawaited(
+                    ref.read(promptEventsProvider)('weekly_prompt_recorded'),
+                  );
+                  context.go(
+                    Uri(
+                      path: AppRoutes.record,
+                      queryParameters: {
+                        'topic': prompt.topic,
+                        'prompt': prompt.id,
+                      },
+                    ).toString(),
+                  );
+                },
+                child: Text(s.promptsWeekRecord(who.name)),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: on),
+                onPressed: () =>
+                    unawaited(context.push(AppRoutes.promptsFrom('feed'))),
+                child: Text(s.promptsMore),
+              ),
+            ],
           ),
         ],
       ),
