@@ -20,6 +20,9 @@ abstract final class AppRoutes {
   static String recordNewStory(String draftId) => '/record/new-story/$draftId';
   static String personDetail(String id) => '/family/people/$id';
 
+  /// "Questions to ask"; [from] is where the user came from (analytics).
+  static String promptsFrom(String from) => '$prompts?from=$from';
+
   /// Paths that need a signed-in user; signed-out users are sent to
   /// [signIn] first (core/auth/auth_redirect.dart). In demo mode (no
   /// backend configured) everything is reachable so the app stays

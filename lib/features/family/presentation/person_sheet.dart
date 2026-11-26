@@ -149,7 +149,7 @@ class _PersonSheetState extends ConsumerState<PersonSheet> {
               onPressed: () {
                 final router = GoRouter.of(context);
                 Navigator.of(context).maybePop();
-                unawaited(router.push(AppRoutes.prompts));
+                unawaited(router.push(AppRoutes.promptsFrom('person')));
               },
               child: Text(l10n.promptsTitle),
             ),

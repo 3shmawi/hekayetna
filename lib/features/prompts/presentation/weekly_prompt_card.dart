@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
@@ -72,7 +71,7 @@ class _WeeklyPromptCardState extends ConsumerState<WeeklyPromptCard> {
 
     if (!_shownReported) {
       _shownReported = true;
-      unawaited(Analytics.capture('weekly_prompt_shown'));
+      unawaited(ref.read(promptEventsProvider)('weekly_prompt_shown'));
     }
     final s = context.l10n;
     final lang = Localizations.localeOf(context).languageCode;
@@ -97,7 +96,9 @@ class _WeeklyPromptCardState extends ConsumerState<WeeklyPromptCard> {
                 onPressed: () {
                   setState(() => _hidden = true);
                   unawaited(store.dismissWeek(week));
-                  unawaited(Analytics.capture('weekly_prompt_dismissed'));
+                  unawaited(
+                    ref.read(promptEventsProvider)('weekly_prompt_dismissed'),
+                  );
                 },
               ),
             ],
@@ -111,7 +112,9 @@ class _WeeklyPromptCardState extends ConsumerState<WeeklyPromptCard> {
               ref
                   .read(settingsControllerProvider.notifier)
                   .setLastNarrator(who.id);
-              unawaited(Analytics.capture('weekly_prompt_recorded'));
+              unawaited(
+                ref.read(promptEventsProvider)('weekly_prompt_recorded'),
+              );
               context.go(
                 Uri(
                   path: AppRoutes.record,
@@ -123,7 +126,8 @@ class _WeeklyPromptCardState extends ConsumerState<WeeklyPromptCard> {
           SizedBox(height: AppDimens.sm),
           AppButton.secondary(
             label: s.promptsMore,
-            onPressed: () => unawaited(context.push(AppRoutes.prompts)),
+            onPressed: () =>
+                unawaited(context.push(AppRoutes.promptsFrom('feed'))),
           ),
         ],
       ),

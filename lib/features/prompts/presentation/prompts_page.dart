@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
@@ -24,7 +23,10 @@ import 'package:go_router/go_router.dart';
 /// "Questions to ask" (spec 07). Behind the `interview_prompts` flag: with
 /// the flag off the screen is empty and sends the user back to the feed.
 class PromptsPage extends ConsumerStatefulWidget {
-  const PromptsPage({this.pick, super.key});
+  const PromptsPage({this.pick, this.from, super.key});
+
+  /// Where the user came from: `feed`, `record` or `person`.
+  final String? from;
 
   /// Picks which open question "Surprise me" lands on. Tests fix it.
   final int Function(int max)? pick;
@@ -39,6 +41,7 @@ class _PromptsPageState extends ConsumerState<PromptsPage> {
   String? _highlightId;
   final _keys = <String, GlobalKey>{};
   final _random = Random();
+  bool _openedReported = false;
 
   int _birthYear(Person p) {
     final m = RegExp(r'\d{4}').firstMatch(p.approxBirthDate ?? '');
@@ -64,7 +67,7 @@ class _PromptsPageState extends ConsumerState<PromptsPage> {
     final p = surprise(prompts, answered, widget.pick ?? _random.nextInt);
     if (p == null) return;
     setState(() => _highlightId = p.id);
-    unawaited(Analytics.capture('prompt_surprise_me'));
+    unawaited(ref.read(promptEventsProvider)('prompt_surprise_me'));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ctx = _keys[p.id]?.currentContext;
       if (ctx != null) {
@@ -81,7 +84,9 @@ class _PromptsPageState extends ConsumerState<PromptsPage> {
     if (who != null) {
       ref.read(settingsControllerProvider.notifier).setLastNarrator(who.id);
     }
-    unawaited(Analytics.capture('prompt_asked', {'topic': p.topic}));
+    unawaited(
+      ref.read(promptEventsProvider)('prompt_asked', {'topic': p.topic}),
+    );
     context.go(
       Uri(
         path: AppRoutes.record,
@@ -96,6 +101,14 @@ class _PromptsPageState extends ConsumerState<PromptsPage> {
     final enabled = ref.watch(interviewPromptsEnabledProvider).value ?? false;
     if (!enabled) {
       return AppScaffold(title: s.promptsTitle, body: const SizedBox.shrink());
+    }
+    if (!_openedReported) {
+      _openedReported = true;
+      unawaited(
+        ref.read(promptEventsProvider)('prompts_opened', {
+          'from': widget.from ?? 'unknown',
+        }),
+      );
     }
     final lib = ref.watch(promptLibraryProvider).value;
     final space = ref.watch(currentSpaceProvider).value;
@@ -204,7 +217,11 @@ class _PromptsPageState extends ConsumerState<PromptsPage> {
                       ref.read(savedPromptsProvider.notifier).toggle(p.id),
                     );
                     if (!saved.contains(p.id)) {
-                      unawaited(Analytics.capture('prompt_saved_for_later'));
+                      unawaited(
+                        ref.read(promptEventsProvider)(
+                          'prompt_saved_for_later',
+                        ),
+                      );
                     }
                   },
                 ),

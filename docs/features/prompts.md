@@ -9,7 +9,7 @@ Status: Part A (no backend) is built behind the `interview_prompts` flag, which 
 - Question of the week: `WeeklyPromptCard` fills the feed's existing `questionSlot`. The question comes from the ISO week (`weeklyPrompt`, FNV-1a hash), so every member sees the same one all week. It is asked of the relative with the most stories. The close button hides it until next week (stored on the device).
 - Ask {name} and the week card's Record button open `/record?topic=..&prompt=..` after setting the narrator. The Record screen shows that question in its prompt card when the flag is on.
 - Entry points, all hidden when the flag is off: the feed card ("More questions"), a "Questions to ask" link on Record before a take starts, and the person sheet when the person has no stories.
-- Analytics (never the question text): `prompt_asked {topic}`, `prompt_saved_for_later`, `prompt_surprise_me`, `weekly_prompt_shown`, `weekly_prompt_dismissed`, `weekly_prompt_recorded`. `prompts_opened {from}` is not sent yet.
+- Analytics (never the question text): `prompt_asked {topic}`, `prompt_saved_for_later`, `prompt_surprise_me`, `weekly_prompt_shown`, `weekly_prompt_dismissed`, `weekly_prompt_recorded`. `prompts_opened {from}` (feed, record or person) fires once when the screen opens.
 
 ## Not done
 

@@ -1,3 +1,4 @@
+import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/features/prompts/data/saved_prompts_store.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,3 +42,11 @@ final answeredPromptsProvider = Provider.family<Map<String, String>, String?>(
 final promptsClockProvider = Provider<DateTime Function()>(
   (ref) => DateTime.now,
 );
+
+/// Where question events go. Analytics by default (a no-op until the user
+/// allows usage data); tests override it to read the events. Never carries
+/// question text.
+final promptEventsProvider =
+    Provider<Future<void> Function(String event, [Map<String, Object>? props])>(
+      (ref) => Analytics.capture,
+    );

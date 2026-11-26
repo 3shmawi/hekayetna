@@ -30,11 +30,13 @@ import '../../helpers/pump_app.dart';
 void main() {
   late SharedPreferences prefs;
   late List<String> visited;
+  late List<String> events;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     visited = [];
+    events = [];
   });
 
   Future<void> pump(
@@ -53,7 +55,7 @@ void main() {
       routes: [
         GoRoute(
           path: '/prompts',
-          builder: (_, _) => PromptsPage(pick: pick),
+          builder: (_, _) => PromptsPage(pick: pick, from: 'feed'),
         ),
         GoRoute(
           path: '/record',
@@ -70,6 +72,9 @@ void main() {
         overrides: [
           // The asset bundle is real IO, which the test clock never
           // completes; read the same file directly.
+          promptEventsProvider.overrideWithValue((event, [props]) async {
+            events.add('$event ${props ?? {}}');
+          }),
           promptLibraryProvider.overrideWith(
             (_) => PromptLibrary.fromJson(
               jsonDecode(File(kPromptLibraryAsset).readAsStringSync())
@@ -191,5 +196,31 @@ void main() {
       Directionality.of(tester.element(find.text(ar.promptsSurprise))),
       TextDirection.rtl,
     );
+  });
+
+  testWidgets('events: opened (with where from), surprise, saved, asked', (
+    tester,
+  ) async {
+    await pump(tester, pick: (_) => 0);
+    expect(events, ['prompts_opened {from: feed}']);
+    await tester.tap(find.text(l10nEn.promptsSurprise));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip(l10nEn.promptsSaveForLater).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.promptsAskSomeone).first);
+    await tester.pumpAndSettle();
+    expect(events, [
+      'prompts_opened {from: feed}',
+      'prompt_surprise_me {}',
+      'prompt_saved_for_later {}',
+      'prompt_asked {topic: childhood_first_home}',
+    ]);
+    // Never the question text.
+    expect(events.join(), isNot(contains('street')));
+  });
+
+  testWidgets('flag off sends no events', (tester) async {
+    await pump(tester, flag: false);
+    expect(events, isEmpty);
   });
 }

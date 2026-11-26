@@ -121,7 +121,8 @@ final appRouter = GoRouter(
       path: AppRoutes.prompts,
       name: 'prompts',
       parentNavigatorKey: rootNavigatorKey,
-      builder: (context, state) => const PromptsPage(),
+      builder: (context, state) =>
+          PromptsPage(from: state.uri.queryParameters['from']),
     ),
     GoRoute(
       path: AppRoutes.settings,

@@ -29,12 +29,14 @@ import '../../helpers/pump_app.dart';
 void main() {
   late SharedPreferences prefs;
   late List<String> visited;
+  late List<String> events;
   late PromptLibrary lib;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     visited = [];
+    events = [];
     lib = PromptLibrary.fromJson(
       jsonDecode(File(kPromptLibraryAsset).readAsStringSync())
           as Map<String, dynamic>,
@@ -73,6 +75,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          promptEventsProvider.overrideWithValue((event, [props]) async {
+            events.add(event);
+          }),
           promptLibraryProvider.overrideWith((_) => lib),
           interviewPromptsEnabledProvider.overrideWith((_) async => flag),
           promptsClockProvider.overrideWithValue(() => today),
@@ -157,5 +162,25 @@ void main() {
     await tester.tap(find.text(l10nEn.promptsMore));
     await tester.pumpAndSettle();
     expect(find.text('prompts-stub'), findsOneWidget);
+  });
+
+  testWidgets('events: shown once, dismissed, recorded', (tester) async {
+    await pump(tester, today: DateTime(2026, 11, 26));
+    expect(events, ['weekly_prompt_shown']);
+    await tester.tap(find.byTooltip(l10nEn.promptsDismiss));
+    await tester.pumpAndSettle();
+    expect(events, ['weekly_prompt_shown', 'weekly_prompt_dismissed']);
+  });
+
+  testWidgets('event: recorded when Record is tapped', (tester) async {
+    await pump(tester, today: DateTime(2026, 11, 26));
+    await tester.tap(find.textContaining('Record '));
+    await tester.pumpAndSettle();
+    expect(events, contains('weekly_prompt_recorded'));
+  });
+
+  testWidgets('flag off sends no events', (tester) async {
+    await pump(tester, flag: false, today: DateTime(2026, 11, 26));
+    expect(events, isEmpty);
   });
 }
