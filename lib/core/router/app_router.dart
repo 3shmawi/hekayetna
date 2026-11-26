@@ -11,6 +11,7 @@ import 'package:family_stories/features/auth/presentation/new_password_page.dart
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart';
 import 'package:family_stories/features/family/presentation/family_screens.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
+import 'package:family_stories/features/prompts/presentation/prompts_page.dart';
 import 'package:family_stories/features/recording/presentation/continue_recording_screen.dart';
 import 'package:family_stories/features/recording/presentation/record_page.dart';
 import 'package:family_stories/features/recording/presentation/save_story_page.dart';
@@ -75,7 +76,10 @@ final appRouter = GoRouter(
             GoRoute(
               path: AppRoutes.record,
               name: 'record',
-              builder: (context, state) => const RecordPage(),
+              builder: (context, state) => RecordPage(
+                topic: state.uri.queryParameters['topic'],
+                promptId: state.uri.queryParameters['prompt'],
+              ),
               routes: [
                 GoRoute(
                   path: 'continue',
@@ -112,6 +116,12 @@ final appRouter = GoRouter(
           ],
         ),
       ],
+    ),
+    GoRoute(
+      path: AppRoutes.prompts,
+      name: 'prompts',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => const PromptsPage(),
     ),
     GoRoute(
       path: AppRoutes.settings,

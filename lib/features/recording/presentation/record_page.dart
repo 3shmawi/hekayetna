@@ -10,6 +10,8 @@ import 'package:family_stories/core/ui/app_message.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:family_stories/features/family/data/models.dart';
+import 'package:family_stories/features/prompts/data/prompt_flag.dart';
+import 'package:family_stories/features/prompts/data/prompt_library_loader.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
 import 'package:family_stories/features/recording/presentation/continue_recording_screen.dart';
 import 'package:family_stories/features/recording/presentation/record_view.dart';
@@ -25,7 +27,12 @@ import 'package:go_router/go_router.dart';
 /// the settings into [RecordView]. Every take is on disk and indexed as a
 /// private draft from the first second; leaving never loses it.
 class RecordPage extends ConsumerStatefulWidget {
-  const RecordPage({super.key});
+  const RecordPage({this.topic, this.promptId, super.key});
+
+  /// Set when opened from "Questions to ask" (spec 07): the topic and the
+  /// question to show. Ignored unless the prompts flag is on.
+  final String? topic;
+  final String? promptId;
 
   @override
   ConsumerState<RecordPage> createState() => _RecordPageState();
@@ -42,6 +49,9 @@ class _RecordPageState extends ConsumerState<RecordPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.topic != null && kStoryTopics.contains(widget.topic)) {
+      _topic = widget.topic;
+    }
     _levelSub = ref.read(recorderServiceProvider).levels.listen((v) {
       if (!mounted) return;
       setState(() {
@@ -220,6 +230,12 @@ class _RecordPageState extends ConsumerState<RecordPage> {
         .where((p) => p.id == settings.lastNarratorId)
         .firstOrNull;
     final prompts = starterQuestions(s);
+    final flagOn = ref.watch(interviewPromptsEnabledProvider).value ?? false;
+    final library = flagOn ? ref.watch(promptLibraryProvider).value : null;
+    final chosen = widget.promptId == null
+        ? null
+        : library?.byId(widget.promptId!);
+    final lang = Localizations.localeOf(context).languageCode;
     return StreamBuilder<RecorderState>(
       stream: recorder.watch(),
       initialData: recorder.state,
@@ -238,7 +254,8 @@ class _RecordPageState extends ConsumerState<RecordPage> {
           canFinish: state.canStop || state.hasTake,
           topicLabel: _topic == null ? null : topicLabel(s, _topic!),
           promptText: settings.showPrompts
-              ? prompts[_promptIndex % prompts.length]
+              ? (chosen?.text(lang).question ??
+                    prompts[_promptIndex % prompts.length])
               : null,
           onDifferentQuestion: () => setState(() => _promptIndex++),
           note: _note(s, state),

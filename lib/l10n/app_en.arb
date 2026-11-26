@@ -518,5 +518,26 @@
   },
   "personNoStories": "No stories yet. Record the first one.",
   "personAddRelative": "Add a relative",
-  "personPhotos": "Photos"
+  "personPhotos": "Photos",
+  "promptsTitle": "Questions to ask",
+  "promptsAsking": "Asking",
+  "promptsProgress": "{answered} of {total} answered",
+  "@promptsProgress": {
+    "placeholders": {
+      "answered": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "promptsSurprise": "Surprise me",
+  "promptsAsk": "Ask {name}",
+  "@promptsAsk": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "promptsAskSomeone": "Record an answer",
+  "promptsSaveForLater": "Save for later",
+  "promptsSaved": "Saved for later",
+  "promptsAllAnswered": "Every question in this topic is answered.",
+  "promptsEmpty": "No questions here yet."
 }
