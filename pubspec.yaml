@@ -53,6 +53,7 @@ flutter:
     - assets/fonts/Cairo/LICENSE.txt
     - assets/fonts/PlusJakartaSans/LICENSE.txt
     - assets/fonts/PlayfairDisplay/LICENSE.txt
+    - assets/prompts/prompts.json
   fonts:
     - family: Inter
       fonts:

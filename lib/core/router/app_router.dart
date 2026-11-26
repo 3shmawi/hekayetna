@@ -13,6 +13,7 @@ import 'package:family_stories/features/family/presentation/family_screens.dart'
 import 'package:family_stories/features/family/presentation/invite_screen.dart';
 import 'package:family_stories/features/family/presentation/join_screen.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
+import 'package:family_stories/features/prompts/presentation/prompts_page.dart';
 import 'package:family_stories/features/recording/presentation/continue_recording_screen.dart';
 import 'package:family_stories/features/recording/presentation/record_page.dart';
 import 'package:family_stories/features/recording/presentation/save_story_page.dart';
@@ -77,7 +78,10 @@ final appRouter = GoRouter(
             GoRoute(
               path: AppRoutes.record,
               name: 'record',
-              builder: (context, state) => const RecordPage(),
+              builder: (context, state) => RecordPage(
+                topic: state.uri.queryParameters['topic'],
+                promptId: state.uri.queryParameters['prompt'],
+              ),
               routes: [
                 GoRoute(
                   path: 'continue',
@@ -127,6 +131,13 @@ final appRouter = GoRouter(
       name: 'join_family',
       builder: (context, state) =>
           JoinScreen(rawCode: state.pathParameters['code'] ?? ''),
+    ),
+    GoRoute(
+      path: AppRoutes.prompts,
+      name: 'prompts',
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) =>
+          PromptsPage(from: state.uri.queryParameters['from']),
     ),
     GoRoute(
       path: AppRoutes.settings,

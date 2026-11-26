@@ -1,0 +1,1641 @@
+{
+ "version": 1,
+ "prompts": [
+  {
+   "id": "childhood_street",
+   "topic": "childhood_first_home",
+   "audience": "any",
+   "en": {
+    "question": "What did the street you grew up on look like?",
+    "followUps": [
+     "Who lived next door?"
+    ]
+   },
+   "ar": {
+    "question": "الشارع اللي اتربيت فيه كان شكله إيه؟",
+    "followUps": [
+     "مين كان ساكن جنبكم؟"
+    ]
+   }
+  },
+  {
+   "id": "childhood_first_memory",
+   "topic": "childhood_first_home",
+   "audience": "any",
+   "en": {
+    "question": "What is the earliest thing you remember?",
+    "followUps": [
+     "How old do you think you were?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أول حاجة تفتكرها في حياتك؟",
+    "followUps": [
+     "كان عمرك كام تقريبًا؟"
+    ]
+   }
+  },
+  {
+   "id": "childhood_house",
+   "topic": "childhood_first_home",
+   "audience": "any",
+   "en": {
+    "question": "Can you walk me through the house you grew up in, room by room?",
+    "followUps": [
+     "Which room was your favourite?"
+    ]
+   },
+   "ar": {
+    "question": "وصفلي البيت اللي اتربيت فيه، أوضة أوضة.",
+    "followUps": [
+     "أنهي أوضة كانت أحب أوضة ليك؟"
+    ]
+   }
+  },
+  {
+   "id": "childhood_games",
+   "topic": "childhood_first_home",
+   "audience": "any",
+   "en": {
+    "question": "What games did you play as a child?",
+    "followUps": [
+     "Who did you play with?",
+     "Did you make your own toys?"
+    ]
+   },
+   "ar": {
+    "question": "كنت بتلعب إيه وإنت صغير؟",
+    "followUps": [
+     "كنت بتلعب مع مين؟",
+     "كنت بتعمل لعبك بإيديك؟"
+    ]
+   }
+  },
+  {
+   "id": "childhood_school",
+   "topic": "childhood_first_home",
+   "audience": "any",
+   "en": {
+    "question": "What do you remember about your first day of school?",
+    "followUps": [
+     "Who took you there?"
+    ]
+   },
+   "ar": {
+    "question": "تفتكر إيه عن أول يوم في المدرسة؟",
+    "followUps": [
+     "مين اللي وصلك؟"
+    ]
+   }
+  },
+  {
+   "id": "childhood_food",
+   "topic": "childhood_first_home",
+   "audience": "any",
+   "en": {
+    "question": "What was the taste of home when you were a child?",
+    "followUps": [
+     "Who cooked it?"
+    ]
+   },
+   "ar": {
+    "question": "أكل البيت وإنت صغير كان طعمه إيه؟",
+    "followUps": [
+     "مين كان بيطبخه؟"
+    ]
+   }
+  },
+  {
+   "id": "childhood_chores",
+   "topic": "childhood_first_home",
+   "audience": "any",
+   "en": {
+    "question": "What chores did you have at home?",
+    "followUps": [
+     "Which one did you hate?"
+    ]
+   },
+   "ar": {
+    "question": "كان عليك شغل إيه في البيت؟",
+    "followUps": [
+     "أنهي واحدة كنت بتكرهها؟"
+    ]
+   }
+  },
+  {
+   "id": "childhood_trouble",
+   "topic": "childhood_first_home",
+   "audience": "any",
+   "en": {
+    "question": "What is the naughtiest thing you did as a child?",
+    "followUps": [
+     "Did anyone find out?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أشقى حاجة عملتها وإنت صغير؟",
+    "followUps": [
+     "حد اكتشفك؟"
+    ]
+   }
+  },
+  {
+   "id": "childhood_friend",
+   "topic": "childhood_first_home",
+   "audience": "any",
+   "en": {
+    "question": "Who was your best friend as a child?",
+    "followUps": [
+     "Where is he or she now?"
+    ]
+   },
+   "ar": {
+    "question": "مين كان أقرب صاحب ليك وإنت صغير؟",
+    "followUps": [
+     "هو دلوقتي فين؟"
+    ]
+   }
+  },
+  {
+   "id": "childhood_smell",
+   "topic": "childhood_first_home",
+   "audience": "any",
+   "en": {
+    "question": "Is there a smell or a sound that takes you back to the house you grew up in?",
+    "followUps": [
+     "What does it remind you of?"
+    ]
+   },
+   "ar": {
+    "question": "في ريحة أو صوت بيرجعك لبيت طفولتك؟",
+    "followUps": [
+     "بيفكرك بإيه؟"
+    ]
+   }
+  },
+  {
+   "id": "childhood_moving",
+   "topic": "childhood_first_home",
+   "audience": "any",
+   "en": {
+    "question": "Did your family ever move house? What was that like?",
+    "followUps": [
+     "What did you miss most?"
+    ]
+   },
+   "ar": {
+    "question": "عيلتك انتقلت من بيت لبيت قبل كده؟ كان إحساسك إيه؟",
+    "followUps": [
+     "إيه أكتر حاجة وحشتك؟"
+    ]
+   }
+  },
+  {
+   "id": "childhood_dream",
+   "topic": "childhood_first_home",
+   "audience": "any",
+   "en": {
+    "question": "What did you want to be when you grew up?",
+    "followUps": [
+     "Did that change?"
+    ]
+   },
+   "ar": {
+    "question": "كنت عايز تطلع إيه لما تكبر؟",
+    "followUps": [
+     "ده اتغير بعدين؟"
+    ]
+   }
+  },
+  {
+   "id": "parents_mother",
+   "topic": "parents_grandparents",
+   "audience": "any",
+   "en": {
+    "question": "What is the first thing you remember about your mother?",
+    "followUps": [
+     "What was her voice like?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أول حاجة تفتكرها عن أمك؟",
+    "followUps": [
+     "صوتها كان عامل إزاي؟"
+    ]
+   }
+  },
+  {
+   "id": "parents_father",
+   "topic": "parents_grandparents",
+   "audience": "any",
+   "en": {
+    "question": "What is the first thing you remember about your father?",
+    "followUps": [
+     "What did he do for work?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أول حاجة تفتكرها عن أبوك؟",
+    "followUps": [
+     "كان بيشتغل إيه؟"
+    ]
+   }
+  },
+  {
+   "id": "parents_taught",
+   "topic": "parents_grandparents",
+   "audience": "any",
+   "en": {
+    "question": "What is the most important thing your parents taught you?",
+    "followUps": [
+     "How did they teach it?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أهم حاجة أهلك علموهالك؟",
+    "followUps": [
+     "علموهالك إزاي؟"
+    ]
+   }
+  },
+  {
+   "id": "parents_grandparents_house",
+   "topic": "parents_grandparents",
+   "audience": "any",
+   "en": {
+    "question": "What do you remember about your grandparents’ house?",
+    "followUps": [
+     "What did it smell like?"
+    ]
+   },
+   "ar": {
+    "question": "تفتكر إيه عن بيت جدودك؟",
+    "followUps": [
+     "ريحته كانت عاملة إزاي؟"
+    ]
+   }
+  },
+  {
+   "id": "parents_grandmother",
+   "topic": "parents_grandparents",
+   "audience": "any",
+   "en": {
+    "question": "Tell me about your grandmother. What was she like?",
+    "followUps": [
+     "What did she say that you still remember?"
+    ]
+   },
+   "ar": {
+    "question": "احكيلي عن جدتك. كانت عاملة إزاي؟",
+    "followUps": [
+     "إيه الكلمة اللي كانت بتقولها وإنت لسه فاكرها؟"
+    ]
+   }
+  },
+  {
+   "id": "parents_grandfather",
+   "topic": "parents_grandparents",
+   "audience": "any",
+   "en": {
+    "question": "Tell me about your grandfather. What was he like?",
+    "followUps": [
+     "What was he known for?"
+    ]
+   },
+   "ar": {
+    "question": "احكيلي عن جدك. كان عامل إزاي؟",
+    "followUps": [
+     "كان معروف بإيه؟"
+    ]
+   }
+  },
+  {
+   "id": "parents_saying",
+   "topic": "parents_grandparents",
+   "audience": "any",
+   "en": {
+    "question": "What sayings did your parents repeat all the time?",
+    "followUps": [
+     "Do you say any of them yourself?"
+    ]
+   },
+   "ar": {
+    "question": "إيه الجمل اللي أهلك كانوا بيكرروها على طول؟",
+    "followUps": [
+     "إنت بتقول منها؟"
+    ]
+   }
+  },
+  {
+   "id": "parents_hard_times",
+   "topic": "parents_grandparents",
+   "audience": "elder",
+   "en": {
+    "question": "What was the hardest time your parents went through?",
+    "followUps": [
+     "How did they get through it?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أصعب وقت مر على أهلك؟",
+    "followUps": [
+     "عدوه إزاي؟"
+    ]
+   }
+  },
+  {
+   "id": "parents_discipline",
+   "topic": "parents_grandparents",
+   "audience": "any",
+   "en": {
+    "question": "How did your parents handle it when you did something wrong?",
+    "followUps": [
+     "Do you think they were right?"
+    ]
+   },
+   "ar": {
+    "question": "أهلك كانوا بيتصرفوا إزاي لما تغلط؟",
+    "followUps": [
+     "شايف إنهم كانوا صح؟"
+    ]
+   }
+  },
+  {
+   "id": "parents_proud",
+   "topic": "parents_grandparents",
+   "audience": "any",
+   "en": {
+    "question": "Was there a moment you knew your parents were proud of you?",
+    "followUps": [
+     "What happened?"
+    ]
+   },
+   "ar": {
+    "question": "في لحظة حسيت فيها إن أهلك فخورين بيك؟",
+    "followUps": [
+     "إيه اللي حصل؟"
+    ]
+   }
+  },
+  {
+   "id": "parents_origin",
+   "topic": "parents_grandparents",
+   "audience": "elder",
+   "en": {
+    "question": "Where did your family come from originally?",
+    "followUps": [
+     "How did they end up where you grew up?"
+    ]
+   },
+   "ar": {
+    "question": "عيلتك أصلها منين؟",
+    "followUps": [
+     "وصلوا للمكان اللي اتربيت فيه إزاي؟"
+    ]
+   }
+  },
+  {
+   "id": "parents_name",
+   "topic": "parents_grandparents",
+   "audience": "any",
+   "en": {
+    "question": "Who were you named after, and why?",
+    "followUps": [
+     "Do you like your name?"
+    ]
+   },
+   "ar": {
+    "question": "إنت اتسميت على اسم مين، وليه؟",
+    "followUps": [
+     "اسمك بيعجبك؟"
+    ]
+   }
+  },
+  {
+   "id": "met_first_heard",
+   "topic": "how_parents_met",
+   "audience": "elder",
+   "en": {
+    "question": "How did you first hear about your future husband or wife?",
+    "followUps": [
+     "Who told you?"
+    ]
+   },
+   "ar": {
+    "question": "سمعت عن شريك حياتك أول مرة إزاي؟",
+    "followUps": [
+     "مين اللي قالك؟"
+    ]
+   }
+  },
+  {
+   "id": "met_first_sight",
+   "topic": "how_parents_met",
+   "audience": "elder",
+   "en": {
+    "question": "What was the first time you saw each other like?",
+    "followUps": [
+     "What did you think?"
+    ]
+   },
+   "ar": {
+    "question": "أول مرة شفتوا بعض كانت عاملة إزاي؟",
+    "followUps": [
+     "كنت فاكر إيه وقتها؟"
+    ]
+   }
+  },
+  {
+   "id": "met_family_visit",
+   "topic": "how_parents_met",
+   "audience": "elder",
+   "en": {
+    "question": "Tell me about the day the families first met.",
+    "followUps": [
+     "What did everyone wear?",
+     "Who was most nervous?"
+    ]
+   },
+   "ar": {
+    "question": "احكيلي عن اليوم اللي العيلتين اتقابلوا فيه.",
+    "followUps": [
+     "كل واحد كان لابس إيه؟",
+     "مين كان أكتر واحد متوتر؟"
+    ]
+   }
+  },
+  {
+   "id": "met_proposal",
+   "topic": "how_parents_met",
+   "audience": "elder",
+   "en": {
+    "question": "How did the proposal happen?",
+    "followUps": [
+     "Who was there?"
+    ]
+   },
+   "ar": {
+    "question": "الخطوبة حصلت إزاي؟",
+    "followUps": [
+     "مين كان موجود؟"
+    ]
+   }
+  },
+  {
+   "id": "met_before_wedding",
+   "topic": "how_parents_met",
+   "audience": "elder",
+   "en": {
+    "question": "What was the time between the engagement and the wedding like?",
+    "followUps": [
+     "Any funny moments?"
+    ]
+   },
+   "ar": {
+    "question": "الفترة بين الخطوبة والفرح كانت عاملة إزاي؟",
+    "followUps": [
+     "حصلت مواقف مضحكة؟"
+    ]
+   }
+  },
+  {
+   "id": "met_first_gift",
+   "topic": "how_parents_met",
+   "audience": "elder",
+   "en": {
+    "question": "Do you remember the first gift you gave each other?",
+    "followUps": [
+     "Do you still have it?"
+    ]
+   },
+   "ar": {
+    "question": "فاكر أول هدية اتبادلتوها؟",
+    "followUps": [
+     "لسه معاك؟"
+    ]
+   }
+  },
+  {
+   "id": "met_parents_story",
+   "topic": "how_parents_met",
+   "audience": "any",
+   "en": {
+    "question": "How did your parents tell the story of how they met?",
+    "followUps": [
+     "Did the story change over the years?"
+    ]
+   },
+   "ar": {
+    "question": "أهلك كانوا بيحكوا قصة جوازهم إزاي؟",
+    "followUps": [
+     "القصة كانت بتتغير مع السنين؟"
+    ]
+   }
+  },
+  {
+   "id": "met_first_home",
+   "topic": "how_parents_met",
+   "audience": "any",
+   "en": {
+    "question": "Where did they live when they first got married?",
+    "followUps": [
+     "What was it like?"
+    ]
+   },
+   "ar": {
+    "question": "هما سكنوا فين أول ما اتجوزوا؟",
+    "followUps": [
+     "المكان كان عامل إزاي؟"
+    ]
+   }
+  },
+  {
+   "id": "met_obstacles",
+   "topic": "how_parents_met",
+   "audience": "elder",
+   "en": {
+    "question": "Was there anything that almost stopped the marriage?",
+    "followUps": [
+     "How was it solved?"
+    ]
+   },
+   "ar": {
+    "question": "حصل حاجة كانت هتمنع الجواز؟",
+    "followUps": [
+     "اتحلت إزاي؟"
+    ]
+   }
+  },
+  {
+   "id": "met_advice",
+   "topic": "how_parents_met",
+   "audience": "elder",
+   "en": {
+    "question": "What advice would you give a couple starting out?",
+    "followUps": [
+     "Where did you learn it?"
+    ]
+   },
+   "ar": {
+    "question": "إيه النصيحة اللي تقولها لأي اتنين بيبدأوا حياتهم؟",
+    "followUps": [
+     "اتعلمتها منين؟"
+    ]
+   }
+  },
+  {
+   "id": "met_best_thing",
+   "topic": "how_parents_met",
+   "audience": "elder",
+   "en": {
+    "question": "What did you love most about your husband or wife when you met?",
+    "followUps": [
+     "Is it still true?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أكتر حاجة حبيتها في شريك حياتك أول ما اتعرفتوا؟",
+    "followUps": [
+     "لسه زي ما هي؟"
+    ]
+   }
+  },
+  {
+   "id": "met_song",
+   "topic": "how_parents_met",
+   "audience": "elder",
+   "en": {
+    "question": "Was there a song or a place that belonged to the two of you?",
+    "followUps": [
+     "Why that one?"
+    ]
+   },
+   "ar": {
+    "question": "كان في أغنية أو مكان بتاعكم إنتو الاتنين؟",
+    "followUps": [
+     "ليه ده بالذات؟"
+    ]
+   }
+  },
+  {
+   "id": "wedding_day",
+   "topic": "weddings_beginnings",
+   "audience": "elder",
+   "en": {
+    "question": "Tell me about your wedding day from the morning.",
+    "followUps": [
+     "What was the first thing that happened?"
+    ]
+   },
+   "ar": {
+    "question": "احكيلي عن يوم فرحك من الصبح.",
+    "followUps": [
+     "إيه أول حاجة حصلت؟"
+    ]
+   }
+  },
+  {
+   "id": "wedding_dress",
+   "topic": "weddings_beginnings",
+   "audience": "elder",
+   "en": {
+    "question": "What did you wear, and who chose it?",
+    "followUps": [
+     "Do you still have it?"
+    ]
+   },
+   "ar": {
+    "question": "لبست إيه، ومين اللي اختاره؟",
+    "followUps": [
+     "لسه محتفظ بيه؟"
+    ]
+   }
+  },
+  {
+   "id": "wedding_food",
+   "topic": "weddings_beginnings",
+   "audience": "any",
+   "en": {
+    "question": "What food was served at the wedding?",
+    "followUps": [
+     "Who cooked it?"
+    ]
+   },
+   "ar": {
+    "question": "الأكل في الفرح كان إيه؟",
+    "followUps": [
+     "مين اللي طبخه؟"
+    ]
+   }
+  },
+  {
+   "id": "wedding_music",
+   "topic": "weddings_beginnings",
+   "audience": "any",
+   "en": {
+    "question": "Was there music or dancing? What do you remember?",
+    "followUps": [
+     "Who danced the most?"
+    ]
+   },
+   "ar": {
+    "question": "كان في موسيقى أو رقص؟ تفتكر إيه؟",
+    "followUps": [
+     "مين كان أكتر واحد بيرقص؟"
+    ]
+   }
+  },
+  {
+   "id": "wedding_guests",
+   "topic": "weddings_beginnings",
+   "audience": "elder",
+   "en": {
+    "question": "Who was there, and who do you wish had been there?",
+    "followUps": [
+     "Why?"
+    ]
+   },
+   "ar": {
+    "question": "مين كان موجود، ومين كنت تتمنى يكون موجود؟",
+    "followUps": [
+     "ليه؟"
+    ]
+   }
+  },
+  {
+   "id": "wedding_mishap",
+   "topic": "weddings_beginnings",
+   "audience": "any",
+   "en": {
+    "question": "Did anything go wrong on the day? How did it end up?",
+    "followUps": [
+     "Do you laugh about it now?"
+    ]
+   },
+   "ar": {
+    "question": "حصل حاجة غلط يوم الفرح؟ خلصت إزاي؟",
+    "followUps": [
+     "بتضحك عليها دلوقتي؟"
+    ]
+   }
+  },
+  {
+   "id": "wedding_first_home",
+   "topic": "weddings_beginnings",
+   "audience": "elder",
+   "en": {
+    "question": "What was your first home as a married couple like?",
+    "followUps": [
+     "What did you buy first?"
+    ]
+   },
+   "ar": {
+    "question": "بيتكم الأول بعد الجواز كان عامل إزاي؟",
+    "followUps": [
+     "إيه أول حاجة اشتريتوها؟"
+    ]
+   }
+  },
+  {
+   "id": "wedding_first_year",
+   "topic": "weddings_beginnings",
+   "audience": "elder",
+   "en": {
+    "question": "What was the first year of marriage like?",
+    "followUps": [
+     "What surprised you?"
+    ]
+   },
+   "ar": {
+    "question": "أول سنة جواز كانت عاملة إزاي؟",
+    "followUps": [
+     "إيه اللي فاجئك؟"
+    ]
+   }
+  },
+  {
+   "id": "wedding_first_job",
+   "topic": "weddings_beginnings",
+   "audience": "any",
+   "en": {
+    "question": "Tell me about your first job. How did you get it?",
+    "followUps": [
+     "What was your first pay?"
+    ]
+   },
+   "ar": {
+    "question": "احكيلي عن أول شغلانة ليك. جيتها إزاي؟",
+    "followUps": [
+     "أول مرتب كان كام؟"
+    ]
+   }
+  },
+  {
+   "id": "wedding_new_city",
+   "topic": "weddings_beginnings",
+   "audience": "any",
+   "en": {
+    "question": "Did you move somewhere new to start your life? What was that like?",
+    "followUps": [
+     "What did you miss?"
+    ]
+   },
+   "ar": {
+    "question": "انتقلت لمكان جديد عشان تبدأ حياتك؟ كان إحساسك إيه؟",
+    "followUps": [
+     "إيه اللي وحشك؟"
+    ]
+   }
+  },
+  {
+   "id": "wedding_first_child",
+   "topic": "weddings_beginnings",
+   "audience": "elder",
+   "en": {
+    "question": "What do you remember about when your first child was born?",
+    "followUps": [
+     "Who was with you?"
+    ]
+   },
+   "ar": {
+    "question": "تفتكر إيه عن يوم ما أول ولد أو بنت ليك اتولد؟",
+    "followUps": [
+     "مين كان معاك؟"
+    ]
+   }
+  },
+  {
+   "id": "wedding_money",
+   "topic": "weddings_beginnings",
+   "audience": "elder",
+   "en": {
+    "question": "How did you manage money when you were just starting out?",
+    "followUps": [
+     "What did you do without?"
+    ]
+   },
+   "ar": {
+    "question": "كنتوا بتدبروا الفلوس إزاي في بداية حياتكم؟",
+    "followUps": [
+     "كنتوا بتستغنوا عن إيه؟"
+    ]
+   }
+  },
+  {
+   "id": "ramadan_cooking",
+   "topic": "ramadan_eid_traditions",
+   "audience": "any",
+   "en": {
+    "question": "What did your mother cook in Ramadan?",
+    "followUps": [
+     "Which dish do you miss most?"
+    ]
+   },
+   "ar": {
+    "question": "كانت أمك بتطبخ إيه في رمضان؟",
+    "followUps": [
+     "أنهي أكلة وحشتك أكتر؟"
+    ]
+   }
+  },
+  {
+   "id": "ramadan_iftar",
+   "topic": "ramadan_eid_traditions",
+   "audience": "any",
+   "en": {
+    "question": "What was iftar like at your house when you were young?",
+    "followUps": [
+     "Who sat where?"
+    ]
+   },
+   "ar": {
+    "question": "الفطار في بيتكم كان عامل إزاي وإنت صغير؟",
+    "followUps": [
+     "كل واحد كان بيقعد فين؟"
+    ]
+   }
+  },
+  {
+   "id": "ramadan_lantern",
+   "topic": "ramadan_eid_traditions",
+   "audience": "any",
+   "en": {
+    "question": "Do you remember the lanterns and the decorations?",
+    "followUps": [
+     "Who made them?"
+    ]
+   },
+   "ar": {
+    "question": "فاكر الفوانيس والزينة؟",
+    "followUps": [
+     "مين كان بيعملهم؟"
+    ]
+   }
+  },
+  {
+   "id": "ramadan_musaharati",
+   "topic": "ramadan_eid_traditions",
+   "audience": "any",
+   "en": {
+    "question": "Do you remember the musaharati calling people for suhoor?",
+    "followUps": [
+     "What did he say?"
+    ]
+   },
+   "ar": {
+    "question": "فاكر المسحراتي وهو بينده على الناس؟",
+    "followUps": [
+     "كان بيقول إيه؟"
+    ]
+   }
+  },
+  {
+   "id": "ramadan_first_fast",
+   "topic": "ramadan_eid_traditions",
+   "audience": "any",
+   "en": {
+    "question": "Do you remember your first fast?",
+    "followUps": [
+     "Did you make it to sunset?"
+    ]
+   },
+   "ar": {
+    "question": "فاكر أول صيام ليك؟",
+    "followUps": [
+     "كملت لحد المغرب؟"
+    ]
+   }
+  },
+  {
+   "id": "eid_morning",
+   "topic": "ramadan_eid_traditions",
+   "audience": "any",
+   "en": {
+    "question": "What was Eid morning like?",
+    "followUps": [
+     "What did you wear?"
+    ]
+   },
+   "ar": {
+    "question": "صباح العيد كان عامل إزاي؟",
+    "followUps": [
+     "كنت بتلبس إيه؟"
+    ]
+   }
+  },
+  {
+   "id": "eid_eidiya",
+   "topic": "ramadan_eid_traditions",
+   "audience": "any",
+   "en": {
+    "question": "What do you remember about getting the eidiya?",
+    "followUps": [
+     "What did you buy with it?"
+    ]
+   },
+   "ar": {
+    "question": "تفتكر إيه عن العيدية؟",
+    "followUps": [
+     "كنت بتشتري بيها إيه؟"
+    ]
+   }
+  },
+  {
+   "id": "eid_kahk",
+   "topic": "ramadan_eid_traditions",
+   "audience": "any",
+   "en": {
+    "question": "Who made the Eid kahk, and what was that day like?",
+    "followUps": [
+     "Who helped?"
+    ]
+   },
+   "ar": {
+    "question": "مين كان بيعمل كحك العيد، واليوم ده كان عامل إزاي؟",
+    "followUps": [
+     "مين كان بيساعد؟"
+    ]
+   }
+  },
+  {
+   "id": "eid_visits",
+   "topic": "ramadan_eid_traditions",
+   "audience": "any",
+   "en": {
+    "question": "Which relatives did you visit on Eid?",
+    "followUps": [
+     "Who did you look forward to seeing?"
+    ]
+   },
+   "ar": {
+    "question": "كنتوا بتزوروا مين في العيد؟",
+    "followUps": [
+     "مين كنت مستني تشوفه؟"
+    ]
+   }
+  },
+  {
+   "id": "eid_adha",
+   "topic": "ramadan_eid_traditions",
+   "audience": "any",
+   "en": {
+    "question": "What do you remember about Eid al-Adha in your family?",
+    "followUps": [
+     "How was the meat shared?"
+    ]
+   },
+   "ar": {
+    "question": "تفتكر إيه عن عيد الأضحى في عيلتكم؟",
+    "followUps": [
+     "اللحمة كانت بتتقسم إزاي؟"
+    ]
+   }
+  },
+  {
+   "id": "ramadan_tradition_lost",
+   "topic": "ramadan_eid_traditions",
+   "audience": "any",
+   "en": {
+    "question": "Is there a family tradition that we don’t do anymore?",
+    "followUps": [
+     "Why did it stop?"
+    ]
+   },
+   "ar": {
+    "question": "في عادة كانت عندنا في العيلة ومبقيناش بنعملها؟",
+    "followUps": [
+     "ليه وقفت؟"
+    ]
+   }
+  },
+  {
+   "id": "ramadan_memory_best",
+   "topic": "ramadan_eid_traditions",
+   "audience": "any",
+   "en": {
+    "question": "What is your happiest Ramadan or Eid memory?",
+    "followUps": [
+     "Who was there?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أحلى ذكرى ليك في رمضان أو العيد؟",
+    "followUps": [
+     "مين كان موجود؟"
+    ]
+   }
+  },
+  {
+   "id": "life_big_change",
+   "topic": "life_events",
+   "audience": "any",
+   "en": {
+    "question": "What was the biggest change in your life, and how did it happen?",
+    "followUps": [
+     "Would you do it again?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أكبر تغيير حصل في حياتك، وحصل إزاي؟",
+    "followUps": [
+     "كنت هتعمله تاني؟"
+    ]
+   }
+  },
+  {
+   "id": "life_hardest",
+   "topic": "life_events",
+   "audience": "elder",
+   "en": {
+    "question": "What was the hardest time of your life, and what got you through it?",
+    "followUps": [
+     "Who helped you?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أصعب وقت في حياتك، وإيه اللي عدّاك منه؟",
+    "followUps": [
+     "مين وقف جنبك؟"
+    ]
+   }
+  },
+  {
+   "id": "life_proudest",
+   "topic": "life_events",
+   "audience": "any",
+   "en": {
+    "question": "What are you most proud of?",
+    "followUps": [
+     "Who knows about it?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أكتر حاجة إنت فخور بيها؟",
+    "followUps": [
+     "مين عارف بيها؟"
+    ]
+   }
+  },
+  {
+   "id": "life_travel",
+   "topic": "life_events",
+   "audience": "any",
+   "en": {
+    "question": "What is the farthest you have ever travelled, and why?",
+    "followUps": [
+     "What did you bring back?"
+    ]
+   },
+   "ar": {
+    "question": "أبعد مكان سافرت له كان فين، وليه؟",
+    "followUps": [
+     "جبت معاك إيه؟"
+    ]
+   }
+  },
+  {
+   "id": "life_work",
+   "topic": "life_events",
+   "audience": "any",
+   "en": {
+    "question": "What work did you do most of your life, and how did you start?",
+    "followUps": [
+     "What did you like most about it?"
+    ]
+   },
+   "ar": {
+    "question": "أغلب حياتك اشتغلت إيه، وبدأت إزاي؟",
+    "followUps": [
+     "إيه أكتر حاجة كانت بتعجبك فيه؟"
+    ]
+   }
+  },
+  {
+   "id": "life_war_times",
+   "topic": "life_events",
+   "audience": "elder",
+   "en": {
+    "question": "What do you remember about big events you lived through?",
+    "followUps": [
+     "Where were you when it happened?"
+    ]
+   },
+   "ar": {
+    "question": "تفتكر إيه عن الأحداث الكبيرة اللي عشتها؟",
+    "followUps": [
+     "كنت فين وقتها؟"
+    ]
+   }
+  },
+  {
+   "id": "life_house",
+   "topic": "life_events",
+   "audience": "any",
+   "en": {
+    "question": "Tell me about the house or place you lived longest.",
+    "followUps": [
+     "What made it feel like home?"
+    ]
+   },
+   "ar": {
+    "question": "احكيلي عن البيت أو المكان اللي عشت فيه أطول فترة.",
+    "followUps": [
+     "إيه اللي خلاه بيت بالنسبالك؟"
+    ]
+   }
+  },
+  {
+   "id": "life_turning_point",
+   "topic": "life_events",
+   "audience": "any",
+   "en": {
+    "question": "Was there a decision that changed everything?",
+    "followUps": [
+     "What if you had decided differently?"
+    ]
+   },
+   "ar": {
+    "question": "في قرار غيّر كل حاجة؟",
+    "followUps": [
+     "كان إيه هيحصل لو قررت غير كده؟"
+    ]
+   }
+  },
+  {
+   "id": "life_grandchildren",
+   "topic": "life_events",
+   "audience": "elder",
+   "en": {
+    "question": "What do you remember about meeting your first grandchild?",
+    "followUps": [
+     "What did you feel?"
+    ]
+   },
+   "ar": {
+    "question": "تفتكر إيه عن أول مرة شفت فيها أول حفيد؟",
+    "followUps": [
+     "حسيت بإيه؟"
+    ]
+   }
+  },
+  {
+   "id": "life_friends",
+   "topic": "life_events",
+   "audience": "any",
+   "en": {
+    "question": "Who were the friends who mattered most in your life?",
+    "followUps": [
+     "How did you meet?"
+    ]
+   },
+   "ar": {
+    "question": "مين كانوا الأصحاب الأهم في حياتك؟",
+    "followUps": [
+     "اتعرفتوا إزاي؟"
+    ]
+   }
+  },
+  {
+   "id": "life_loss",
+   "topic": "life_events",
+   "audience": "elder",
+   "en": {
+    "question": "Who do you miss the most, and what would you say to them?",
+    "followUps": [
+     "What do you remember of them?"
+    ]
+   },
+   "ar": {
+    "question": "وحشك مين أكتر، وكنت هتقوله إيه؟",
+    "followUps": [
+     "تفتكر إيه عنه؟"
+    ]
+   }
+  },
+  {
+   "id": "life_changed_world",
+   "topic": "life_events",
+   "audience": "any",
+   "en": {
+    "question": "What is the biggest thing that has changed since you were young?",
+    "followUps": [
+     "Is it better or worse?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أكبر حاجة اتغيرت من وإنت صغير؟",
+    "followUps": [
+     "أحسن ولا أسوأ؟"
+    ]
+   }
+  },
+  {
+   "id": "funny_family_joke",
+   "topic": "funny_memories",
+   "audience": "any",
+   "en": {
+    "question": "What is a joke or saying that only our family understands?",
+    "followUps": [
+     "Where did it come from?"
+    ]
+   },
+   "ar": {
+    "question": "إيه النكتة أو الجملة اللي العيلة بس هي اللي بتفهمها؟",
+    "followUps": [
+     "جت منين؟"
+    ]
+   }
+  },
+  {
+   "id": "funny_embarrassing",
+   "topic": "funny_memories",
+   "audience": "any",
+   "en": {
+    "question": "What is the most embarrassing thing that ever happened to you?",
+    "followUps": [
+     "Can you laugh about it now?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أكتر موقف محرج حصلك؟",
+    "followUps": [
+     "بتضحك عليه دلوقتي؟"
+    ]
+   }
+  },
+  {
+   "id": "funny_trouble_school",
+   "topic": "funny_memories",
+   "audience": "any",
+   "en": {
+    "question": "Did you ever get in trouble at school? What happened?",
+    "followUps": [
+     "What did your parents say?"
+    ]
+   },
+   "ar": {
+    "question": "اتعاقبت في المدرسة قبل كده؟ إيه اللي حصل؟",
+    "followUps": [
+     "أهلك قالوا إيه؟"
+    ]
+   }
+  },
+  {
+   "id": "funny_prank",
+   "topic": "funny_memories",
+   "audience": "any",
+   "en": {
+    "question": "What is the best prank you ever played, or had played on you?",
+    "followUps": [
+     "Who was the victim?"
+    ]
+   },
+   "ar": {
+    "question": "إيه أحلى مقلب عملته أو اتعمل فيك؟",
+    "followUps": [
+     "مين كان الضحية؟"
+    ]
+   }
+  },
+  {
+   "id": "funny_nickname",
+   "topic": "funny_memories",
+   "audience": "any",
+   "en": {
+    "question": "Did you have a nickname? Where did it come from?",
+    "followUps": [
+     "Who still uses it?"
+    ]
+   },
+   "ar": {
+    "question": "كان ليك اسم دلع؟ جه منين؟",
+    "followUps": [
+     "مين لسه بيقوله؟"
+    ]
+   }
+  },
+  {
+   "id": "funny_travel",
+   "topic": "funny_memories",
+   "audience": "any",
+   "en": {
+    "question": "Tell me about a trip where everything went wrong.",
+    "followUps": [
+     "What did you do?"
+    ]
+   },
+   "ar": {
+    "question": "احكيلي عن رحلة كل حاجة فيها غلطت.",
+    "followUps": [
+     "عملت إيه؟"
+    ]
+   }
+  },
+  {
+   "id": "funny_cooking",
+   "topic": "funny_memories",
+   "audience": "any",
+   "en": {
+    "question": "Tell me about a time a meal turned out very differently than planned.",
+    "followUps": [
+     "Did anyone eat it?"
+    ]
+   },
+   "ar": {
+    "question": "احكيلي عن مرة الأكل طلع غير اللي كنت متخيله.",
+    "followUps": [
+     "حد أكله؟"
+    ]
+   }
+  },
+  {
+   "id": "funny_relative",
+   "topic": "funny_memories",
+   "audience": "any",
+   "en": {
+    "question": "Who is the funniest person in our family, and why?",
+    "followUps": [
+     "What is the funniest thing they said?"
+    ]
+   },
+   "ar": {
+    "question": "مين أكتر واحد دمه خفيف في العيلة، وليه؟",
+    "followUps": [
+     "إيه أضحك حاجة قالها؟"
+    ]
+   }
+  },
+  {
+   "id": "funny_neighbors",
+   "topic": "funny_memories",
+   "audience": "any",
+   "en": {
+    "question": "Tell me about a funny neighbour or a street character.",
+    "followUps": [
+     "What did they do?"
+    ]
+   },
+   "ar": {
+    "question": "احكيلي عن جار أو شخصية في الشارع كانت مضحكة.",
+    "followUps": [
+     "كان بيعمل إيه؟"
+    ]
+   }
+  },
+  {
+   "id": "funny_wedding_mistake",
+   "topic": "funny_memories",
+   "audience": "any",
+   "en": {
+    "question": "Do you remember a funny mistake at a family gathering?",
+    "followUps": [
+     "Who laughed the hardest?"
+    ]
+   },
+   "ar": {
+    "question": "فاكر غلطة مضحكة حصلت في تجمع عيلة؟",
+    "followUps": [
+     "مين كان أكتر واحد ضحك؟"
+    ]
+   }
+  },
+  {
+   "id": "funny_first_phone",
+   "topic": "funny_memories",
+   "audience": "any",
+   "en": {
+    "question": "What do you remember about the first time you used a new gadget, like a TV or a phone?",
+    "followUps": [
+     "What did you think of it?"
+    ]
+   },
+   "ar": {
+    "question": "تفتكر إيه عن أول مرة استخدمت فيها حاجة جديدة، زي التلفزيون أو الموبايل؟",
+    "followUps": [
+     "كان رأيك فيها إيه؟"
+    ]
+   }
+  },
+  {
+   "id": "funny_lucky",
+   "topic": "funny_memories",
+   "audience": "any",
+   "en": {
+    "question": "Tell me about a time you were really lucky.",
+    "followUps": [
+     "Did anyone else notice?"
+    ]
+   },
+   "ar": {
+    "question": "احكيلي عن مرة كنت محظوظ فيها جدًا.",
+    "followUps": [
+     "حد تاني خد باله؟"
+    ]
+   }
+  },
+  {
+   "id": "lesson_advice_young",
+   "topic": "lessons_for_future",
+   "audience": "any",
+   "en": {
+    "question": "What advice would you give your younger self?",
+    "followUps": [
+     "Would you have listened?"
+    ]
+   },
+   "ar": {
+    "question": "إيه النصيحة اللي كنت هتقولها لنفسك وإنت صغير؟",
+    "followUps": [
+     "كنت هتسمعها؟"
+    ]
+   }
+  },
+  {
+   "id": "lesson_advice_grandchildren",
+   "topic": "lessons_for_future",
+   "audience": "elder",
+   "en": {
+    "question": "What do you hope your grandchildren remember about you?",
+    "followUps": [
+     "Why that?"
+    ]
+   },
+   "ar": {
+    "question": "إيه اللي نفسك أحفادك يفتكروه عنك؟",
+    "followUps": [
+     "ليه ده؟"
+    ]
+   }
+  },
+  {
+   "id": "lesson_mistake",
+   "topic": "lessons_for_future",
+   "audience": "any",
+   "en": {
+    "question": "What is a mistake that taught you something important?",
+    "followUps": [
+     "What did you learn?"
+    ]
+   },
+   "ar": {
+    "question": "إيه الغلطة اللي علمتك حاجة مهمة؟",
+    "followUps": [
+     "اتعلمت إيه؟"
+    ]
+   }
+  },
+  {
+   "id": "lesson_money",
+   "topic": "lessons_for_future",
+   "audience": "any",
+   "en": {
+    "question": "What have you learned about money?",
+    "followUps": [
+     "Who taught you?"
+    ]
+   },
+   "ar": {
+    "question": "اتعلمت إيه عن الفلوس؟",
+    "followUps": [
+     "مين علمك؟"
+    ]
+   }
+  },
+  {
+   "id": "lesson_family",
+   "topic": "lessons_for_future",
+   "audience": "any",
+   "en": {
+    "question": "What makes a family stay close?",
+    "followUps": [
+     "What did your family do?"
+    ]
+   },
+   "ar": {
+    "question": "إيه اللي بيخلي العيلة قريبة من بعض؟",
+    "followUps": [
+     "عيلتك كانت بتعمل إيه؟"
+    ]
+   }
+  },
+  {
+   "id": "lesson_patience",
+   "topic": "lessons_for_future",
+   "audience": "any",
+   "en": {
+    "question": "When did you learn to be patient?",
+    "followUps": [
+     "What taught you?"
+    ]
+   },
+   "ar": {
+    "question": "اتعلمت الصبر إمتى؟",
+    "followUps": [
+     "إيه اللي علمك؟"
+    ]
+   }
+  },
+  {
+   "id": "lesson_faith",
+   "topic": "lessons_for_future",
+   "audience": "any",
+   "en": {
+    "question": "What has helped you through the hard days?",
+    "followUps": [
+     "Is there a verse, a prayer or a saying?"
+    ]
+   },
+   "ar": {
+    "question": "إيه اللي ساعدك في الأيام الصعبة؟",
+    "followUps": [
+     "في آية أو دعاء أو جملة معينة؟"
+    ]
+   }
+  },
+  {
+   "id": "lesson_work",
+   "topic": "lessons_for_future",
+   "audience": "any",
+   "en": {
+    "question": "What did work teach you about people?",
+    "followUps": [
+     "Who was the best boss or colleague?"
+    ]
+   },
+   "ar": {
+    "question": "الشغل علمك إيه عن الناس؟",
+    "followUps": [
+     "مين كان أحسن مدير أو زميل؟"
+    ]
+   }
+  },
+  {
+   "id": "lesson_friends",
+   "topic": "lessons_for_future",
+   "audience": "any",
+   "en": {
+    "question": "How do you choose who to trust?",
+    "followUps": [
+     "Was there a time you were wrong?"
+    ]
+   },
+   "ar": {
+    "question": "بتختار مين تثق فيه إزاي؟",
+    "followUps": [
+     "حصل مرة كنت غلطان؟"
+    ]
+   }
+  },
+  {
+   "id": "lesson_regret",
+   "topic": "lessons_for_future",
+   "audience": "elder",
+   "en": {
+    "question": "Is there anything you wish you had done differently?",
+    "followUps": [
+     "What would you change?"
+    ]
+   },
+   "ar": {
+    "question": "في حاجة نفسك كنت عملتها غير كده؟",
+    "followUps": [
+     "إيه اللي كنت هتغيره؟"
+    ]
+   }
+  },
+  {
+   "id": "lesson_happy",
+   "topic": "lessons_for_future",
+   "audience": "any",
+   "en": {
+    "question": "What does a good life look like to you?",
+    "followUps": [
+     "When did you feel that most?"
+    ]
+   },
+   "ar": {
+    "question": "الحياة الحلوة بالنسبالك شكلها إيه؟",
+    "followUps": [
+     "إمتى حسيت بكده أكتر؟"
+    ]
+   }
+  },
+  {
+   "id": "lesson_one_thing",
+   "topic": "lessons_for_future",
+   "audience": "any",
+   "en": {
+    "question": "If you could tell the family one thing, what would it be?",
+    "followUps": [
+     "Why that one?"
+    ]
+   },
+   "ar": {
+    "question": "لو هتقول للعيلة حاجة واحدة بس، هتكون إيه؟",
+    "followUps": [
+     "ليه الحاجة دي؟"
+    ]
+   }
+  }
+ ]
+}

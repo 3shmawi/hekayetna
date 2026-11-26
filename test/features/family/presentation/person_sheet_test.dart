@@ -2,6 +2,7 @@ import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
 import 'package:family_stories/features/family/domain/family_graph.dart';
 import 'package:family_stories/features/family/presentation/person_sheet.dart';
+import 'package:family_stories/features/prompts/data/prompt_flag.dart';
 import 'package:family_stories/features/stories/data/models.dart';
 import 'package:family_stories/features/stories/player/audio_player_controller.dart';
 import 'package:family_stories/features/stories/presentation/story_providers.dart';
@@ -84,22 +85,47 @@ void main() {
     ),
   );
 
-  Widget sheet({double scale = 1}) => ProviderScope(
-    overrides: [
-      storyFeedProvider.overrideWith2(_Feed.new),
-      audioPlayerControllerProvider.overrideWith(_Player.new),
-    ],
-    child: Scaffold(
-      body: Builder(
-        builder: (context) => MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(textScaler: TextScaler.linear(scale)),
-          child: PersonSheet(graph: graph, personId: 'sitto'),
+  Widget sheet({double scale = 1, String id = 'sitto', bool? prompts}) =>
+      ProviderScope(
+        overrides: [
+          if (prompts != null)
+            interviewPromptsEnabledProvider.overrideWith((_) async => prompts),
+          storyFeedProvider.overrideWith2(_Feed.new),
+          audioPlayerControllerProvider.overrideWith(_Player.new),
+        ],
+        child: Scaffold(
+          body: Builder(
+            builder: (context) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(scale)),
+              child: PersonSheet(graph: graph, personId: id),
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
+
+  testWidgets('Questions to ask shows without stories when the flag is on', (
+    t,
+  ) async {
+    await t.pumpApp(sheet(id: 'me', prompts: true));
+    await t.pumpAndSettle();
+    expect(find.text(l10nEn.promptsTitle), findsOneWidget);
+  });
+
+  testWidgets('Questions to ask is hidden with the flag off', (t) async {
+    await t.pumpApp(sheet(id: 'me', prompts: false));
+    await t.pumpAndSettle();
+    expect(find.text(l10nEn.promptsTitle), findsNothing);
+  });
+
+  testWidgets('Questions to ask is hidden when the person has stories', (
+    t,
+  ) async {
+    await t.pumpApp(sheet(prompts: true));
+    await t.pumpAndSettle();
+    expect(find.text(l10nEn.promptsTitle), findsNothing);
+  });
 
   testWidgets(
     'Play all and Record share a row when both labels fit (short name)',

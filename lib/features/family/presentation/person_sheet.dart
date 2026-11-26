@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:family_stories/core/adaptive/adaptive.dart';
 import 'package:family_stories/core/analytics/analytics.dart';
+import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/features/family/domain/family_graph.dart';
 import 'package:family_stories/features/family/domain/kinship.dart';
+import 'package:family_stories/features/prompts/data/prompt_flag.dart';
 import 'package:family_stories/features/stories/data/story_repository.dart';
 import 'package:family_stories/features/stories/domain/story_topics.dart';
 import 'package:family_stories/features/stories/player/audio_player_controller.dart';
@@ -14,6 +16,7 @@ import 'package:family_stories/features/stories/presentation/story_providers.dar
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// What the person sheet and the long-press menu can ask the page to do.
 enum PersonAction { record, addRelative, edit, photos, seeAll }
@@ -137,6 +140,19 @@ class _PersonSheetState extends ConsumerState<PersonSheet> {
           Padding(
             padding: EdgeInsets.symmetric(vertical: AppDimens.md),
             child: Text(l10n.personNoStories),
+          ),
+        if (mine.isEmpty &&
+            (ref.watch(interviewPromptsEnabledProvider).value ?? false))
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              onPressed: () {
+                final router = GoRouter.of(context);
+                Navigator.of(context).maybePop();
+                unawaited(router.push(AppRoutes.promptsFrom('person')));
+              },
+              child: Text(l10n.promptsTitle),
+            ),
           ),
         _ActionButtons(
           recordLabel: l10n.personRecordWith(person.fullName),
