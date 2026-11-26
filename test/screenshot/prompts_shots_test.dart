@@ -20,6 +20,7 @@ import 'package:family_stories/features/recording/presentation/record_view.dart'
 import 'package:family_stories/features/settings/data/settings_repository.dart';
 import 'package:family_stories/features/settings/presentation/settings_controller.dart';
 import 'package:family_stories/features/stories/data/demo_story_repository.dart';
+import 'package:family_stories/features/stories/presentation/story_feed_page.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,7 +37,14 @@ import 'real_font_screens_test.dart' show loadRealFonts;
 void main() {
   setUp(loadRealFonts);
 
-  for (final screen in const ['page', 'week', 'record']) {
+  for (final screen in const [
+    'page',
+    'week',
+    'record',
+    'recordlarge',
+    'recordlargebottom',
+    'feed',
+  ]) {
     for (final mode in const [ThemeMode.light, ThemeMode.dark]) {
       for (final locale in const ['en', 'ar']) {
         final variant = 'prompts_${screen}_${mode.name}_$locale';
@@ -88,7 +96,15 @@ void main() {
                   localizationsDelegates:
                       AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: screen == 'record'
+                  builder: (context, child) => MediaQuery(
+                    data: MediaQuery.of(context).copyWith(
+                      textScaler: TextScaler.linear(
+                        screen.startsWith('recordlarge') ? 1.6 : 1,
+                      ),
+                    ),
+                    child: child!,
+                  ),
+                  home: screen.startsWith('record')
                       ? Builder(
                           builder: (context) {
                             final q = lib.byId('childhood_games')!.text(locale);
@@ -112,6 +128,8 @@ void main() {
                             );
                           },
                         )
+                      : screen == 'feed'
+                      ? const StoryFeedPage()
                       : screen == 'page'
                       ? const PromptsPage()
                       : Scaffold(
@@ -130,6 +148,10 @@ void main() {
             ),
           );
           await tester.pumpAndSettle();
+          if (screen == 'recordlargebottom') {
+            await tester.drag(find.byType(ListView), const Offset(0, -900));
+            await tester.pumpAndSettle();
+          }
           await expectLater(
             find.byType(MaterialApp),
             matchesGoldenFile('shots/real_font_$variant.png'),

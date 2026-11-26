@@ -127,17 +127,9 @@ class RecordView extends StatelessWidget {
               text: promptText!,
               followUp: promptFollowUp,
               onDifferent: onDifferentQuestion,
-            ),
-          ],
-          if (onMoreQuestions != null &&
-              buttonState == RecordButtonState.idle) ...[
-            SizedBox(height: AppDimens.sm),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton(
-                onPressed: onMoreQuestions,
-                child: Text(s.promptsTitle),
-              ),
+              onMore: buttonState == RecordButtonState.idle
+                  ? onMoreQuestions
+                  : null,
             ),
           ],
           SizedBox(height: AppDimens.xl),
@@ -198,11 +190,19 @@ class RecordView extends StatelessWidget {
 }
 
 class _PromptCard extends StatelessWidget {
-  const _PromptCard({required this.text, this.followUp, this.onDifferent});
+  const _PromptCard({
+    required this.text,
+    this.followUp,
+    this.onDifferent,
+    this.onMore,
+  });
 
   final String text;
   final String? followUp;
   final VoidCallback? onDifferent;
+
+  /// "Questions to ask" (spec 07), same row as Different question.
+  final VoidCallback? onMore;
 
   @override
   Widget build(BuildContext context) {
@@ -232,13 +232,20 @@ class _PromptCard extends StatelessWidget {
                 style: AppTextStyles.caption.copyWith(color: hk.inkSoft),
               ),
             ],
-            if (onDifferent != null)
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: TextButton(
-                  onPressed: onDifferent,
-                  child: Text(s.recordDifferentQuestion),
-                ),
+            if (onDifferent != null || onMore != null)
+              _CardLinks(
+                more: onMore == null
+                    ? null
+                    : TextButton(
+                        onPressed: onMore,
+                        child: Text(s.promptsTitle),
+                      ),
+                different: onDifferent == null
+                    ? null
+                    : TextButton(
+                        onPressed: onDifferent,
+                        child: Text(s.recordDifferentQuestion),
+                      ),
               ),
           ],
         ),
@@ -291,6 +298,46 @@ class _LevelMeter extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The links under the prompt card. Normal text: one row, each half wraps by
+/// word. Enlarged text: they stack, so no word is split.
+class _CardLinks extends StatelessWidget {
+  const _CardLinks({this.more, this.different});
+
+  final Widget? more;
+  final Widget? different;
+
+  @override
+  Widget build(BuildContext context) {
+    final big = MediaQuery.textScalerOf(context).scale(10) > 12;
+    if (big) {
+      return Wrap(
+        alignment: more != null && different != null
+            ? WrapAlignment.spaceBetween
+            : WrapAlignment.end,
+        children: [?more, ?different],
+      );
+    }
+    return Row(
+      children: [
+        if (more != null)
+          Expanded(
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: more,
+            ),
+          ),
+        if (different != null)
+          Expanded(
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: different,
+            ),
+          ),
+      ],
     );
   }
 }
