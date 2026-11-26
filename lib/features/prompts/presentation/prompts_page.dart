@@ -217,6 +217,8 @@ class _PromptsPageState extends ConsumerState<PromptsPage> {
                   ? 0
                   : progress.answered / progress.total,
               minHeight: 3,
+              color: scheme.primary,
+              backgroundColor: scheme.outlineVariant,
               borderRadius: BorderRadius.circular(2),
             ),
             SizedBox(height: AppDimens.lg),
