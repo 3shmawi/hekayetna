@@ -1,6 +1,7 @@
 import 'package:family_stories/core/theme/app_dimens.dart';
 import 'package:family_stories/core/theme/app_text_styles.dart';
 import 'package:family_stories/core/theme/app_theme.dart';
+import 'package:family_stories/core/ui/app_theme_link.dart';
 import 'package:flutter/material.dart';
 
 /// The app's three buttons (Design System card): primary for the one action
@@ -67,10 +68,10 @@ class AppButton extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final hk = context.hk;
     final (background, foreground, border) = switch (_kind) {
-      _Kind.primary => (scheme.primary, scheme.onPrimary, null),
+      _Kind.primary => (hk.fill, hk.onFill, null),
       _Kind.secondary => (
         Colors.transparent,
-        scheme.primary,
+        LinkColor.of(context),
         BorderSide(color: scheme.outlineVariant),
       ),
       _Kind.destructive => (scheme.errorContainer, scheme.error, null),
@@ -82,44 +83,54 @@ class AppButton extends StatelessWidget {
           : BoxConstraints.tightFor(height: AppDimens.buttonHeight),
       child: Center(
         widthFactor: expand ? null : 1,
-        child: busy
-            ? SizedBox.square(
-                dimension: AppDimens.iconMd,
-                child: CircularProgressIndicator.adaptive(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation(foreground),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: wrap ? AppDimens.sm : 0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Busy: a clear spinner next to the (still readable) label.
+              if (busy) ...[
+                SizedBox.square(
+                  dimension: AppDimens.iconMd,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation(foreground),
+                  ),
                 ),
-              )
-            : Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: wrap ? AppDimens.sm : 0,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (icon != null) ...[
-                      Icon(icon, size: AppDimens.iconMd),
-                      SizedBox(width: AppDimens.sm),
-                    ],
-                    Flexible(
-                      child: Text(
-                        label,
-                        textAlign: wrap ? TextAlign.center : null,
-                        maxLines: wrap ? null : 1,
-                        overflow: wrap ? null : TextOverflow.ellipsis,
-                        style: AppTextStyles.label,
-                      ),
-                    ),
-                  ],
+                SizedBox(width: AppDimens.sm),
+              ] else if (icon != null) ...[
+                Icon(icon, size: AppDimens.iconMd),
+                SizedBox(width: AppDimens.sm),
+              ],
+              Flexible(
+                child: Text(
+                  label,
+                  textAlign: wrap ? TextAlign.center : null,
+                  maxLines: wrap ? null : 1,
+                  overflow: wrap ? null : TextOverflow.ellipsis,
+                  style: AppTextStyles.label,
                 ),
               ),
+            ],
+          ),
+        ),
       ),
     );
     final style = TextButton.styleFrom(
       backgroundColor: background,
       foregroundColor: foreground,
-      disabledBackgroundColor: background.withValues(alpha: 0.5),
-      disabledForegroundColor: foreground.withValues(alpha: 0.6),
+      // A disabled filled button is a quiet neutral chip with readable
+      // text, not the brand fill at half strength (that was ~2:1 in light).
+      disabledBackgroundColor: busy
+          ? background.withValues(alpha: 0.85)
+          : _kind == _Kind.secondary
+          ? background.withValues(alpha: 0.5)
+          : Color.alphaBlend(scheme.onSurface.withValues(alpha: 0.12), hk.sand),
+      disabledForegroundColor: busy
+          ? foreground
+          : _kind == _Kind.secondary
+          ? foreground.withValues(alpha: 0.6)
+          : hk.inkSoft,
       padding: EdgeInsets.symmetric(horizontal: AppDimens.xl),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusMd),

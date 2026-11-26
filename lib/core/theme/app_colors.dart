@@ -9,16 +9,19 @@ import 'package:flutter/material.dart';
 /// dark values live in `HekayetnaColors.dark` and `AppTheme.dark`).
 abstract final class AppColors {
   // Light theme tokens (docs/designs/01-design-foundation.md → Tokens).
-  static const sand = Color(0xFFF6F1E7);
-  static const surface = Color(0xFFFFFDF8);
+  static const sand = Color(0xFFF6FBF4);
+  static const surface = Color(0xFFFFFFFF);
+
+  /// Filled form fields (Stitch surface-container).
+  static const field = Color(0xFFEBEFE8);
   static const surfaceRaised = Color(0xFFFFFFFF);
-  static const line = Color(0xFFE2D9C8);
-  static const ink = Color(0xFF25211D);
-  static const inkSoft = Color(0xFF5A645C);
-  static const olive = Color(0xFF3F6B5C);
-  static const oliveDeep = Color(0xFF2F5246);
+  static const line = Color(0xFFDFE4DD);
+  static const ink = Color(0xFF181D19);
+  static const inkSoft = Color(0xFF4F564F);
+  static const olive = Color(0xFF243828);
+  static const oliveDeep = Color(0xFF0F2214);
   static const onOlive = Color(0xFFFFFFFF);
-  static const oliveTint = Color(0xFFE3ECE6);
+  static const oliveTint = Color(0xFFE0EBDF);
   static const terracotta = Color(0xFF9C4A21);
   static const onTerracotta = Color(0xFFFFFFFF);
   static const terracottaTint = Color(0xFFF3E1D6);

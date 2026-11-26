@@ -297,4 +297,69 @@ void main() {
       handle.dispose();
     });
   }
+
+  testWidgets('fit shows every person, zoom in reads labels, pan reaches '
+      'the edge, fit again loses nobody', (t) async {
+    final g = bigGraph();
+    final r = await _pump(t, g);
+    final nodes = find.byWidgetPredicate(
+      (w) => w.runtimeType.toString() == '_TreeNode',
+    );
+    final view = t.getRect(find.byType(FamilyTreeCanvas));
+    int inside() {
+      var n = 0;
+      for (final e in nodes.evaluate()) {
+        final c = t.getCenter(find.byElementPredicate((x) => x == e));
+        if (view.contains(c)) n++;
+      }
+      return n;
+    }
+
+    await t.tap(find.byTooltip('Show the whole family'));
+    await t.pump();
+    final fitScale = r.controller.scale;
+    expect(fitScale, lessThan(1));
+    final all = inside();
+    expect(all, g.persons.length, reason: 'fit must show every person');
+
+    // Zoom in until labels are readable.
+    while (r.controller.scale < kTreeLabelsMinScale) {
+      await t.tap(find.byTooltip('Zoom in'));
+      await t.pump();
+    }
+    expect(r.controller.scale, greaterThanOrEqualTo(kTreeLabelsMinScale));
+    final zoomedInside = inside();
+    expect(zoomedInside, lessThan(all));
+
+    // Pan far to the start edge and the far edge: someone new appears.
+    final seen = <String>{};
+    void collect() {
+      for (final e in nodes.evaluate()) {
+        final c = t.getCenter(find.byElementPredicate((x) => x == e));
+        if (!view.contains(c)) continue;
+        // The node widget is private to the canvas; read its id reflectively.
+        // ignore: avoid_dynamic_calls
+        final id = (e.widget as dynamic).node.id as String;
+        seen.add(id);
+      }
+    }
+
+    collect();
+    for (var i = 0; i < 12; i++) {
+      await t.drag(find.byType(FamilyTreeCanvas), const Offset(300, 200));
+      await t.pump();
+      collect();
+    }
+    for (var i = 0; i < 24; i++) {
+      await t.drag(find.byType(FamilyTreeCanvas), const Offset(-300, -200));
+      await t.pump();
+      collect();
+    }
+    expect(seen.length, greaterThan(zoomedInside));
+
+    await t.tap(find.byTooltip('Show the whole family'));
+    await t.pump();
+    expect(inside(), g.persons.length);
+    await t.pump(const Duration(seconds: 2));
+  });
 }
