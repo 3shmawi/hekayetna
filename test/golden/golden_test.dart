@@ -78,7 +78,7 @@ final Map<String, Widget Function()> screens = {
     onForgotPassword: (_) {},
     onSendLink: (_) {},
   ),
-  'onboarding': () => const OnboardingPage(),
+  'onboarding': () => const ProviderScope(child: OnboardingPage()),
 };
 
 UpdateInfo _update(UpdateType type) => UpdateInfo(

@@ -5,9 +5,12 @@ import 'package:family_stories/core/analytics/analytics.dart';
 import 'package:family_stories/core/router/app_routes.dart';
 import 'package:family_stories/core/theme/app_colors.dart';
 import 'package:family_stories/core/ui/app_ui.dart';
+import 'package:family_stories/core/ui/language_switch.dart';
 import 'package:family_stories/features/onboarding/data/onboarding.dart';
+import 'package:family_stories/features/settings/presentation/settings_controller.dart';
 import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// The first-launch welcome (`/welcome`): a progressive start instead of a
@@ -15,14 +18,14 @@ import 'package:go_router/go_router.dart';
 /// your parents, and watch the tree grow with each step. The names are kept
 /// as a draft (onboarding.dart); the Family tab offers to add exactly these
 /// people, and nothing is created before that confirmation.
-class OnboardingPage extends StatefulWidget {
+class OnboardingPage extends ConsumerStatefulWidget {
   const OnboardingPage({super.key});
 
   @override
-  State<OnboardingPage> createState() => _OnboardingPageState();
+  ConsumerState<OnboardingPage> createState() => _OnboardingPageState();
 }
 
-class _OnboardingPageState extends State<OnboardingPage> {
+class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   static const _steps = 4;
 
   int _step = 0;
@@ -55,6 +58,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final last = _step == _steps - 1;
+    if (_step == 0) {
+      return _WelcomeStep(
+        steps: _steps,
+        onLocaleChanged: ref
+            .read(settingsControllerProvider.notifier)
+            .setLocale,
+        onStart: () => setState(() => _step = 1),
+        onInvite: () => context.go(AppRoutes.join),
+      );
+    }
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -125,12 +138,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Widget _buildStep(BuildContext context) {
     final l10n = context.l10n;
     switch (_step) {
-      case 0:
-        return _StepBody(
-          title: l10n.onboardingWelcomeTitle,
-          body: l10n.onboardingWelcomeBody,
-          tree: _SeedTree(draft: _draft, reveal: const _Reveal(you: true)),
-        );
       case 1:
         return _StepBody(
           title: l10n.onboardingYouTitle,
@@ -476,4 +483,204 @@ class _SeedTreePainter extends CustomPainter {
       old.textDirection != textDirection ||
       old.color != color ||
       old.lineColor != lineColor;
+}
+
+/// The first screen, as drawn in the design file ("Welcome"): a green
+/// illustration panel, the page marker, the promise, and two ways in. The
+/// illustration is decorative and is not mirrored in Arabic.
+class _WelcomeStep extends StatelessWidget {
+  const _WelcomeStep({
+    required this.steps,
+    required this.onLocaleChanged,
+    required this.onStart,
+    required this.onInvite,
+  });
+
+  final int steps;
+  final ValueChanged<Locale> onLocaleChanged;
+  final VoidCallback onStart;
+  final VoidCallback onInvite;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final height = MediaQuery.sizeOf(context).height;
+    return Scaffold(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: math.min(height * 0.42, 360),
+            child: const ExcludeSemantics(child: _WelcomeHero()),
+          ),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: LanguageSwitch(
+                        key: const Key('onboarding_language'),
+                        onChanged: onLocaleChanged,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Semantics(
+                      label: l10n.onboardingProgress(1, steps),
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: _StepPill(step: 0, count: steps),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.onboardingHeroTitle,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.onboardingHeroBody,
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: 24),
+                    AppButton.primary(
+                      key: const Key('onboarding_next'),
+                      label: l10n.onboardingStart,
+                      wrap: true,
+                      onPressed: onStart,
+                    ),
+                    const SizedBox(height: 12),
+                    AppButton.secondary(
+                      key: const Key('onboarding_have_invite'),
+                      label: l10n.onboardingHaveInvite,
+                      wrap: true,
+                      onPressed: onInvite,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The artboard's page marker: the current page is a short bar, the rest
+/// are dots.
+class _StepPill extends StatelessWidget {
+  const _StepPill({required this.step, required this.count});
+
+  final int step;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < count; i++)
+          Container(
+            width: i == step ? 20 : 6,
+            height: 6,
+            margin: const EdgeInsetsDirectional.only(end: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(3),
+              color: i == step ? scheme.primary : scheme.outlineVariant,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _WelcomeHero extends StatelessWidget {
+  const _WelcomeHero();
+
+  // Fractions of the panel: centre x, centre y, turn (radians).
+  static const _sticks = <(double, double, double)>[
+    (0.13, 0.30, -0.75),
+    (0.31, 0.22, 0.6),
+    (0.81, 0.25, -0.75),
+    (0.67, 0.55, 0.6),
+    (0.20, 0.68, 0.6),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: ColoredBox(
+        color: AppColors.olive,
+        child: LayoutBuilder(
+          builder: (context, c) {
+            final w = c.maxWidth;
+            final h = c.maxHeight;
+            final unit = math.min(w, h * 1.0);
+            final stickW = unit * 0.045;
+            final stickH = unit * 0.15;
+            final r = unit * 0.17;
+            return Stack(
+              children: [
+                for (final (x, y, a) in _sticks)
+                  Positioned(
+                    left: w * x - stickW / 2,
+                    top: h * y - stickH / 2,
+                    child: Transform.rotate(
+                      angle: a,
+                      child: Container(
+                        width: stickW,
+                        height: stickH,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.72),
+                          borderRadius: BorderRadius.circular(stickW),
+                        ),
+                      ),
+                    ),
+                  ),
+                Positioned(
+                  left: w * 0.5 - r,
+                  top: h * 0.76 - r,
+                  child: Container(
+                    width: r * 2,
+                    height: r * 2,
+                    decoration: const BoxDecoration(
+                      color: AppColors.terracotta,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.mic_none_rounded,
+                      color: Colors.white,
+                      size: r * 1.1,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: w * 0.82 - unit * 0.06,
+                  top: h * 0.76 - unit * 0.06,
+                  child: Container(
+                    width: unit * 0.12,
+                    height: unit * 0.12,
+                    decoration: const BoxDecoration(
+                      color: AppColors.gold,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
 }
