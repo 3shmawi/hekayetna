@@ -2,6 +2,7 @@ import 'package:family_stories/core/auth/auth.dart';
 import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/features/auth/presentation/account_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/fake_auth_service.dart';
@@ -22,17 +23,17 @@ void main() {
 
   group(AccountPage, () {
     testWidgets('shows who is signed in', (tester) async {
-      await tester.pumpApp(const AccountPage());
+      await tester.pumpApp(const ProviderScope(child: AccountPage()));
       expect(find.text('ada@example.com'), findsOneWidget);
     });
 
     testWidgets('meets accessibility guidelines', (tester) async {
-      await tester.pumpApp(const AccountPage());
+      await tester.pumpApp(const ProviderScope(child: AccountPage()));
       await tester.expectAccessible();
     });
 
     testWidgets('signs out', (tester) async {
-      await tester.pumpApp(const AccountPage());
+      await tester.pumpApp(const ProviderScope(child: AccountPage()));
       await tester.tap(find.byKey(const Key('account_sign_out')));
       await tester.pumpAndSettle();
 
@@ -43,7 +44,7 @@ void main() {
     testWidgets('deleting asks first; cancel keeps the account', (
       tester,
     ) async {
-      await tester.pumpApp(const AccountPage());
+      await tester.pumpApp(const ProviderScope(child: AccountPage()));
       await tester.tap(find.byKey(const Key('account_delete')));
       await tester.pumpAndSettle();
       expect(find.text(l10nEn.accountDeleteTitle), findsOneWidget);
@@ -55,7 +56,7 @@ void main() {
     });
 
     testWidgets('deletes the account after confirming', (tester) async {
-      await tester.pumpApp(const AccountPage());
+      await tester.pumpApp(const ProviderScope(child: AccountPage()));
       await tester.tap(find.byKey(const Key('account_delete')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('account_delete_confirm')));
@@ -71,7 +72,7 @@ void main() {
       auth.nextFailure = const AuthFailure(
         AuthFailureReason.recentLoginRequired,
       );
-      await tester.pumpApp(const AccountPage());
+      await tester.pumpApp(const ProviderScope(child: AccountPage()));
       await tester.tap(find.byKey(const Key('account_delete')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('account_delete_confirm')));

@@ -11,6 +11,8 @@ also a deep link.
 | `/account` | Account — signed-in only |
 | `/new-password` | Set a new password after a reset link — signed-in only |
 | `/welcome` | First-launch welcome (shown once instead of `/`) |
+| `/join/<code>` | Confirm joining a family (7-character short code or old UUID code); signed-in only |
+| `/family/invite` | Invite page: code, QR, share (signed-in only) |
 
 ## Custom scheme (works now)
 `familystories://settings` — test with:
@@ -33,3 +35,20 @@ Host: `example.com`. Needs, once:
 If no domain was chosen at creation, add later: intent filter in
 `AndroidManifest.xml` (`android:autoVerify="true"`, scheme https) and
 `ios/Runner/Runner.entitlements` with `applinks:<domain>`.
+
+## Invite links (spec 06)
+`familystories://join/<CODE>` opens the join confirm screen. The code is
+parsed by `InviteCode.parse` before any network call: 7 characters from the
+safe alphabet (no 0, O, 1, I, L), or an old UUID. Anything else (wrong length,
+other characters, `?from=` tricks, absolute URLs) shows "invalid link" and
+nothing is sent to the backend. Signed-out users are sent to sign-in first and
+come back to the same `/join/<code>` (the return path is checked to stay inside
+the app). Joining only happens after the person taps the confirm button, never
+from just opening the link. The https form `https://<host>/join/<CODE>` is only
+produced when a verified host is configured; until then the app shares the
+custom-scheme link and the plain code.
+
+Config read, not device-tested: the Android manifest has a VIEW intent filter
+for scheme `familystories` (any host and path) and `Info.plist` has the
+`familystories` URL type. Opening a link from the OS on a device or simulator
+has not been run yet.

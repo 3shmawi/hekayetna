@@ -13,6 +13,9 @@ abstract final class AppRoutes {
   static const account = '/account';
   static const newPassword = '/new-password';
   static const welcome = '/welcome';
+  static const invite = '/family/invite';
+  static const join = '/join';
+  static String joinWith(String code) => '/join/$code';
   static const prompts = '/prompts';
 
   /// Nested paths (used with `context.push`, never as branch roots).
@@ -33,6 +36,7 @@ abstract final class AppRoutes {
     family,
     account,
     newPassword,
+    join,
     prompts,
   };
 }

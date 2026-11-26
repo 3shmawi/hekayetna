@@ -10,6 +10,8 @@ import 'package:family_stories/features/auth/presentation/account_page.dart';
 import 'package:family_stories/features/auth/presentation/new_password_page.dart';
 import 'package:family_stories/features/auth/presentation/sign_in_page.dart';
 import 'package:family_stories/features/family/presentation/family_screens.dart';
+import 'package:family_stories/features/family/presentation/invite_screen.dart';
+import 'package:family_stories/features/family/presentation/join_screen.dart';
 import 'package:family_stories/features/onboarding/presentation/onboarding_page.dart';
 import 'package:family_stories/features/prompts/presentation/prompts_page.dart';
 import 'package:family_stories/features/recording/presentation/continue_recording_screen.dart';
@@ -106,6 +108,13 @@ final appRouter = GoRouter(
               builder: (context, state) => const FamilyHomeScreen(),
               routes: [
                 GoRoute(
+                  path: 'invite',
+                  name: 'invite',
+                  builder: (context, state) => InviteScreen(
+                    from: state.uri.queryParameters['from'] ?? 'unknown',
+                  ),
+                ),
+                GoRoute(
                   path: 'people/:id',
                   name: 'person_detail',
                   builder: (context, state) =>
@@ -116,6 +125,12 @@ final appRouter = GoRouter(
           ],
         ),
       ],
+    ),
+    GoRoute(
+      path: '${AppRoutes.join}/:code',
+      name: 'join_family',
+      builder: (context, state) =>
+          JoinScreen(rawCode: state.pathParameters['code'] ?? ''),
     ),
     GoRoute(
       path: AppRoutes.prompts,

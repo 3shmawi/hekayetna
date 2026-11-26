@@ -14,6 +14,8 @@ class AccountView extends StatelessWidget {
     required this.onDelete,
     this.busy = false,
     this.error,
+    this.displayName,
+    this.onEditName,
     super.key,
   });
 
@@ -24,6 +26,11 @@ class AccountView extends StatelessWidget {
   final VoidCallback onDelete;
   final bool busy;
   final String? error;
+
+  /// What the family calls the user, and how to change it. The row only
+  /// shows when [onEditName] is set.
+  final String? displayName;
+  final VoidCallback? onEditName;
 
   Future<void> _confirmDelete(BuildContext context) async {
     final l10n = context.l10n;
@@ -75,6 +82,21 @@ class AccountView extends StatelessWidget {
               ),
             ],
           ),
+          if (onEditName != null) ...[
+            SizedBox(height: AppDimens.xl),
+            SettingsGroup(
+              children: [
+                SettingsRow(
+                  key: const Key('account_your_name'),
+                  label: (displayName ?? '').trim().isEmpty
+                      ? l10n.accountYourName
+                      : '${l10n.accountYourName}: $displayName',
+                  icon: AdaptiveIcons.account(context),
+                  onTap: busy ? null : onEditName,
+                ),
+              ],
+            ),
+          ],
           SizedBox(height: AppDimens.xl),
           SettingsGroup(
             children: [

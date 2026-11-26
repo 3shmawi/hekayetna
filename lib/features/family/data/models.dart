@@ -5,16 +5,35 @@ class FamilySpace {
     required this.id,
     required this.name,
     required this.inviteCode,
+    this.inviteShortCode = '',
   });
 
   factory FamilySpace.fromJson(Map<String, dynamic> j) => FamilySpace(
     id: j['id'] as String,
     name: j['name'] as String,
     inviteCode: j['invite_code'] as String? ?? '',
+    inviteShortCode: j['invite_short_code'] as String? ?? '',
   );
   final String id;
   final String name;
   final String inviteCode;
+
+  /// 7 characters, shown as `7K4-QM9` and carried in invite links.
+  final String inviteShortCode;
+
+  FamilySpace withShortCode(String code) => FamilySpace(
+    id: id,
+    name: name,
+    inviteCode: inviteCode,
+    inviteShortCode: code,
+  );
+}
+
+/// What the join screen may show before someone joins.
+class FamilyPreview {
+  const FamilyPreview({required this.name, required this.memberCount});
+  final String name;
+  final int memberCount;
 }
 
 class FamilyMember {

@@ -2,6 +2,7 @@ import 'package:family_stories/core/network/app_failure.dart';
 import 'package:family_stories/core/network/result.dart';
 import 'package:family_stories/features/family/data/family_repository.dart';
 import 'package:family_stories/features/family/data/models.dart';
+import 'package:family_stories/features/family/domain/invite_code.dart';
 
 /// DEMO MODE ONLY. In-memory data with realistic sample content (an Egyptian
 /// family) so screens can be reviewed honestly without a backend.
@@ -66,10 +67,11 @@ class DemoFamilyRepository implements FamilyRepository {
     ]);
   }
 
-  final _space = const FamilySpace(
+  var _space = const FamilySpace(
     id: 'demo-space',
     name: 'Sample Family (demo)',
-    inviteCode: 'DEMO-1234',
+    inviteCode: '00000000-0000-4000-8000-000000000000',
+    inviteShortCode: '7K4QM9X',
   );
   final List<Person> _persons = [];
   final List<Relationship> _relationships = [];
@@ -85,6 +87,46 @@ class DemoFamilyRepository implements FamilyRepository {
   @override
   Future<Result<FamilySpace>> joinSpace(String inviteCode) =>
       guard(() => _joinSpace(inviteCode));
+
+  @override
+  Future<Result<FamilyPreview>> previewFamily(String inviteCode) =>
+      guard(() async {
+        _requireCode(inviteCode);
+        return FamilyPreview(name: _space.name, memberCount: 1);
+      });
+
+  String _myName = '';
+
+  @override
+  Future<Result<String>> getMyDisplayName() => guard(() async => _myName);
+
+  @override
+  Future<Result<String>> setMyDisplayName(String name) => guard(() async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty || trimmed.length > 40) {
+      throw const FamilyException('invalid_display_name');
+    }
+    return _myName = trimmed;
+  });
+
+  @override
+  Future<Result<String>> rotateInviteCode(String spaceId) => guard(() async {
+    const alphabet = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+    final next = [
+      for (var i = 0; i < 7; i++)
+        alphabet[(_seq++ * 7 + i * 3) % alphabet.length],
+    ].join();
+    _space = _space.withShortCode(next);
+    return next;
+  });
+
+  InviteCode _requireCode(String raw) {
+    final code = InviteCode.parse(raw);
+    if (code == null) {
+      throw const FamilyFailure(FamilyFailureReason.invalidInviteCode);
+    }
+    return code;
+  }
 
   @override
   Future<Result<List<FamilyMember>>> listMembers(String spaceId) =>
@@ -133,9 +175,7 @@ class DemoFamilyRepository implements FamilyRepository {
       FamilySpace(id: 'demo-space', name: name, inviteCode: 'DEMO-1234');
 
   Future<FamilySpace> _joinSpace(String inviteCode) async {
-    if (inviteCode.trim().isEmpty) {
-      throw const FamilyFailure(FamilyFailureReason.invalidInviteCode);
-    }
+    _requireCode(inviteCode);
     return _space;
   }
 
