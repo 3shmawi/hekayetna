@@ -408,5 +408,9 @@
   "promptsSaveForLater": "احفظه لبعدين",
   "promptsSaved": "محفوظ لبعدين",
   "promptsAllAnswered": "كل أسئلة الموضوع ده اتجاوبت.",
-  "promptsEmpty": "مفيش أسئلة هنا لسه."
+  "promptsEmpty": "مفيش أسئلة هنا لسه.",
+  "promptsWeekTitle": "سؤال الأسبوع",
+  "promptsWeekRecord": "سجّل إجابة {name}",
+  "promptsMore": "أسئلة تانية",
+  "promptsDismiss": "اخفيه لحد الأسبوع الجاي"
 }

@@ -15,6 +15,7 @@ RecordView _view({
   VoidCallback? onNarrator,
   VoidCallback? onTopic,
   VoidCallback? onClose,
+  VoidCallback? onMore,
 }) => RecordView(
   buttonState: state,
   elapsed: const Duration(minutes: 1, seconds: 5),
@@ -24,6 +25,7 @@ RecordView _view({
   canFinish: canFinish,
   promptText: prompt,
   onDifferentQuestion: () {},
+  onMoreQuestions: onMore,
   onClose: onClose ?? () {},
   onToggle: onToggle ?? () {},
   onPickNarrator: onNarrator ?? () {},
@@ -32,6 +34,23 @@ RecordView _view({
 );
 
 void main() {
+  testWidgets('Questions to ask link: shown idle only when wired (spec 07)', (
+    tester,
+  ) async {
+    var opened = 0;
+    await tester.pumpApp(_view());
+    expect(find.text('Questions to ask'), findsNothing);
+
+    await tester.pumpApp(_view(onMore: () => opened++));
+    await tester.tap(find.text('Questions to ask'));
+    expect(opened, 1);
+
+    await tester.pumpApp(
+      _view(state: RecordButtonState.recording, onMore: () => opened++),
+    );
+    expect(find.text('Questions to ask'), findsNothing);
+  });
+
   testWidgets('AC-3: Done is disabled until something is recorded', (
     tester,
   ) async {

@@ -28,6 +28,7 @@ class RecordView extends StatelessWidget {
     this.topicLabel,
     this.promptText,
     this.onDifferentQuestion,
+    this.onMoreQuestions,
     this.note,
     super.key,
   });
@@ -45,6 +46,10 @@ class RecordView extends StatelessWidget {
   /// The question card; null hides it (prompts turned off).
   final String? promptText;
   final VoidCallback? onDifferentQuestion;
+
+  /// Opens "Questions to ask" (spec 07); null hides the link. Only shown
+  /// before a take starts.
+  final VoidCallback? onMoreQuestions;
 
   /// Why the take paused when it was not the user's choice.
   final String? note;
@@ -115,6 +120,17 @@ class RecordView extends StatelessWidget {
           if (promptText != null) ...[
             SizedBox(height: AppDimens.lg),
             _PromptCard(text: promptText!, onDifferent: onDifferentQuestion),
+          ],
+          if (onMoreQuestions != null &&
+              buttonState == RecordButtonState.idle) ...[
+            SizedBox(height: AppDimens.sm),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton(
+                onPressed: onMoreQuestions,
+                child: Text(s.promptsTitle),
+              ),
+            ),
           ],
           SizedBox(height: AppDimens.xl),
           Center(

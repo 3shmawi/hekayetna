@@ -258,6 +258,9 @@ class _RecordPageState extends ConsumerState<RecordPage> {
                     prompts[_promptIndex % prompts.length])
               : null,
           onDifferentQuestion: () => setState(() => _promptIndex++),
+          onMoreQuestions: flagOn
+              ? () => unawaited(context.push(AppRoutes.prompts))
+              : null,
           note: _note(s, state),
           onClose: _close,
           onToggle: _toggle,

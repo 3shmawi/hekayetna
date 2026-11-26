@@ -295,7 +295,11 @@ class _PromptCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: AppButton.record(label: askLabel, onPressed: onAsk),
+                  child: AppButton.record(
+                    wrap: true,
+                    label: askLabel,
+                    onPressed: onAsk,
+                  ),
                 ),
                 SizedBox(width: AppDimens.sm),
                 AppIconButton(

@@ -539,5 +539,14 @@
   "promptsSaveForLater": "Save for later",
   "promptsSaved": "Saved for later",
   "promptsAllAnswered": "Every question in this topic is answered.",
-  "promptsEmpty": "No questions here yet."
+  "promptsEmpty": "No questions here yet.",
+  "promptsWeekTitle": "Question of the week",
+  "promptsWeekRecord": "Record {name}'s answer",
+  "@promptsWeekRecord": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "promptsMore": "More questions",
+  "promptsDismiss": "Hide until next week"
 }

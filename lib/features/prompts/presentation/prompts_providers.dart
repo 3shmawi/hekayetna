@@ -36,3 +36,8 @@ class SavedPromptsNotifier extends AsyncNotifier<Set<String>> {
 final answeredPromptsProvider = Provider.family<Map<String, String>, String?>(
   (ref, personId) => const {},
 );
+
+/// Today, injectable so a test can fix the ISO week.
+final promptsClockProvider = Provider<DateTime Function()>(
+  (ref) => DateTime.now,
+);
