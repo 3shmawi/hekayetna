@@ -12,6 +12,7 @@ import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/prompts/data/prompt_flag.dart';
 import 'package:family_stories/features/prompts/data/prompt_library_loader.dart';
+import 'package:family_stories/features/prompts/domain/interview_prompt.dart';
 import 'package:family_stories/features/recording/data/recorder_service.dart';
 import 'package:family_stories/features/recording/presentation/continue_recording_screen.dart';
 import 'package:family_stories/features/recording/presentation/record_view.dart';
@@ -39,7 +40,28 @@ class RecordPage extends ConsumerStatefulWidget {
 }
 
 class _RecordPageState extends ConsumerState<RecordPage> {
-  String? _topic;
+  String? _picked;
+  bool _pickedByUser = false;
+
+  bool get _promptsOn =>
+      ref.read(interviewPromptsEnabledProvider).value ?? false;
+
+  /// The topic in use: the user's pick, else (flag on only) the one the
+  /// "Questions to ask" screen sent. With the flag off a query is ignored.
+  String? get _topic {
+    if (_pickedByUser) return _picked;
+    final t = widget.topic;
+    return _promptsOn && t != null && kStoryTopics.contains(t) ? t : null;
+  }
+
+  /// The question opened from "Questions to ask", only with the flag on and
+  /// only if it exists in the library.
+  InterviewPrompt? get _openedPrompt {
+    final id = widget.promptId;
+    if (id == null || !_promptsOn) return null;
+    return ref.read(promptLibraryProvider).value?.byId(id);
+  }
+
   String? _currentDraftId;
   bool _checkedDrafts = false;
   int _promptIndex = 0;
@@ -49,9 +71,6 @@ class _RecordPageState extends ConsumerState<RecordPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.topic != null && kStoryTopics.contains(widget.topic)) {
-      _topic = widget.topic;
-    }
     _levelSub = ref.read(recorderServiceProvider).levels.listen((v) {
       if (!mounted) return;
       setState(() {
@@ -93,6 +112,7 @@ class _RecordPageState extends ConsumerState<RecordPage> {
         draftId: id,
         narratorPersonId: ref.read(settingsControllerProvider).lastNarratorId,
         topic: _topic,
+        promptId: _openedPrompt?.id,
       );
     } else if (state.canPause) {
       await recorder.pause();
@@ -207,7 +227,10 @@ class _RecordPageState extends ConsumerState<RecordPage> {
       ),
     );
     if (picked == null || !mounted) return;
-    setState(() => _topic = picked.isEmpty ? null : picked);
+    setState(() {
+      _picked = picked.isEmpty ? null : picked;
+      _pickedByUser = true;
+    });
   }
 
   String? _note(AppLocalizations s, RecorderState state) =>
@@ -231,10 +254,8 @@ class _RecordPageState extends ConsumerState<RecordPage> {
         .firstOrNull;
     final prompts = starterQuestions(s);
     final flagOn = ref.watch(interviewPromptsEnabledProvider).value ?? false;
-    final library = flagOn ? ref.watch(promptLibraryProvider).value : null;
-    final chosen = widget.promptId == null
-        ? null
-        : library?.byId(widget.promptId!);
+    if (flagOn) ref.watch(promptLibraryProvider);
+    final chosen = _openedPrompt;
     final lang = Localizations.localeOf(context).languageCode;
     return StreamBuilder<RecorderState>(
       stream: recorder.watch(),

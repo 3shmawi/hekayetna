@@ -58,6 +58,10 @@ void main() {
           builder: (_, _) => PromptsPage(pick: pick, from: 'feed'),
         ),
         GoRoute(
+          path: '/stories',
+          builder: (_, _) => const Scaffold(body: Text('feed-stub')),
+        ),
+        GoRoute(
           path: '/record',
           builder: (_, state) {
             visited.add(state.uri.toString());
@@ -113,6 +117,8 @@ void main() {
     await pump(tester, flag: false);
     expect(find.text(l10nEn.promptsSurprise), findsNothing);
     expect(find.text(street), findsNothing);
+    // A direct visit is sent back to the feed.
+    expect(find.text('feed-stub'), findsOneWidget);
   });
 
   testWidgets('first topic shows 0 of 12 and its questions (AC-4)', (

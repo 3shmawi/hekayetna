@@ -98,8 +98,15 @@ class _PromptsPageState extends ConsumerState<PromptsPage> {
   @override
   Widget build(BuildContext context) {
     final s = context.l10n;
-    final enabled = ref.watch(interviewPromptsEnabledProvider).value ?? false;
-    if (!enabled) {
+    final flag = ref.watch(interviewPromptsEnabledProvider);
+    if (flag.value != true) {
+      // Flag off (or still loading): nothing here. Off sends a direct
+      // visit to /prompts back to the feed.
+      if (flag.hasValue) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) context.go(AppRoutes.stories);
+        });
+      }
       return AppScaffold(title: s.promptsTitle, body: const SizedBox.shrink());
     }
     if (!_openedReported) {
