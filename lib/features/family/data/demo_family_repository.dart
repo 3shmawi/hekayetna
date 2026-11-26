@@ -71,7 +71,7 @@ class DemoFamilyRepository implements FamilyRepository {
     id: 'demo-space',
     name: 'Sample Family (demo)',
     inviteCode: '00000000-0000-4000-8000-000000000000',
-    inviteShortCode: '7K4QM92',
+    inviteShortCode: '7K4QM9X',
   );
   final List<Person> _persons = [];
   final List<Relationship> _relationships = [];
