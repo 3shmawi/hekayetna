@@ -9,6 +9,8 @@ import 'package:family_stories/core/ui/app_ui.dart';
 import 'package:family_stories/core/widgets/state_views.dart';
 import 'package:family_stories/features/family/data/models.dart';
 import 'package:family_stories/features/family/presentation/display_name_dialog.dart';
+import 'package:family_stories/features/prompts/data/prompt_flag.dart';
+import 'package:family_stories/features/prompts/presentation/weekly_prompt_card.dart';
 import 'package:family_stories/features/stories/data/story_repository.dart';
 import 'package:family_stories/features/stories/player/audio_player_controller.dart';
 import 'package:family_stories/features/stories/presentation/feed_filters.dart';
@@ -87,6 +89,10 @@ class _StoryFeedPageState extends ConsumerState<StoryFeedPage> {
     final persons = ref.watch(personsProvider(spaceId)).value ?? const [];
     final options = FeedFilterOptions.from(all.value ?? const [], persons);
     return StoryFeedView(
+      // Nothing at all with the flag off, so the feed is unchanged.
+      questionSlot: (ref.watch(interviewPromptsEnabledProvider).value ?? false)
+          ? const WeeklyPromptCard()
+          : null,
       stories: ref.watch(feed),
       options: options,
       selection: _selection,

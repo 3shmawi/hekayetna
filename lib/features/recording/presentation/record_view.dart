@@ -27,7 +27,9 @@ class RecordView extends StatelessWidget {
     required this.onDone,
     this.topicLabel,
     this.promptText,
+    this.promptFollowUp,
     this.onDifferentQuestion,
+    this.onMoreQuestions,
     this.note,
     super.key,
   });
@@ -44,7 +46,14 @@ class RecordView extends StatelessWidget {
 
   /// The question card; null hides it (prompts turned off).
   final String? promptText;
+
+  /// The chosen prompt's follow-ups, joined; null for the starter questions.
+  final String? promptFollowUp;
   final VoidCallback? onDifferentQuestion;
+
+  /// Opens "Questions to ask" (spec 07); null hides the link. Only shown
+  /// before a take starts.
+  final VoidCallback? onMoreQuestions;
 
   /// Why the take paused when it was not the user's choice.
   final String? note;
@@ -114,7 +123,14 @@ class RecordView extends StatelessWidget {
           ),
           if (promptText != null) ...[
             SizedBox(height: AppDimens.lg),
-            _PromptCard(text: promptText!, onDifferent: onDifferentQuestion),
+            _PromptCard(
+              text: promptText!,
+              followUp: promptFollowUp,
+              onDifferent: onDifferentQuestion,
+              onMore: buttonState == RecordButtonState.idle
+                  ? onMoreQuestions
+                  : null,
+            ),
           ],
           SizedBox(height: AppDimens.xl),
           Center(
@@ -174,10 +190,19 @@ class RecordView extends StatelessWidget {
 }
 
 class _PromptCard extends StatelessWidget {
-  const _PromptCard({required this.text, this.onDifferent});
+  const _PromptCard({
+    required this.text,
+    this.followUp,
+    this.onDifferent,
+    this.onMore,
+  });
 
   final String text;
+  final String? followUp;
   final VoidCallback? onDifferent;
+
+  /// "Questions to ask" (spec 07), same row as Different question.
+  final VoidCallback? onMore;
 
   @override
   Widget build(BuildContext context) {
@@ -200,13 +225,27 @@ class _PromptCard extends StatelessWidget {
             ),
             SizedBox(height: AppDimens.xs),
             Text(text, style: AppTextStyles.bodyLarge),
-            if (onDifferent != null)
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: TextButton(
-                  onPressed: onDifferent,
-                  child: Text(s.recordDifferentQuestion),
-                ),
+            if (followUp != null) ...[
+              SizedBox(height: AppDimens.xs),
+              Text(
+                s.recordThen(followUp!),
+                style: AppTextStyles.caption.copyWith(color: hk.inkSoft),
+              ),
+            ],
+            if (onDifferent != null || onMore != null)
+              _CardLinks(
+                more: onMore == null
+                    ? null
+                    : TextButton(
+                        onPressed: onMore,
+                        child: Text(s.promptsTitle),
+                      ),
+                different: onDifferent == null
+                    ? null
+                    : TextButton(
+                        onPressed: onDifferent,
+                        child: Text(s.recordDifferentQuestion),
+                      ),
               ),
           ],
         ),
@@ -259,6 +298,46 @@ class _LevelMeter extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The links under the prompt card. Normal text: one row, each half wraps by
+/// word. Enlarged text: they stack, so no word is split.
+class _CardLinks extends StatelessWidget {
+  const _CardLinks({this.more, this.different});
+
+  final Widget? more;
+  final Widget? different;
+
+  @override
+  Widget build(BuildContext context) {
+    final big = MediaQuery.textScalerOf(context).scale(10) > 12;
+    if (big) {
+      return Wrap(
+        alignment: more != null && different != null
+            ? WrapAlignment.spaceBetween
+            : WrapAlignment.end,
+        children: [?more, ?different],
+      );
+    }
+    return Row(
+      children: [
+        if (more != null)
+          Expanded(
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: more,
+            ),
+          ),
+        if (different != null)
+          Expanded(
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: different,
+            ),
+          ),
+      ],
     );
   }
 }

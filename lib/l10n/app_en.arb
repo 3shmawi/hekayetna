@@ -580,5 +580,61 @@
   "displayNameInvalid": "Use 1 to 40 characters.",
   "displayNameSaved": "Name saved",
   "memberNoName": "Family member",
-  "accountYourName": "Your name"
+  "accountYourName": "Your name",
+  "promptsTitle": "Questions to ask",
+  "promptsAsking": "Asking",
+  "promptsProgress": "{answered} of {total} answered",
+  "@promptsProgress": {
+    "placeholders": {
+      "answered": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "promptsSurprise": "Surprise me",
+  "promptsAsk": "Ask {name}",
+  "@promptsAsk": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "promptsAskSomeone": "Record an answer",
+  "promptsSaveForLater": "Save for later",
+  "promptsSaved": "Saved for later",
+  "promptsAllAnswered": "Every question in this topic is answered.",
+  "promptsEmpty": "No questions here yet.",
+  "promptsWeekTitle": "Question of the week",
+  "promptsWeekRecord": "Record {name}'s answer",
+  "@promptsWeekRecord": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "promptsMore": "More questions",
+  "promptsDismiss": "Hide until next week",
+  "promptsSubtitle": "Pick one, press record, and listen.",
+  "promptsThenAsk": "Then ask: {followUps}",
+  "@promptsThenAsk": {
+    "placeholders": {
+      "followUps": {"type": "String"}
+    }
+  },
+  "promptsAnsweredTitle": "Answered · {title}",
+  "@promptsAnsweredTitle": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "promptsWeekAsk": "Ask {name}: {question}",
+  "@promptsWeekAsk": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "question": {"type": "String"}
+    }
+  },
+  "recordThen": "Then: {followUps}",
+  "@recordThen": {
+    "placeholders": {
+      "followUps": {"type": "String"}
+    }
+  }
 }
