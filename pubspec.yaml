@@ -51,6 +51,8 @@ flutter:
   assets:
     - assets/fonts/Inter/LICENSE.txt
     - assets/fonts/Cairo/LICENSE.txt
+    - assets/fonts/PlusJakartaSans/LICENSE.txt
+    - assets/fonts/PlayfairDisplay/LICENSE.txt
   fonts:
     - family: Inter
       fonts:
@@ -61,6 +63,22 @@ flutter:
         - asset: assets/fonts/Inter/Inter-600.ttf
           weight: 600
         - asset: assets/fonts/Inter/Inter-700.ttf
+          weight: 700
+    - family: PlusJakartaSans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans/PlusJakartaSans-400.ttf
+          weight: 400
+        - asset: assets/fonts/PlusJakartaSans/PlusJakartaSans-500.ttf
+          weight: 500
+        - asset: assets/fonts/PlusJakartaSans/PlusJakartaSans-600.ttf
+          weight: 600
+        - asset: assets/fonts/PlusJakartaSans/PlusJakartaSans-700.ttf
+          weight: 700
+    - family: PlayfairDisplay
+      fonts:
+        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-600.ttf
+          weight: 600
+        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-700.ttf
           weight: 700
     - family: Cairo
       fonts:

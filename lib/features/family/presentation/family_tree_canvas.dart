@@ -12,7 +12,7 @@ import 'package:family_stories/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 
 /// Zoom limits from spec 05.
-const double kTreeMinScale = 0.5;
+const double kTreeMinScale = 0.08;
 const double kTreeMaxScale = 1.8;
 
 /// Below this zoom the rope pills and relation lines hide (spec 05).
@@ -149,7 +149,7 @@ class _FamilyTreeCanvasState extends State<FamilyTreeCanvas> {
       _viewport.width / l.bounds.width,
       _viewport.height / l.bounds.height,
     );
-    _setMatrix(s, l.bounds.center, _viewport.center(Offset.zero));
+    _setMatrix(s > 1 ? 1 : s, l.bounds.center, _viewport.center(Offset.zero));
     widget.onZoomed?.call(TreeZoomVia.fit);
   }
 

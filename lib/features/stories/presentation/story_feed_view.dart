@@ -240,7 +240,10 @@ class _DemoBand extends StatelessWidget {
         horizontal: AppDimens.lg,
         vertical: AppDimens.sm,
       ),
-      child: Text(text, style: AppTextStyles.caption.copyWith(color: hk.gold)),
+      child: Text(
+        text,
+        style: AppTextStyles.caption.copyWith(color: hk.onGold),
+      ),
     );
   }
 }

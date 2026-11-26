@@ -49,6 +49,11 @@ final class UnauthorizedFailure extends AppFailure {
   const UnauthorizedFailure([super.cause]);
 }
 
+/// The thing already exists in a different form; nothing was overwritten.
+final class ConflictFailure extends AppFailure {
+  const ConflictFailure([super.cause]);
+}
+
 final class NotFoundFailure extends AppFailure {
   const NotFoundFailure([super.cause]);
 }
